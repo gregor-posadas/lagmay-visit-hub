@@ -171,3 +171,15 @@
 .mailbox__acts { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 @media (prefers-reduced-motion: no-preference) { .mailbox:not([hidden]) { animation: mailbox-in 0.18s ease-out; } }
 @keyframes mailbox-in { from { opacity: 0; transform: translate(-50%, -46%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+
+/* The RSVP tab is boxed so it reads as the thing to do; filled when you're on it */
+.nav a.nav__rsvp { box-shadow: inset 0 0 0 2px var(--band-ink); font-weight: 700; margin: 6px 4px; min-height: calc(var(--tap) - 12px); border-bottom: 0; }
+.nav a.nav__rsvp:hover { box-shadow: inset 0 0 0 3px var(--band-ink); }
+.nav a.nav__rsvp[aria-current="page"] { background: var(--band-ink); color: var(--band); }
+
+/* RSVP page: the embedded Google Form */
+.rv-frame { margin-top: 12px; border: 2px solid var(--ink); background: #fff; max-width: 760px; }
+.rv-frame iframe { display: block; width: 100%; height: 1500px; border: 0; }
+@media (max-width: 600px) { .rv-frame iframe { height: 1800px; } }
+.rv-form { margin-top: 36px; }
+.rv-ask li + li { margin-top: 6px; }

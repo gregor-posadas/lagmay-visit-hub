@@ -17,13 +17,14 @@ GLOBE = ('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="fal
 MARK = ('<svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="15" fill="#385F96"/>'
         '<path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>')
 NAV = {
-    "en": [("event", "", "Event"), ("about", "about/", "About"), ("history", "history/", "Flood history"), ("faq", "faq/", "Questions"), ("directions", "directions/", "Directions"),
+    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("about", "about/", "About"), ("history", "history/", "Flood history"), ("faq", "faq/", "Questions"), ("directions", "directions/", "Directions"),
            ("support", "support/", "Support us"), ("access", "accessibility/", "Accessibility")],
-    "fil": [("event", "fil/", "Pagtitipon"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan"), ("faq", "faq/", "Mga tanong"), ("directions", "fil/directions/", "Direksyon"),
+    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan"), ("faq", "faq/", "Mga tanong"), ("directions", "fil/directions/", "Direksyon"),
             ("support", "support/", "Suportahan"), ("access", "accessibility/", "Accessibility")],
 }
 # The language link goes to the same page in the other language where there is one, else to the other language's event page.
-OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "fil/": "", "fil/about/": "about/", "fil/directions/": "directions/"}
+OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "rsvp/": "fil/rsvp/",
+         "fil/": "", "fil/about/": "about/", "fil/directions/": "directions/", "fil/rsvp/": "rsvp/"}
 SITE = "https://gregor-posadas.github.io/lagmay-visit-hub/event/"
 WORDS = {
     "en": dict(skip="Skip to content", sub="Flooding in the Philippines, a public conversation", sound="Sound on", theme="Dark mode", share="Share",
@@ -53,7 +54,8 @@ def build(src):
     for key, href, label in NAV[lang]:
         cur = ' aria-current="page"' if key == meta.get("nav") else ""
         lng = ' lang="fil" hreflang="fil"' if key == "fil" else (' lang="en" hreflang="en"' if key == "en" else "")
-        links.append(f'      <a href="{(R + href) or "./"}"{cur}{lng}>{label}</a>')
+        cta = ' class="nav__rsvp"' if key == "rsvp" else ""   # the RSVP tab is boxed so it reads as the thing to do
+        links.append(f'      <a href="{(R + href) or "./"}"{cta}{cur}{lng}>{label}</a>')
     nav = "\n".join(links)
     nav = nav.replace(f'href="{R}"', f'href="{R or "./"}"')
     scripts = "".join(f'<script src="{R}{s.strip()}?v=0"></script>\n' for s in meta.get("scripts", "").split(",") if s.strip())
