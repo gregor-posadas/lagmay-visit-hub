@@ -1,0 +1,622 @@
+{
+ "members": [
+  {
+   "id": "gregor",
+   "name": "Gregor",
+   "email": "",
+   "role": "Project manager",
+   "campus": "berkeley",
+   "color": "#385F96",
+   "textColor": "#ffffff",
+   "emailPref": "daily"
+  },
+  {
+   "id": "noam",
+   "name": "Noam",
+   "email": "",
+   "role": "Travel and partners",
+   "campus": "berkeley",
+   "color": "#CF5921",
+   "textColor": "#000000",
+   "emailPref": "daily"
+  },
+  {
+   "id": "veronica",
+   "name": "Veronica",
+   "email": "",
+   "role": "Speakers and program",
+   "campus": "berkeley",
+   "color": "#800000",
+   "textColor": "#ffffff",
+   "emailPref": "daily"
+  },
+  {
+   "id": "rapha",
+   "name": "Rapha",
+   "email": "",
+   "role": "Stanford lead",
+   "campus": "stanford",
+   "color": "#E7B800",
+   "textColor": "#000000",
+   "emailPref": "weekly"
+  }
+ ],
+ "projects": [
+  {
+   "id": "travel",
+   "name": "Get him here",
+   "campus": "both",
+   "leadId": "noam",
+   "description": "Travel approval, the flight, and getting around the Bay.\n- Invitation letter to the home university\n- Travel approval\n- Book the flight\n- Rides between campuses",
+   "due": "2026-10-23T17:00:00-07:00",
+   "link": "",
+   "status": ""
+  },
+  {
+   "id": "berkeley",
+   "name": "Berkeley day, Nov 9",
+   "campus": "berkeley",
+   "leadId": "gregor",
+   "description": "The morning guest lecture and the afternoon public dialogue.\n- Lecture, 10 to 11 AM\n- Public dialogue with two respondents in the afternoon\n- Room, recording and livestream",
+   "due": "2026-11-09T09:00:00-08:00",
+   "link": "",
+   "status": ""
+  },
+  {
+   "id": "stanford",
+   "name": "Stanford day, Nov 10",
+   "campus": "stanford",
+   "leadId": "rapha",
+   "description": "Host, room and format for the Stanford visit. Stanford handles its own funding and logistics.",
+   "due": "2026-11-10T09:00:00-08:00",
+   "link": "",
+   "status": ""
+  },
+  {
+   "id": "money",
+   "name": "Funding",
+   "campus": "both",
+   "leadId": "gregor",
+   "description": "Cover every line of the budget without consulate money. Point new conversations at whatever is still unfunded.",
+   "due": "2026-10-23T17:00:00-07:00",
+   "link": "",
+   "status": ""
+  },
+  {
+   "id": "outreach",
+   "name": "Audience and publicity",
+   "campus": "both",
+   "leadId": "veronica",
+   "description": "Posters, student organizations, and an online option for people who can't come in person.",
+   "due": "2026-10-26T17:00:00-07:00",
+   "link": "",
+   "status": ""
+  }
+ ],
+ "assignments": [
+  {
+   "id": "a1",
+   "projectId": "money",
+   "memberId": "gregor",
+   "title": "Submit the student organization funding application",
+   "instructions": "- Attach the budget\n- Check that nothing in it pays for international travel or food\n- Submit before midnight",
+   "due": "2026-10-02T23:59:00-07:00",
+   "link": "",
+   "linkLabel": "",
+   "status": "doing"
+  },
+  {
+   "id": "a2",
+   "projectId": "travel",
+   "memberId": "gregor",
+   "title": "Send Rapha an airfare estimate",
+   "instructions": "Round trip, early November. Two or three quotes are enough.",
+   "due": "2026-10-05T17:00:00-07:00",
+   "link": "",
+   "linkLabel": "",
+   "status": "todo"
+  },
+  {
+   "id": "a3",
+   "projectId": "berkeley",
+   "memberId": "veronica",
+   "title": "Confirm the dialogue time slot with both respondents",
+   "instructions": "",
+   "due": "2026-10-05T17:00:00-07:00",
+   "link": "",
+   "linkLabel": "",
+   "status": "todo"
+  },
+  {
+   "id": "a4",
+   "projectId": "travel",
+   "memberId": "noam",
+   "title": "Follow up on the travel approval",
+   "instructions": "",
+   "due": "2026-10-06T17:00:00-07:00",
+   "link": "",
+   "linkLabel": "",
+   "status": "todo"
+  },
+  {
+   "id": "a5",
+   "projectId": "stanford",
+   "memberId": "rapha",
+   "title": "Send the funding ask to the Stanford contact",
+   "instructions": "",
+   "due": "2026-10-02T17:00:00-07:00",
+   "link": "",
+   "linkLabel": "",
+   "status": "doing"
+  },
+  {
+   "id": "a6",
+   "projectId": "outreach",
+   "memberId": "veronica",
+   "title": "Share the grant proposal text for the Stanford pitch",
+   "instructions": "",
+   "due": "2026-09-30T17:00:00-07:00",
+   "link": "",
+   "linkLabel": "",
+   "status": "todo"
+  },
+  {
+   "id": "a7",
+   "projectId": "berkeley",
+   "memberId": "gregor",
+   "title": "Ask the AV team for a recording and livestream quote",
+   "instructions": "",
+   "due": "2026-09-28T17:00:00-07:00",
+   "link": "",
+   "linkLabel": "",
+   "status": "done"
+  },
+  {
+   "id": "a8",
+   "projectId": "outreach",
+   "memberId": "noam",
+   "title": "Draft the event poster",
+   "instructions": "",
+   "due": "2026-10-16T17:00:00-07:00",
+   "link": "",
+   "linkLabel": "",
+   "status": "todo"
+  },
+  {
+   "id": "a9",
+   "projectId": "money",
+   "memberId": "noam",
+   "title": "Update the department appeal with the money secured so far",
+   "instructions": "",
+   "due": "2026-10-05T17:00:00-07:00",
+   "link": "",
+   "linkLabel": "",
+   "status": "todo"
+  },
+  {
+   "id": "a10",
+   "projectId": "stanford",
+   "memberId": "rapha",
+   "title": "Find a Stanford host department",
+   "instructions": "",
+   "due": "2026-10-12T17:00:00-07:00",
+   "link": "",
+   "linkLabel": "",
+   "status": "todo"
+  }
+ ],
+ "milestones": [
+  {
+   "id": "ms1",
+   "date": "2026-10-02T23:59:00-07:00",
+   "label": "Funding application due",
+   "dateLabel": "Oct 2",
+   "projectId": "money"
+  },
+  {
+   "id": "ms2",
+   "date": "2026-10-16T17:00:00-07:00",
+   "label": "Room and AV booked",
+   "dateLabel": "Oct 16",
+   "projectId": "berkeley"
+  },
+  {
+   "id": "ms3",
+   "date": "2026-10-23T17:00:00-07:00",
+   "label": "Flight booked",
+   "dateLabel": "Oct 23",
+   "projectId": "travel"
+  },
+  {
+   "id": "ms4",
+   "date": "2026-10-26T17:00:00-07:00",
+   "label": "Publicity goes out",
+   "dateLabel": "Oct 26",
+   "projectId": "outreach"
+  },
+  {
+   "id": "ms5",
+   "date": "2026-11-07T12:00:00-08:00",
+   "label": "Dr. Lagmay lands",
+   "dateLabel": "Nov 7",
+   "projectId": "travel"
+  },
+  {
+   "id": "ms6",
+   "date": "2026-11-09T10:00:00-08:00",
+   "label": "Lecture and public dialogue",
+   "dateLabel": "Nov 9",
+   "projectId": "berkeley"
+  },
+  {
+   "id": "ms7",
+   "date": "2026-11-10T10:00:00-08:00",
+   "label": "Stanford visit",
+   "dateLabel": "Nov 10",
+   "projectId": "stanford"
+  }
+ ],
+ "contacts": [
+  {
+   "id": "c1",
+   "name": "Room scheduler",
+   "org": "Example Hall",
+   "role": "Events office",
+   "ownerId": "gregor",
+   "projectId": "berkeley",
+   "status": "ours",
+   "followUp": "2026-10-03",
+   "nextStep": "Confirm the room booking and send the event form",
+   "campus": "berkeley",
+   "lastContact": "2026-09-28",
+   "email": "",
+   "link": "",
+   "notes": "- Sep 28 (Gregor): Asked about the auditorium for the afternoon of Nov 9."
+  },
+  {
+   "id": "c2",
+   "name": "AV coordinator",
+   "org": "Campus AV",
+   "role": "Recording and streaming",
+   "ownerId": "gregor",
+   "projectId": "berkeley",
+   "status": "theirs",
+   "followUp": "2026-10-06",
+   "nextStep": "Nudge for the quote if nothing by Tuesday",
+   "campus": "berkeley",
+   "lastContact": "2026-09-28",
+   "email": "",
+   "link": "",
+   "notes": ""
+  },
+  {
+   "id": "c3",
+   "name": "Program officer",
+   "org": "Example Foundation",
+   "role": "Grants",
+   "ownerId": "gregor",
+   "projectId": "money",
+   "status": "theirs",
+   "followUp": "2026-10-05",
+   "nextStep": "Ask about the flight on the call",
+   "campus": "both",
+   "lastContact": "2026-09-30",
+   "email": "",
+   "link": "",
+   "notes": ""
+  },
+  {
+   "id": "c4",
+   "name": "Respondent A",
+   "org": "History department",
+   "role": "Faculty",
+   "ownerId": "veronica",
+   "projectId": "berkeley",
+   "status": "settled",
+   "followUp": "",
+   "nextStep": "",
+   "campus": "berkeley",
+   "lastContact": "2026-09-30",
+   "email": "",
+   "link": "",
+   "notes": "- Sep 30 (Veronica): Confirmed for the afternoon."
+  },
+  {
+   "id": "c5",
+   "name": "Respondent B",
+   "org": "Planning department",
+   "role": "Faculty",
+   "ownerId": "veronica",
+   "projectId": "berkeley",
+   "status": "ours",
+   "followUp": "2026-10-02",
+   "nextStep": "Pick a coffee date, Monday or Wednesday",
+   "campus": "berkeley",
+   "lastContact": "2026-09-22",
+   "email": "",
+   "link": "",
+   "notes": ""
+  },
+  {
+   "id": "c6",
+   "name": "Department contact",
+   "org": "Example Center",
+   "role": "Stanford host",
+   "ownerId": "rapha",
+   "projectId": "stanford",
+   "status": "theirs",
+   "followUp": "2026-10-08",
+   "nextStep": "Wait for an answer on hosting",
+   "campus": "stanford",
+   "lastContact": "2026-10-01",
+   "email": "",
+   "link": "",
+   "notes": ""
+  },
+  {
+   "id": "c7",
+   "name": "Travel office",
+   "org": "Home university",
+   "role": "Travel approval",
+   "ownerId": "noam",
+   "projectId": "travel",
+   "status": "theirs",
+   "followUp": "2026-09-29",
+   "nextStep": "Ask whether approval has gone through",
+   "campus": "both",
+   "lastContact": "2026-09-18",
+   "email": "",
+   "link": "",
+   "notes": ""
+  },
+  {
+   "id": "c8",
+   "name": "Student senator's office",
+   "org": "Student government",
+   "role": "Outreach",
+   "ownerId": "gregor",
+   "projectId": "outreach",
+   "status": "new",
+   "followUp": "2026-10-07",
+   "nextStep": "Book a meeting through their booking page",
+   "campus": "berkeley",
+   "lastContact": "",
+   "email": "",
+   "link": "",
+   "notes": ""
+  }
+ ],
+ "funding": [
+  {
+   "id": "f1",
+   "source": "Humanities center grant",
+   "amount": "500",
+   "status": "secured",
+   "covers": "recording and livestream",
+   "ownerId": "veronica",
+   "due": "",
+   "campus": "berkeley",
+   "nextStep": "",
+   "notes": "Awarded Sep 30. Paid to the sponsoring department.",
+   "contactId": "",
+   "link": ""
+  },
+  {
+   "id": "f2",
+   "source": "Student organization fund",
+   "amount": "2000",
+   "status": "working",
+   "covers": "room, honoraria, rides and printing",
+   "ownerId": "gregor",
+   "due": "2026-10-02T23:59:00-07:00",
+   "campus": "berkeley",
+   "nextStep": "Submit by midnight",
+   "notes": "Can't pay for international travel or food.",
+   "contactId": "",
+   "link": ""
+  },
+  {
+   "id": "f3",
+   "source": "Stanford departments",
+   "amount": "",
+   "status": "working",
+   "covers": "the flight",
+   "ownerId": "rapha",
+   "due": "",
+   "campus": "stanford",
+   "nextStep": "Needs our airfare estimate",
+   "notes": "",
+   "contactId": "c6",
+   "link": ""
+  },
+  {
+   "id": "f4",
+   "source": "Example Foundation",
+   "amount": "",
+   "status": "working",
+   "covers": "the flight or catering",
+   "ownerId": "gregor",
+   "due": "2026-10-02T15:00:00-07:00",
+   "campus": "both",
+   "nextStep": "Call on Friday",
+   "notes": "",
+   "contactId": "c3",
+   "link": ""
+  },
+  {
+   "id": "f5",
+   "source": "Graduate assembly grant",
+   "amount": "1000",
+   "status": "lead",
+   "covers": "catering",
+   "ownerId": "noam",
+   "due": "2026-10-20T17:00:00-07:00",
+   "campus": "berkeley",
+   "nextStep": "Apply in the October round",
+   "notes": "The humanities grant counts as matching funds.",
+   "contactId": "",
+   "link": ""
+  },
+  {
+   "id": "f6",
+   "source": "Home institute",
+   "amount": "",
+   "status": "lead",
+   "covers": "the flight, as a backup",
+   "ownerId": "noam",
+   "due": "",
+   "campus": "both",
+   "nextStep": "Ask only if Stanford falls through",
+   "notes": "",
+   "contactId": "",
+   "link": ""
+  },
+  {
+   "id": "f7",
+   "source": "Engineering department",
+   "amount": "",
+   "status": "declined",
+   "covers": "the flight",
+   "ownerId": "noam",
+   "due": "",
+   "campus": "berkeley",
+   "nextStep": "",
+   "notes": "Declined travel. An appeal is drafted.",
+   "contactId": "",
+   "link": ""
+  }
+ ],
+ "budget": [
+  {
+   "id": "b1",
+   "item": "Round-trip flight",
+   "amount": "1500",
+   "fundingId": "f3",
+   "basis": "estimate",
+   "status": "",
+   "campus": "berkeley",
+   "notes": ""
+  },
+  {
+   "id": "b2",
+   "item": "Auditorium, 4 hours",
+   "amount": "745",
+   "fundingId": "f2",
+   "basis": "quote",
+   "status": "",
+   "campus": "berkeley",
+   "notes": ""
+  },
+  {
+   "id": "b3",
+   "item": "Speaker honoraria",
+   "amount": "750",
+   "fundingId": "f2",
+   "basis": "quote",
+   "status": "",
+   "campus": "berkeley",
+   "notes": ""
+  },
+  {
+   "id": "b4",
+   "item": "Recording and livestream",
+   "amount": "500",
+   "fundingId": "f1",
+   "basis": "estimate",
+   "status": "",
+   "campus": "berkeley",
+   "notes": ""
+  },
+  {
+   "id": "b5",
+   "item": "Catering",
+   "amount": "500",
+   "fundingId": "",
+   "basis": "estimate",
+   "status": "",
+   "campus": "berkeley",
+   "notes": ""
+  },
+  {
+   "id": "b6",
+   "item": "Rides around the Bay",
+   "amount": "360",
+   "fundingId": "f2",
+   "basis": "estimate",
+   "status": "",
+   "campus": "berkeley",
+   "notes": ""
+  },
+  {
+   "id": "b7",
+   "item": "Posters and flyers",
+   "amount": "145",
+   "fundingId": "f2",
+   "basis": "quote",
+   "status": "",
+   "campus": "berkeley",
+   "notes": ""
+  },
+  {
+   "id": "b8",
+   "item": "Lodging",
+   "amount": "0",
+   "fundingId": "",
+   "basis": "quote",
+   "status": "notneeded",
+   "campus": "berkeley",
+   "notes": "Staying with family"
+  }
+ ],
+ "meetings": [
+  {
+   "id": "mt1",
+   "title": "Berkeley and Stanford organizers",
+   "start": "2026-10-01T18:00:00-07:00",
+   "end": "2026-10-01T19:00:00-07:00",
+   "where": "Zoom",
+   "link": "",
+   "docUrl": "",
+   "attendees": "the whole team",
+   "takeaway": "Each campus funds its own day. Stanford will pitch for the flight with our airfare estimate."
+  },
+  {
+   "id": "mt2",
+   "title": "Call with a foundation about the flight",
+   "start": "2026-10-02T15:00:00-07:00",
+   "end": "2026-10-02T15:30:00-07:00",
+   "where": "Phone",
+   "link": "",
+   "docUrl": "",
+   "attendees": "Gregor and Noam",
+   "takeaway": "- Ask about the flight\n- Ask about catering"
+  },
+  {
+   "id": "mt3",
+   "title": "Team check-in",
+   "start": "2026-10-08T18:00:00-07:00",
+   "end": "2026-10-08T18:30:00-07:00",
+   "where": "Discord",
+   "link": "",
+   "docUrl": "",
+   "attendees": "the whole team",
+   "takeaway": ""
+  }
+ ],
+ "rules": [
+  {
+   "id": "r1",
+   "text": "Sample rule: we don't take money from sources the student organizers we work with have objected to."
+  },
+  {
+   "id": "r2",
+   "text": "Sample rule: department funds are a last resort."
+  },
+  {
+   "id": "r3",
+   "text": "Sample rule: the student organization fund can't pay for international travel or food."
+  }
+ ],
+ "files": [],
+ "notes": []
+}
