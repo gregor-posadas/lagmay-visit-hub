@@ -165,8 +165,8 @@
      where the browser cannot share files. The link is copied too, for Instagram's Link sticker. */
   (function () {
     var btn = $("share-btn"); if (!btn) return;
-    var T = FIL ? { h: "Ibahagi ang pagtitipon", story: "Ibahagi sa Instagram story", dl: "I-download ang story image", link: "Iba pang app", copy: "Kopyahin ang link", copied: "Nakopya ang link.", nocopy: "Hindi makopya. Piliin at kopyahin ang link sa itaas.", close: "Isara", alt: "Story card ng pagtitipon", urlLabel: "Link ng pahinang ito", on: "Ibahagi sa", note: "Kinokopya rin ng Ibahagi sa story ang link, kaya sa Instagram ay maaari kang magdagdag ng Link sticker at i-paste ito.", noteDesk: "Para sa Instagram Stories: i-download ang larawan, i-post ito mula sa iyong telepono, at magdagdag ng Link sticker na may link sa itaas.", toast: "Nakopya ang link. Idagdag ito gamit ang Link sticker sa Instagram.", newtab: " (magbubukas sa bagong tab)", post: "Mungkahing post", postNote: "Lalabas na ito sa LinkedIn at WhatsApp. Sa Facebook, kinokopya namin ito para i-paste mo.", copyPost: "Kopyahin ang post", postCopied: "Nakopya ang post.", fbToast: "Nakopya ang post. I-paste ito sa Facebook." }
-                : { h: "Share the event", story: "Share to Instagram story", dl: "Download story image", link: "Other apps", copy: "Copy link", copied: "Link copied.", nocopy: "Could not copy. Select and copy the link above.", close: "Close", alt: "Story card for the event", urlLabel: "Link to this page", on: "Share on", note: "Share to story also copies the link, so in Instagram you can add a Link sticker and paste it.", noteDesk: "For Instagram Stories: download the image, post it from your phone, and add a Link sticker with the link above.", toast: "Link copied. Add it with a Link sticker in Instagram.", newtab: " (opens in a new tab)", post: "Suggested post", postNote: "LinkedIn and WhatsApp open with this already filled in. For Facebook, we copy it so you can paste it.", copyPost: "Copy post text", postCopied: "Post text copied.", fbToast: "Post text copied. Paste it into your Facebook post." };
+    var T = FIL ? { h: "Ibahagi ang pagtitipon", story: "Ibahagi sa Instagram story", dl: "I-download ang story image", link: "Iba pang app", copy: "Kopyahin ang link", copied: "Nakopya ang link.", nocopy: "Hindi makopya. Piliin at kopyahin ang link sa itaas.", close: "Isara", alt: "Story card ng pagtitipon", urlLabel: "Link ng pahinang ito", on: "Ibahagi sa", note: "Piliin ang Instagram, saka Story. Nakopya rin ang link, kaya maaari mo itong idagdag gamit ang Link sticker.", noteDesk: "Para sa Instagram Stories: i-download ang larawan, i-post ito mula sa iyong telepono, at magdagdag ng Link sticker na may link sa itaas.", toast: "Nakopya ang link. Idagdag ito gamit ang Link sticker sa Instagram.", newtab: " (magbubukas sa bagong tab)", post: "Mungkahing post", postNote: "Lalabas na ito sa LinkedIn at WhatsApp. Sa Facebook, kinokopya namin ito para i-paste mo.", copyPost: "Kopyahin ang post", postCopied: "Nakopya ang post.", fbToast: "Nakopya ang post. I-paste ito sa Facebook.", preparing: "Inihahanda ang story image…", sharePost: "Ibahagi ang post sa isang app", postNoteMobile: "Piliin ang LinkedIn, Facebook, WhatsApp o anumang app. Kinokopya rin namin ang post, kaya maaari mo itong i-paste kung hindi ito lumabas.", postShared: "Nakopya rin ang post kung sakaling kailangan mo itong i-paste." }
+                : { h: "Share the event", story: "Share to Instagram story", dl: "Download story image", link: "Other apps", copy: "Copy link", copied: "Link copied.", nocopy: "Could not copy. Select and copy the link above.", close: "Close", alt: "Story card for the event", urlLabel: "Link to this page", on: "Share on", note: "Pick Instagram, then Story. The link is copied too, so you can add it with a Link sticker.", noteDesk: "For Instagram Stories: download the image, post it from your phone, and add a Link sticker with the link above.", toast: "Link copied. Add it with a Link sticker in Instagram.", newtab: " (opens in a new tab)", post: "Suggested post", postNote: "LinkedIn and WhatsApp open with this already filled in. For Facebook, we copy it so you can paste it.", copyPost: "Copy post text", postCopied: "Post text copied.", fbToast: "Post text copied. Paste it into your Facebook post.", preparing: "Preparing the story image…", sharePost: "Share the post to an app", postNoteMobile: "Pick LinkedIn, Facebook, WhatsApp or any other app. The post text is copied too, so you can paste it if an app leaves it out.", postShared: "The post text is copied too, in case you need to paste it." };
     // Ready-made words for the post, so sharing takes one click. Edit them in the dialog before posting.
     var SUPPORT = /\/support\/?$/.test(btn.getAttribute("data-url") || "");
     var POST = FIL
@@ -186,12 +186,19 @@
       return "https://wa.me/?text=" + encodeURIComponent(t);
     }
     var nets = [["linkedin", "LinkedIn"], ["facebook", "Facebook"], ["whatsapp", "WhatsApp"]];
+    var loading = null, MOBILE = window.matchMedia("(pointer: coarse)").matches && !!navigator.share;
     function load() {
-      if (file || !window.fetch || typeof File === "undefined") return;
-      fetch(card).then(function (r) { return r.blob(); }).then(function (b) { file = new File([b], card.split("/").pop(), { type: "image/jpeg" }); }).catch(function () {});
+      if (file || loading || !window.fetch || typeof File === "undefined") return loading;
+      loading = fetch(card).then(function (r) { return r.blob(); }).then(function (b) {
+        file = new File([b], card.split("/").pop(), { type: "image/jpeg" });
+        if (dlg && dlg.open) paint();   // the dialog was opened before the image arrived
+      }).catch(function () { loading = null; });
+      return loading;
     }
     function canShareFile() { return !!(file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })); }
-    if (window.matchMedia("(pointer: coarse)").matches) { if ("requestIdleCallback" in window) requestIdleCallback(load, { timeout: 4000 }); else setTimeout(load, 2500); }
+    // On phones, fetch the story image as soon as the page loads, so it is ready the moment someone taps Share:
+    // a phone only opens its share sheet straight from a tap, so there's no time to fetch it then.
+    if (MOBILE) load();
     btn.addEventListener("pointerenter", load); btn.addEventListener("focus", load);
     function copy() { try { if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(url); } catch (e) {} return Promise.reject(); }
     function toast(msg) { var t = $("toast"); if (!t) return; t.textContent = msg; t.classList.add("is-on"); clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove("is-on"); }, 6000); }
@@ -202,7 +209,8 @@
         '<div><label class="sh__label" for="sh-url">' + T.urlLabel + '</label><input class="sh__url" id="sh-url" type="text" readonly value="' + url + '">' +
         '<div class="actions sh__actions"><button type="button" class="btn btn--solid sh__story">' + icon("instagram") + T.story + '</button><a class="btn btn--solid sh__dl" download>' + icon("instagram") + T.dl + '</a>' +
         '<button type="button" class="btn sh__copy">' + icon("link") + T.copy + '</button></div><p class="sh__note sh__ig"></p>' +
-        '<label class="sh__label sh__on" for="sh-post">' + T.post + '</label><textarea class="sh__post" id="sh-post" rows="5"></textarea><p class="sh__note">' + T.postNote + '</p>' +
+        '<label class="sh__label sh__on" for="sh-post">' + T.post + '</label><textarea class="sh__post" id="sh-post" rows="5"></textarea><p class="sh__note">' + (MOBILE ? T.postNoteMobile : T.postNote) + '</p>' +
+        (MOBILE ? '<div class="actions sh__nets"><button type="button" class="btn btn--solid sh__sharepost">' + icon("share") + T.sharePost + '</button></div>' : "") +
         '<div class="actions sh__nets">' + nets.map(function (n) {
           return '<a class="btn sh__net" data-net="' + n[0] + '" href="#" target="_blank" rel="noopener">' + icon(n[0]) + n[1] + '<span class="sr">' + T.newtab + '</span></a>';
         }).join("") + '<button type="button" class="btn sh__copypost">' + icon("link") + T.copyPost + '</button><button type="button" class="btn sh__link">' + icon("share") + T.link + '</button></div>' +
@@ -225,18 +233,38 @@
         try { navigator.clipboard.writeText(postText()).then(function () { status.textContent = T.postCopied; }, function () { dlg.querySelector(".sh__post").select(); }); } catch (e) { dlg.querySelector(".sh__post").select(); }
       });
       dlg.querySelector(".sh__link").addEventListener("click", function () { navigator.share({ title: title, text: postText() }).catch(function () {}); });
-      dlg.querySelector(".sh__story").addEventListener("click", function () { copy().then(function () { toast(T.toast); }, function () {}); navigator.share({ files: [file], title: title }).catch(function () {}); });
+      // Phones: the system share sheet is what actually hands the words and link to LinkedIn, Facebook and WhatsApp's apps
+      // (their web links only open the app). Share first, while the tap still counts, then copy the post as a backup.
+      var sp = dlg.querySelector(".sh__sharepost");
+      if (sp) sp.addEventListener("click", function () {
+        var t = postText(), body = t.split(url).join("").replace(/\s+$/, "");
+        navigator.share({ title: title, text: body, url: url }).catch(function () {});
+        try { navigator.clipboard.writeText(t).then(function () { status.textContent = T.postShared; }, function () {}); } catch (e) {}
+      });
+      dlg.querySelector(".sh__story").addEventListener("click", function () {
+        if (!canShareFile()) return;
+        navigator.share({ files: [file] }).catch(function () {});   // first, while the tap still counts
+        copy().then(function () { toast(T.toast); }, function () {});
+      });
       dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
       dlg.addEventListener("close", function () { btn.focus(); });
+    }
+    function paint() {
+      var fileOK = canShareFile(), waiting = MOBILE && !file && !!loading, story = dlg.querySelector(".sh__story");
+      // Show only what this device can do. On a phone still fetching the image, show the story button as "preparing".
+      story.hidden = !(fileOK || waiting); dlg.querySelector(".sh__dl").hidden = fileOK || waiting;
+      story.disabled = !fileOK;
+      story.lastChild.nodeValue = fileOK ? T.story : T.preparing;
+      dlg.querySelector(".sh__link").hidden = !navigator.share || MOBILE;
+      Array.prototype.forEach.call(dlg.querySelectorAll(".sh__net"), function (a) { a.hidden = MOBILE; });
+      dlg.querySelector(".sh__ig").textContent = (fileOK || waiting) ? T.note : T.noteDesk;
     }
     btn.addEventListener("click", function () {
       if (!dlg) build();
       load();
       var fileOK = canShareFile();
       dlg.querySelector(".sh__img").src = card; dlg.querySelector(".sh__dl").href = card;
-      dlg.querySelector(".sh__story").hidden = !fileOK; dlg.querySelector(".sh__dl").hidden = fileOK;   // show only what this device can do
-      dlg.querySelector(".sh__link").hidden = !navigator.share;
-      dlg.querySelector(".sh__ig").textContent = fileOK ? T.note : T.noteDesk;
+      paint();
       status.textContent = "";
       if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
       (fileOK ? dlg.querySelector(".sh__story") : dlg.querySelector(".sh__copy")).focus();
