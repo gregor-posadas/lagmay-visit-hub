@@ -229,3 +229,17 @@ html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
 .ev-there__ways li { border-left: 4px solid var(--rule-strong); padding: 2px 0 2px 14px; }
 .ev-there__ways b { display: block; }
 @media (max-width: 800px) { .ev-there__grid { grid-template-columns: 1fr; } }
+
+/* Event page: sections with a sticky "On this page" rail on wide screens */
+.ev-body { display: block; }
+.ev-rail { display: none; }
+@media (min-width: 1100px) {
+  .ev-body { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 40px; }
+  .ev-rail { display: block; position: sticky; top: 16px; align-self: start; margin-top: 40px; }
+  .ev-rail a[aria-current] { color: var(--ink); border-left-color: var(--ink); border-left-width: 6px; padding-left: 9px; }
+  .ev-rail__more { margin: 16px 0 0 !important; display: grid; gap: 2px; }
+  .ev-rail__more a { min-height: 40px; font-weight: 700; }
+  .ev-rail .ev-rail__rsvp { margin-top: 16px; width: 100%; border-left: 2px solid var(--ink); color: var(--paper); }
+  .ev-body__main { min-width: 0; }
+}
+section[id], .ev-hero { scroll-margin-top: 16px; }

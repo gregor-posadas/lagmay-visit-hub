@@ -155,3 +155,9 @@
 .ico { width: 20px; height: 20px; flex: none; display: inline-block; }
 .tool .ico { width: 18px; height: 18px; margin-right: 8px; vertical-align: -3px; }
 .sh__post { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 2px solid var(--rule-strong); background: var(--paper); color: var(--ink); font: inherit; font-size: var(--f1); line-height: 1.45; resize: vertical; }
+
+/* Language switch: a small tool in the header rather than a tab */
+.tool--lang { gap: 8px; }
+.tool--lang .ico { width: 18px; height: 18px; }
+.sp-gauge { margin: 12px 0 8px; max-width: var(--read); }
+.sp-h3 { font-size: var(--f3); margin: 24px 0 0; }

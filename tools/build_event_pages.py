@@ -12,13 +12,15 @@ EV = ROOT / "event"
 
 ICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' "
         "fill='%23385F96'/%3E%3Cpath d='M6 19c3-3 5 3 10 0s7 3 10 0' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
+GLOBE = ('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2">'
+         '<circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c3 3 3 16 0 19M12 2.5c-3 3-3 16 0 19"/></g></svg>')
 MARK = ('<svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="15" fill="#385F96"/>'
         '<path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>')
 NAV = {
     "en": [("event", "", "Event"), ("about", "about/", "About"), ("history", "history/", "Flood history"), ("faq", "faq/", "Questions"),
-           ("support", "support/", "Support us"), ("access", "accessibility/", "Accessibility"), ("fil", None, "Filipino")],
+           ("support", "support/", "Support us"), ("access", "accessibility/", "Accessibility")],
     "fil": [("event", "fil/", "Ang pagtitipon"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan ng baha"), ("faq", "faq/", "Mga tanong"),
-            ("support", "support/", "Suportahan"), ("access", "accessibility/", "Accessibility"), ("en", None, "English")],
+            ("support", "support/", "Suportahan"), ("access", "accessibility/", "Accessibility")],
 }
 # The language link goes to the same page in the other language where there is one, else to the other language's event page.
 OTHER = {"": "fil/", "about/": "fil/about/", "fil/": "", "fil/about/": "about/"}
@@ -44,8 +46,11 @@ def build(src):
     w = WORDS[lang]
     links = []
     here = meta["out"][: -len("index.html")]
+    # The other language is a small switch among the header tools, not a tab, so nobody lands on it by accident.
+    other = R + OTHER.get(here, "fil/" if lang == "en" else "")
+    langsw = (f'<a class="tool tool--lang" href="{other or "./"}" lang="fil" hreflang="fil" title="{"Basahin ang pahinang ito sa Filipino" if here in OTHER else "Basahin ang pahina ng pagtitipon sa Filipino"}">{GLOBE}Filipino</a>' if lang == "en"
+              else f'<a class="tool tool--lang" href="{other or "./"}" lang="en" hreflang="en" title="{"Read this page in English" if here in OTHER else "Read the event page in English"}">{GLOBE}English</a>')
     for key, href, label in NAV[lang]:
-        if href is None: href = OTHER.get(here, "fil/" if lang == "en" else "")
         cur = ' aria-current="page"' if key == meta.get("nav") else ""
         lng = ' lang="fil" hreflang="fil"' if key == "fil" else (' lang="en" hreflang="en"' if key == "en" else "")
         links.append(f'      <a href="{(R + href) or "./"}"{cur}{lng}>{label}</a>')
@@ -95,6 +100,7 @@ def build(src):
     <div class="band__tools">
       <button type="button" class="tool" id="sound-toggle" aria-pressed="true"><span class="tool__state">{w["sound"]}</span></button>
       <button type="button" class="tool theme-toggle" id="theme-toggle">{w["theme"]}</button>
+      {langsw}
       <button type="button" class="tool" id="share-btn" aria-haspopup="dialog" data-url="{SITE + here}" data-title="{html.escape(meta["title"])}" data-card="{R}img/share/{meta.get("card", "event-fil" if lang == "fil" else "event-en")}.jpg">{w["share"]}</button>
     </div>
   </div>
