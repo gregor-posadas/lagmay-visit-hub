@@ -147,3 +147,10 @@ html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
 .ev-sources a { overflow-wrap: anywhere; }
 .ev-subtitle { font-size: var(--f3); font-weight: 700; color: var(--ink-2); margin: -6px 0 14px; }
 .ev-place[hidden] { display: none; }
+
+/* Why this conversation */
+.ev-why__body { max-width: var(--read); }
+.ev-why__body p { margin: 12px 0 0; }
+.ev-why__lead { font-size: var(--f3); }
+.ev-why__fields { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 12px; }
+.ev-why__fields li { border-left: 4px solid var(--rule-strong); padding: 4px 0 4px 14px; }
