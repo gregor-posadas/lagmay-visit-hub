@@ -5,6 +5,8 @@
 (function () {
   "use strict";
   var cfg = window.EV_CONFIG || {};
+  // where event/ is, so the same script works from event/ and from event/fil/
+  var BASE = ((document.currentScript && document.currentScript.src) || "").replace(/event\.js.*$/, "");
   var qs = location.search + location.hash;
   var SAMPLE = /[?&#]sample/.test(qs) || !cfg.apiUrl;
   var PRESENT = /[?&#]present/.test(qs);
@@ -14,8 +16,25 @@
   /* ---------- small helpers ---------- */
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function $(id) { return document.getElementById(id); }
-  function n2w(n) { return n === 1 ? "1 person" : n + " people"; }
-  function list(items) { return items.length < 2 ? items.join("") : items.slice(0, -1).join(", ") + (items.length > 2 ? "," : "") + " and " + items[items.length - 1]; }
+  // The page is in English or, at fil/, in Filipino. The presentation (?present) is in English.
+  var FIL = document.documentElement.lang === "fil" && !PRESENT;
+  var W = FIL ? {
+    ph: "Pilipinas", bay: "Bay Area", ocean: "Karagatang Pasipiko", outside: "Labas ng Bay Area", unsaid: "Ayaw sabihin",
+    live: "Kung saan nakatira", prov: "Lalawigan sa Pilipinas", people: "Tao", none: "Wala pang nag-RSVP. Ikaw na ang mauna sa mapa.",
+    fail: "Hindi ma-load ang mapa sa ngayon. Subukang i-reload ang pahina.", soon: "Malapit nang buksan ang RSVP form. Bumalik sa loob ng ilang araw.", soonSr: " (bubuksan pa lang)",
+    one: "Isang tao", line: "Isang guhit bawat lalawigan, mas makapal kapag mas maraming may ugnayan dito", sample: "Halimbawang datos",
+    hzTitle: "Kung saan aabot ang 100-taóng baha (UP NOAH)", townTitle: "Ang 100-taóng baha, sa malapitan (UP NOAH)",
+    hz1: "Mababaw sa 0.5 m", hz2: "0.5 hanggang 1.5 m", hz3: "Lampas 1.5 m", bld: "Gusali", road: "Kalye"
+  } : {
+    ph: "The Philippines", bay: "The Bay Area", ocean: "Pacific Ocean", outside: "Outside the Bay Area", unsaid: "Preferred not to say",
+    live: "Where people live", prov: "Province in the Philippines", people: "People", none: "No RSVPs yet. Be the first on the map.",
+    fail: "The map couldn't load right now. Try reloading the page.", soon: "The RSVP form opens soon. Check back in a few days.", soonSr: " (opens soon)",
+    one: "One person", line: "One line per province, thicker when more people are tied to it", sample: "Sample data",
+    hzTitle: "Where a 100-year flood would reach (UP NOAH)", townTitle: "A 100-year flood, up close (UP NOAH)",
+    hz1: "Under 0.5 m deep", hz2: "0.5 to 1.5 m", hz3: "Over 1.5 m", bld: "Building", road: "Street"
+  };
+  function n2w(n) { return FIL ? n + " tao" : n === 1 ? "1 person" : n + " people"; }
+  function list(items) { return items.length < 2 ? items.join("") : items.slice(0, -1).join(", ") + (items.length > 2 && !FIL ? "," : "") + (FIL ? " at " : " and ") + items[items.length - 1]; }
   function sum(o) { var t = 0; Object.keys(o || {}).forEach(function (k) { t += o[k]; }); return t; }
   function toast(msg) { var t = $("toast"); t.textContent = msg; t.classList.add("is-on"); clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove("is-on"); }, 3500); }
   function getJSON(u) { return fetch(u, { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
@@ -85,10 +104,10 @@
   function imgTag(cls, name, proj, attrs, lazy) {
     var m = geo.maps && geo.maps.images[name]; if (!m) return "";
     var bb = m.bounds, p0 = proj([bb[0], bb[3]]), p1 = proj([bb[2], bb[1]]);
-    return '<image class="' + cls + '" ' + (lazy ? "data-href" : "href") + '="data/maps/' + name + '" x="' + p0[0].toFixed(2) + '" y="' + p0[1].toFixed(2) + '" width="' + (p1[0] - p0[0]).toFixed(2) + '" height="' + (p1[1] - p0[1]).toFixed(2) + '" preserveAspectRatio="none"' + (attrs || "") + "/>";
+    return '<image class="' + cls + '" ' + (lazy ? "data-href" : "href") + '="' + BASE + 'data/maps/' + name + '" x="' + p0[0].toFixed(2) + '" y="' + p0[1].toFixed(2) + '" width="' + (p1[0] - p0[0]).toFixed(2) + '" height="' + (p1[1] - p0[1]).toFixed(2) + '" preserveAspectRatio="none"' + (attrs || "") + "/>";
   }
   function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
-  function townOf(p) { var m = geo.maps && geo.maps.images["town-" + slug(p) + ".png"]; return m && m.in_hazard > 0 ? m : null; }
+  function townOf(p) { var m = geo.maps && geo.maps.images["town-" + slug(p) + ".webp"]; return m && m.in_hazard > 0 ? m : null; }
   function stormSet() { var s = {}; geo.storms.forEach(function (st) { st.provinces.forEach(function (p) { s[p] = true; }); }); return s; }
 
   function drawMap(host, d, opts) {
@@ -103,9 +122,9 @@
     var s = '<svg viewBox="0 0 ' + L.W + " " + L.H + '" class="m' + (L.vertical ? " m--v" : "") + '" role="img" aria-labelledby="who-summary" focusable="false">';
     s += "<defs>" + PERSON + "</defs>";
     // Panels and labels
-    s += '<text class="m-label" x="' + (L.ph.x + 6) + '" y="' + (L.ph.y + 16) + '">The Philippines</text>';
-    s += '<text class="m-label" x="' + (L.bay.x + 6) + '" y="' + (L.bay.y - 12) + '">The Bay Area</text>';
-    s += '<text class="m-ocean" x="' + L.ocean[0] + '" y="' + L.ocean[1] + '" text-anchor="middle">Pacific Ocean</text>';
+    s += '<text class="m-label" x="' + (L.ph.x + 6) + '" y="' + (L.ph.y + 16) + '">' + W.ph + '</text>';
+    s += '<text class="m-label" x="' + (L.bay.x + 6) + '" y="' + (L.bay.y - 12) + '">' + W.bay + '</text>';
+    s += '<text class="m-ocean" x="' + L.ocean[0] + '" y="' + L.ocean[1] + '" text-anchor="middle">' + W.ocean + '</text>';
     // Land
     s += '<g class="m-ph">' + geo.ph.features.map(function (f) {
       var cls = "m-prov" + (d.ph[f.name] ? " is-home" : "") + (storms[f.name] ? " is-storm" : "");
@@ -116,7 +135,7 @@
     }).join("") + "</g>";
     // Flood hazard: the whole country (light and dark versions; CSS shows the one that fits the theme).
     // In the reveal, sharper maps of each storm province and closeups of one town in each, loaded only when needed.
-    s += '<g class="m-hazard">' + (opts.present ? "" : imgTag("m-haz m-haz--light", "ph-hazard-light.png", pp)) + imgTag("m-haz m-haz--dark", "ph-hazard-dark.png", pp);
+    s += '<g class="m-hazard">' + imgTag("m-haz m-haz--light", "ph-hazard-light.png", pp) + imgTag("m-haz m-haz--dark", "ph-hazard-dark.png", pp);
     if (opts.present && geo.maps) Object.keys(geo.maps.images).forEach(function (n) {
       var m = geo.maps.images[n];
       if (!/^prov-/.test(n)) return;
@@ -150,7 +169,7 @@
     }
     s += people(d.ph, phPt, "m-people--ph", L.u * 0.85);
     s += people(d.bay, bayPt, "m-people--bay", L.u);
-    if (d.bay.outside) s += '<text class="m-small" x="' + bayPt.outside[0].toFixed(1) + '" y="' + (bayPt.outside[1] + (L.vertical ? 40 : 46)).toFixed(1) + '" text-anchor="middle">Outside the Bay Area</text>';
+    if (d.bay.outside) s += '<text class="m-small" x="' + bayPt.outside[0].toFixed(1) + '" y="' + (bayPt.outside[1] + (L.vertical ? 40 : 46)).toFixed(1) + '" text-anchor="middle">' + W.outside + '</text>';
     s += "</svg>";
     host.innerHTML = s;
     host.firstChild.__proj = pp; host.firstChild.__L = L;
@@ -167,7 +186,13 @@
   }
   function summary(d) {
     var f = facts(d);
-    if (!d.total) return "No RSVPs yet. Be the first on the map.";
+    if (!d.total) return W.none;
+    if (FIL) {
+      var t = n2w(d.total) + " na ang nag-RSVP: " + d.attend.inPerson + " nang personal at " + d.attend.online + " online" + (d.attend.unsure ? ", " + d.attend.unsure + " ang hindi pa sigurado" : "") + ". ";
+      if (f.withTies) t += f.withTies + " sa kanila ang may ugnayan sa " + f.provs.length + " lalawigan sa Pilipinas, pinakamadalas ang " + list(f.provs.slice(0, 3)) + ".";
+      if (f.noTies) t += " " + f.noTies + " ang darating nang walang ugnayan sa Pilipinas, at malugod din silang tinatanggap.";
+      return t;
+    }
     var s = n2w(d.total) + (d.total === 1 ? " has" : " have") + " RSVPed: " + d.attend.inPerson + " in person and " + d.attend.online + " online" + (d.attend.unsure ? ", " + d.attend.unsure + " not sure yet" : "") + ". ";
     if (f.withTies) s += f.withTies + " of them have ties to " + f.provs.length + (f.provs.length === 1 ? " province" : " provinces") + " in the Philippines, most often " + list(f.provs.slice(0, 3)) + ".";
     if (f.noTies) s += " " + f.noTies + (f.noTies === 1 ? " is" : " are") + " coming with no ties to the Philippines at all, and are just as welcome.";
@@ -176,23 +201,24 @@
   function table(d) {
     var f = facts(d);
     var rows = function (obj, keys, label) {
-      return keys.length ? '<table class="pm-table ev-tbl"><thead><tr><th scope="col">' + label + '</th><th scope="col" class="money">People</th></tr></thead><tbody>' +
-        keys.map(function (k) { return "<tr><td>" + esc(k === "outside" ? "Outside the Bay Area" : k === "unsaid" ? "Preferred not to say" : k) + '</td><td class="money">' + obj[k] + "</td></tr>"; }).join("") + "</tbody></table>" : "";
+      return keys.length ? '<table class="pm-table ev-tbl"><thead><tr><th scope="col">' + label + '</th><th scope="col" class="money">' + W.people + '</th></tr></thead><tbody>' +
+        keys.map(function (k) { return "<tr><td>" + esc(k === "outside" ? W.outside : k === "unsaid" ? W.unsaid : k) + '</td><td class="money">' + obj[k] + "</td></tr>"; }).join("") + "</tbody></table>" : "";
     };
     var bayKeys = Object.keys(d.bay).sort(function (a, b) { return d.bay[b] - d.bay[a]; });
-    return '<div class="ev-tables">' + rows(d.bay, bayKeys, "Where people live") + rows(d.ph, f.provs, "Province in the Philippines") + "</div>";
+    return '<div class="ev-tables">' + rows(d.bay, bayKeys, W.live) + rows(d.ph, f.provs, W.prov) + "</div>";
   }
   // Legends: each swatch has a word, and the blues get stronger with depth (checked with tools/cvd_check.py).
-  function hazardKey(withBuildings) {
-    var items = [["hz1", "Under 0.5 m deep"], ["hz2", "0.5 to 1.5 m"], ["hz3", "Over 1.5 m"]];
-    if (withBuildings) items.push(["bin", "Building the flood would reach"], ["bout", "Building outside it"]);
-    return '<span class="k-title">' + (withBuildings ? "A 100-year flood, up close (UP NOAH)" : "Where a 100-year flood would reach (UP NOAH)") + '</span><span class="k-scale" role="list">' +
-      items.map(function (x) { return '<span class="k" role="listitem"><i class="sw sw--' + x[0] + '" aria-hidden="true"></i>' + x[1] + "</span>"; }).join("") + "</span>";
+  function hazardKey(town) {
+    // Town closeups are drawn in the light colours whatever the theme, so their legend uses those fixed swatches.
+    var p = town ? "sw--l" : "sw--", items = [[p + "hz1", W.hz1], [p + "hz2", W.hz2], [p + "hz3", W.hz3]];
+    if (town) items.push(["sw--bld", W.bld], ["sw--road", W.road]);
+    return '<span class="k-title">' + (town ? W.townTitle : W.hzTitle) + '</span><span class="k-scale" role="list">' +
+      items.map(function (x) { return '<span class="k" role="listitem"><i class="sw ' + x[0] + '" aria-hidden="true"></i>' + x[1] + "</span>"; }).join("") + "</span>";
   }
   function key(d) {
-    return hazardKey(false) + '<span class="k"><svg viewBox="0 0 16 20" width="12" height="15" aria-hidden="true"><use href="#ev-person"/></svg> One person</span>' +
-      '<span class="k"><i class="k-arc" aria-hidden="true"></i> One line per province, thicker when more people are tied to it</span>' +
-      (d.sample ? '<span class="k k--sample">Sample data</span>' : "");
+    return hazardKey(false) + '<span class="k"><svg viewBox="0 0 16 20" width="12" height="15" aria-hidden="true"><use href="#ev-person"/></svg> ' + W.one + '</span>' +
+      '<span class="k"><i class="k-arc" aria-hidden="true"></i> ' + W.line + '</span>' +
+      (d.sample ? '<span class="k k--sample">' + W.sample + '</span>' : "");
   }
 
   /* ---------- the page ---------- */
@@ -215,7 +241,7 @@
   }
   function refresh() {
     return loadData().then(function (d) { data = d; if (PRESENT) { buildSteps(); show(stepIndex); } else renderPage(); })
-      .catch(function () { if (!data) $("who-summary").textContent = "The map couldn't load right now. Try reloading the page."; });
+      .catch(function () { if (!data) $("who-summary").textContent = W.fail; });
   }
 
   /* ---------- the reveal (?present) ---------- */
@@ -235,7 +261,7 @@
     steps.push({ caption: "This is us tonight.", sub: n2w(d.total) + ", from " + counties + " Bay Area " + (counties === 1 ? "county" : "counties") + (d.bay.outside ? " and beyond" : "") + ".", show: ["bay"], zoom: FULL });
     if (f.withTies) steps.push({ caption: f.withTies + " of us are tied to the Philippines,", sub: "born there, with family there, or from time spent there: " + f.provs.length + (f.provs.length === 1 ? " province" : " provinces") + " in all.", show: ["bay", "arcs", "ph"], zoom: FULL });
     if (f.noTies) steps.push({ caption: f.noTies + " of us came with no ties to the Philippines at all.", sub: "You belong in this conversation too. What happens next will take people with every kind of connection, and people with none.", show: ["bay", "arcs", "ph"], zoom: FULL });
-    steps.push({ caption: "This is where a once-in-a-century rain would flood.", sub: "UP NOAH's flood hazard map for a 100-year rain. The brighter the blue, the deeper the water.", show: all, legend: "hazard", zoom: FULL });
+    steps.push({ caption: "This is where a once-in-a-century rain would flood.", sub: "UP NOAH's flood hazard map for a 100-year rain. The " + (theme() === "dark" ? "brighter" : "darker") + " the blue, the deeper the water.", show: all, legend: "hazard", zoom: FULL });
     var stormProvs = Object.keys(stormSet());
     if (f.inStorm) steps.push({ caption: f.inStorm + " of us are tied to places the worst floods since 1991 reached.", sub: "Provinces that have been affected by the Philippines' worst floods.", show: all, focus: stormProvs, legend: "hazard", zoom: FULL });
     // Groups of provinces in the room that share the same floods; the four with the most people. With few RSVPs yet,
@@ -270,8 +296,8 @@
       if (!tp) return;
       var t = townOf(tp);
       steps.push(firstTown
-        ? { caption: "This is part of " + t.town + ", up close.", sub: "Every orange shape is a building a 100-year flood would reach: homes, schools, churches, shops. Grey buildings sit outside it.", show: all, legend: "town", zoom: { kind: "town", prov: tp }, place: t.town + ", " + tp }
-        : { caption: "Part of " + t.town + ", up close.", sub: "Orange: buildings a 100-year flood would reach. Grey: buildings outside it.", show: all, legend: "town", zoom: { kind: "town", prov: tp }, place: t.town + ", " + tp });
+        ? { caption: "This is part of " + t.town + ", up close.", sub: "Every outlined shape is a building: homes, schools, churches, shops. Where it stands in blue, a 100-year flood would reach it. The darker the blue, the deeper the water.", show: all, legend: "town", zoom: { kind: "town", prov: tp }, place: t.town + ", " + tp }
+        : { caption: "Part of " + t.town + ", up close.", sub: "Every building standing in blue is one a 100-year flood would reach.", show: all, legend: "town", zoom: { kind: "town", prov: tp }, place: t.town + ", " + tp });
       firstTown = false;
     });
     if (f.inStorm || chosen.length) steps.push({ caption: "If you, or someone close to you, lived through one of these floods, raise your hand.", sub: "Keep it up for a moment, and look around the room.", show: all, zoom: FULL });
@@ -354,7 +380,7 @@
     zoomTo(svg, boxFor(z, svg), function () { paintPlace(st, svg); });
     var lg = $("present-legend"); lg.hidden = !st.legend; if (st.legend) lg.innerHTML = hazardKey(st.legend === "town");
     var ph = $("present-photo");
-    if (st.photo) { ph.querySelector("img").src = st.photo.src; ph.querySelector("img").alt = st.photo.alt; ph.querySelector("figcaption").textContent = st.photo.alt + " " + st.photo.credit + "."; ph.hidden = false; }
+    if (st.photo) { ph.querySelector("img").src = BASE + st.photo.src; ph.querySelector("img").alt = st.photo.alt; ph.querySelector("figcaption").textContent = st.photo.alt + " " + st.photo.credit + "."; ph.hidden = false; }
     else ph.hidden = true;
     ph.parentNode.classList.toggle("has-photo", !!st.photo);
     $("present-caption").textContent = st.caption;
@@ -386,43 +412,13 @@
   function wireRsvp() {
     var b = $("rsvp-btn");
     if (cfg.rsvpUrl && /^https:\/\//.test(cfg.rsvpUrl)) { b.href = cfg.rsvpUrl; b.target = "_blank"; b.rel = "noopener"; return; }
-    b.addEventListener("click", function (e) { e.preventDefault(); toast("The RSVP form opens soon. Check back in a few days."); });
-    b.querySelector(".sr").textContent = " (opens soon)";
+    b.addEventListener("click", function (e) { e.preventDefault(); toast(W.soon); });
+    b.querySelector(".sr").textContent = W.soonSr;
   }
-  if (cfg.timeText) $("ev-time").textContent = cfg.timeText;
+  var tt = FIL ? cfg.timeTextFil : cfg.timeText; if (tt && $("ev-time")) $("ev-time").textContent = tt;
 
-  /* ---------- theme and click sounds (same as the hub and gregor-posadas.github.io) ---------- */
-  var store = { get: function (k) { try { return localStorage.getItem("lv." + k); } catch (e) { return null; } }, set: function (k, v) { try { localStorage.setItem("lv." + k, v); } catch (e) { /* ignore */ } } };
-  function theme() { return document.documentElement.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }
-  function paintTheme() { var b = $("theme-toggle"), next = theme() === "dark" ? "light" : "dark"; b.textContent = next === "light" ? "Light mode" : "Dark mode"; b.setAttribute("aria-label", "Switch to " + next + " mode"); }
-  $("theme-toggle").addEventListener("click", function () { var n = theme() === "dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", n); store.set("theme", n); paintTheme(); });
-  paintTheme();
-  var soundBtn = $("sound-toggle"), saved = store.get("sound"), soundOn = saved === null ? !reduced : saved === "on", actx = null;
-  function tick(kind) {
-    if (!soundOn) return;
-    try { var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; if (!actx) actx = new AC(); if (actx.state === "suspended") { actx.resume().then(function () { play(kind); }, function () {}); return; } play(kind); } catch (e) { /* no audio */ }
-  }
-  function play(kind) {
-    try {
-      var up = kind === "up", t = actx.currentTime, out = actx.createGain(); out.gain.value = up ? 0.22 : 0.35; out.connect(actx.destination);
-      var len = Math.max(1, Math.floor(actx.sampleRate * (up ? 0.006 : 0.009))), buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0);
-      for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4);
-      var src = actx.createBufferSource(); src.buffer = buf;
-      var hp = actx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = up ? 4500 : 3000;
-      var lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = up ? 9000 : 7000;
-      src.connect(hp); hp.connect(lp); lp.connect(out); src.start(t);
-      var o = actx.createOscillator(); o.type = "triangle"; o.frequency.setValueAtTime(up ? 3400 : 2300, t); o.frequency.exponentialRampToValueAtTime(up ? 2900 : 1700, t + 0.012);
-      var g = actx.createGain(); g.gain.setValueAtTime(up ? 0.10 : 0.16, t); g.gain.exponentialRampToValueAtTime(0.0001, t + (up ? 0.012 : 0.018));
-      o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.03);
-    } catch (e) { /* no audio */ }
-  }
-  function paintSound() { soundBtn.setAttribute("aria-pressed", soundOn ? "true" : "false"); soundBtn.querySelector(".tool__state").textContent = soundOn ? "Sound on" : "Sound off"; }
-  soundBtn.addEventListener("click", function () { soundOn = !soundOn; store.set("sound", soundOn ? "on" : "off"); paintSound(); if (soundOn) { tick("down"); setTimeout(function () { tick("up"); }, 70); } });
-  paintSound();
-  var pressed = null, PRESS = ".btn, .tool";
-  document.addEventListener("pointerdown", function (e) { if (e.button !== undefined && e.button !== 0) return; var el = e.target.closest && e.target.closest(PRESS); if (el && !el.disabled) { pressed = el; tick("down"); } });
-  function release() { if (pressed) { pressed = null; tick("up"); } }
-  document.addEventListener("pointerup", release); document.addEventListener("pointercancel", release);
+  /* theme, sounds and term notes live in site.js, loaded first */
+  function theme() { return window.EV_SITE ? window.EV_SITE.theme() : "light"; }
 
   /* ---------- start ---------- */
   // Speaker photos come from the speakers' university pages; if one won't load, show initials instead of a broken image.
@@ -431,13 +427,14 @@
     if (im.complete && !im.naturalWidth) miss(); else im.addEventListener("error", miss);
   });
   wireRsvp();
-  Promise.all([getJSON("data/ph-provinces.json"), getJSON("data/bay-counties.json"), getJSON("data/storms.json"),
-    getJSON("data/maps/manifest.json").catch(function () { return null; }), getJSON("data/photos.json").catch(function () { return { photos: {} }; })]).then(function (r) {
+  Object.keys(cfg.supporters || {}).forEach(function (k) { if (cfg.supporters[k]) Array.prototype.forEach.call(document.querySelectorAll('[data-supporter="' + k + '"]'), function (el) { el.hidden = false; }); });
+  Promise.all([getJSON(BASE + "data/ph-provinces.json"), getJSON(BASE + "data/bay-counties.json"), getJSON(BASE + "data/storms.json"),
+    getJSON(BASE + "data/maps/manifest.json").catch(function () { return null; }), getJSON(BASE + "data/photos.json").catch(function () { return { photos: {} }; })]).then(function (r) {
     geo.ph = r[0]; geo.bay = r[1]; geo.storms = r[2].storms; geo.maps = r[3]; geo.photos = r[4].photos || {};
     return loadData();
   }).then(function (d) {
     data = d;
     if (PRESENT) startPresent(); else { renderPage(); if (!SAMPLE && cfg.refreshSeconds) setInterval(function () { if (document.visibilityState === "visible") refresh(); }, cfg.refreshSeconds * 1000); }
-  }).catch(function () { $("who-summary").textContent = "The map couldn't load right now. Try reloading the page."; });
+  }).catch(function () { $("who-summary").textContent = W.fail; });
   window.__ev = { sampleData: sampleData, facts: function () { return facts(data); }, steps: function () { return steps; } };
 })();

@@ -9,21 +9,32 @@
 <link rel="preload" href="../fonts/AtkinsonHyperlegibleNext-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../fonts/AtkinsonHyperlegibleNext-Bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23385F96'/%3E%3Cpath d='M6 19c3-3 5 3 10 0s7 3 10 0' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="../assets/styles.css?v=20261002084704">
-<link rel="stylesheet" href="event.css?v=20261002084704">
-<script>try { var t = localStorage.getItem("lv.theme"); if (t) document.documentElement.setAttribute("data-theme", t); if (/[?&#]present/.test(location.href)) document.documentElement.setAttribute("data-theme", "dark"); } catch (e) {}</script>
+<link rel="alternate" hreflang="en" href="https://gregor-posadas.github.io/lagmay-visit-hub/event/">
+<link rel="alternate" hreflang="fil" href="https://gregor-posadas.github.io/lagmay-visit-hub/event/fil/">
+<link rel="stylesheet" href="../assets/styles.css?v=20261002095759">
+<link rel="stylesheet" href="site.css?v=20261002095759">
+<link rel="stylesheet" href="event.css?v=20261002095759">
+<script>try { var t = localStorage.getItem("lv.theme"); if (t) document.documentElement.setAttribute("data-theme", t); if (/[?&#]present/.test(location.href)) document.documentElement.setAttribute("data-theme", /[?&#]dark/.test(location.href) ? "dark" : "light"); } catch (e) {}</script>
 </head>
-<body>
+<body class="ev-page ev-page--event">
+<!-- Built by tools/build_event_pages.py from event/src/main.html. Edit that file, not this one. -->
 <a class="skip" href="#main">Skip to content</a>
 <header class="band" role="banner">
   <div class="band__inner">
     <a class="brand" href="./">
-      <span class="brand__name"><svg class="brand__sun" viewBox="-12 -12 24 24" aria-hidden="true" focusable="false"><circle r="4.6" fill="currentColor"/><path d="M6.40 0.00L11.00 0.00M4.53 4.53L7.78 7.78M0.00 6.40L0.00 11.00M-4.53 4.53L-7.78 7.78M-6.40 0.00L-11.00 0.00M-4.53 -4.53L-7.78 -7.78M-0.00 -6.40L-0.00 -11.00M4.53 -4.53L7.78 -7.78" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>When the Waters Rise</span>
+      <span class="brand__name"><svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="15" fill="#385F96"/><path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>When the Waters Rise</span>
       <span class="brand__sub">Flooding in the Philippines, a public conversation</span>
     </a>
+    <nav class="nav" aria-label="Pages">
+      <a href="./" aria-current="page">Event</a>
+      <a href="history/">Flood history</a>
+      <a href="faq/">Questions</a>
+      <a href="accessibility/">Accessibility</a>
+      <a href="fil/" lang="fil" hreflang="fil">Filipino</a>
+    </nav>
     <div class="band__tools">
       <button type="button" class="tool" id="sound-toggle" aria-pressed="true"><span class="tool__state">Sound on</span></button>
-      <button type="button" class="tool theme-toggle" id="theme-toggle">Light mode</button>
+      <button type="button" class="tool theme-toggle" id="theme-toggle">Dark mode</button>
     </div>
   </div>
 </header>
@@ -34,7 +45,7 @@
     <section class="ev-hero" aria-labelledby="ev-title">
       <p class="ev-kicker">UC Berkeley, Monday, November 9, 2026</p>
       <h1 id="ev-title">When the Waters Rise</h1>
-      <p class="ev-lede">Three leading Filipino scholars, one conversation: why does the Philippines keep flooding, who pays for it, and what can people here in the Bay Area do? Dr. Mahar Lagmay, the scientist behind the country's national flood hazard maps, joins Berkeley's Dr. Lisandro Claudio, a prize-winning historian of the Philippine state and its money, and Dr. Diana Martinez, an architectural historian of how the United States built its rule in the islands in concrete.</p>
+      <p class="ev-lede">Three leading Filipino scholars, one conversation: why does the Philippines keep flooding, who pays for it, and what can people here in the Bay Area do? Dr. Mahar Lagmay, the scientist behind the country's national <span class="tt"><span class="tt-t">flood hazard maps</span>Maps of where water would go, and how deep, if a given rain fell. Project NOAH's maps show this for rains so heavy they come about once every 5, 25 or 100 years.</span>, joins Berkeley's Dr. Lisandro Claudio, a prize-winning historian of the Philippine state and its money, and Dr. Diana Martinez, an architectural historian of how the United States built its rule in the islands in concrete.</p>
       <dl class="facts ev-facts">
         <div class="fact"><dt>When</dt><dd>Monday, November 9, 2026<br><small id="ev-time">Afternoon, time to be announced</small></dd></div>
         <div class="fact"><dt>Where</dt><dd>Banatao Auditorium<br><small>Sutardja Dai Hall, UC Berkeley</small></dd></div>
@@ -45,7 +56,7 @@
         <a class="btn btn--solid btn--big" id="rsvp-btn" href="#rsvp">RSVP<span class="sr"> (opens a Google Form in a new tab)</span></a>
         <a class="btn" href="#who">See who's coming</a>
       </div>
-      <p class="ev-welcome">Everyone is welcome, whether your family is from Pampanga or you have never been to the Philippines. The RSVP takes about two minutes.</p>
+      <p class="ev-welcome">Everyone is welcome, whether your family is from Pampanga or you have never been to the Philippines. The RSVP takes about two minutes. <a href="fil/" lang="fil" hreflang="fil">Basahin sa Filipino.</a></p>
     </section>
 
     <section class="section ev-who" id="who" aria-labelledby="who-h">
@@ -59,7 +70,7 @@
         <summary>The map as a list</summary>
         <div id="map-table"></div>
       </details>
-      <p class="section__note">Each figure is one person who RSVPed, placed in their Bay Area county and, if they chose one, the Philippine province they are connected to. No names, and no towns. The map updates about once a minute.</p>
+      <p class="section__note">Each figure is one person who RSVPed, placed in their Bay Area county and, if they chose one, the Philippine province they are connected to. No names, and no towns. The blue is where a <span class="tt"><span class="tt-t">100-year flood</span>A flood so big it has a 1 in 100 chance of happening in any given year. It is not "once a century": it can come two years running, and warmer seas are making heavy rain more likely.</span> would reach. The map updates about once a minute.</p>
     </section>
 
     <section class="section" aria-labelledby="sp-h">
@@ -67,53 +78,74 @@
       <p class="section__note">Science, history and the built world: each brings a different answer to why the water keeps rising, and what we owe each other when it does.</p>
       <ul class="ev-speakers">
         <li class="ev-speaker">
-          <div class="ev-speaker__photo" data-initials="ML"><img src="https://resilience.up.edu.ph/wp-content/uploads/2022/10/t0tH8My7_400x400-300x300.jpg" alt="Dr. Mahar Lagmay" width="300" height="300" loading="lazy" referrerpolicy="no-referrer"></div>
+          <div class="ev-speaker__photo" data-initials="ML" style="--z: 0.78; --bg: url('https://resilience.up.edu.ph/wp-content/uploads/2022/10/t0tH8My7_400x400.jpg')"><img src="https://resilience.up.edu.ph/wp-content/uploads/2022/10/t0tH8My7_400x400.jpg" alt="Dr. Mahar Lagmay" width="400" height="400" loading="lazy" referrerpolicy="no-referrer"></div>
           <h3>Dr. Mahar Lagmay</h3>
-          <p class="ev-speaker__role">Executive Director, UP Resilience Institute, and Professor at the UP National Institute of Geological Sciences</p>
-          <p>Dr. Lagmay leads Project NOAH, which mapped flood, landslide and storm-surge hazards across the whole Philippines and made them free for anyone to use. The flood maps on this page are his team's. A Cambridge-trained geologist, he was the first Asian scientist to receive the European Geosciences Union's Plinius Medal for natural-hazards research, in 2015. In the national debate over flood control, he has argued that new concrete should be the last resort, not the first.</p>
+          <p class="ev-speaker__role">Executive Director, <span class="tt"><span class="tt-t">UP Resilience Institute</span>A University of the Philippines institute that studies disasters and climate risk and helps communities prepare. It runs Project NOAH.</span>, and Professor at the UP National Institute of Geological Sciences</p>
+          <p>Dr. Lagmay leads <span class="tt"><span class="tt-t">Project NOAH</span>Nationwide Operational Assessment of Hazards. Launched in 2012 under the Department of Science and Technology, with Dr. Lagmay as its head, it maps floods, landslides and storm surges for the whole country. The University of the Philippines has run it since 2017.</span>, which mapped flood, landslide and <span class="tt"><span class="tt-t">storm-surge</span>A storm surge is seawater pushed ashore by a typhoon's winds. Yolanda's surge in 2013 rose several metres in Tacloban.</span> hazards across the whole Philippines and made them free for anyone to use. The flood maps on this page are his team's. A Cambridge-trained geologist, he was the first Asian scientist to receive the European Geosciences Union's <span class="tt"><span class="tt-t">Plinius Medal</span>The European Geosciences Union's medal for interdisciplinary research on natural hazards.</span>, in 2015. In the national debate over flood control, he has argued that new concrete should be the last resort, not the first.</p>
+          <p class="ev-speaker__email"><a href="mailto:aalagmay@up.edu.ph">aalagmay@up.edu.ph</a></p>
           <p class="ev-speaker__more">Selected work</p>
           <ul class="ev-speaker__links">
-            <li><a href="https://noah.up.edu.ph/" target="_blank" rel="noopener">Project NOAH<span class="sr"> (opens in a new tab)</span></a>, the national hazard maps</li>
-            <li><a href="https://doi.org/10.1016/j.ijdrr.2014.10.006" target="_blank" rel="noopener">Devastating storm surges of Typhoon Haiyan<span class="sr"> (opens in a new tab)</span></a>, 2015</li>
-            <li><a href="https://doi.org/10.1016/j.jes.2017.03.014" target="_blank" rel="noopener">Disseminating near-real-time hazards information and flood maps in the Philippines through Web-GIS<span class="sr"> (opens in a new tab)</span></a>, 2017</li>
+            <li><a href="https://noah.up.edu.ph/">Project NOAH</a>, the national hazard maps</li>
+            <li><a href="https://doi.org/10.1016/j.ijdrr.2014.10.006">Devastating storm surges of Typhoon Haiyan</a>, 2015</li>
+            <li><a href="https://doi.org/10.1016/j.jes.2017.03.014">Disseminating near-real-time hazards information and flood maps in the Philippines through Web-GIS</a>, 2017</li>
           </ul>
         </li>
         <li class="ev-speaker">
-          <div class="ev-speaker__photo" data-initials="LC"><img src="https://sseas.berkeley.edu/sites/default/files/styles/large/public/imported_images/Lisandro-Claudio.jpg?itok=Wbs2sq3R" alt="Dr. Lisandro Claudio" width="300" height="300" loading="lazy" referrerpolicy="no-referrer"></div>
+          <div class="ev-speaker__photo" data-initials="LC" style="--z: 0.58; --bg: url('https://sseas.berkeley.edu/sites/default/files/imported_images/Lisandro-Claudio.jpg')"><img src="https://sseas.berkeley.edu/sites/default/files/imported_images/Lisandro-Claudio.jpg" alt="Dr. Lisandro Claudio" width="400" height="400" loading="lazy" referrerpolicy="no-referrer"></div>
           <h3>Dr. Lisandro Claudio</h3>
           <p class="ev-speaker__role">Associate Professor of Southeast Asian Studies and Chair of the Center for Southeast Asia Studies, UC Berkeley</p>
-          <p>Dr. Claudio is a historian of the modern Philippines: its politics, its ideas and its money. His newest book, <cite>The Profligate Colonial</cite>, shows how the United States exported austerity to the Philippines, shaping what the colonial state could and could not build. His <cite>Liberalism and the Postcolony</cite> won the Association for Asian Studies' George McT. Kahin Prize. Before Berkeley he taught at Ateneo de Manila and De La Salle.</p>
+          <p>Dr. Claudio is a historian of the modern Philippines: its politics, its ideas and its money. His newest book, <cite>The Profligate Colonial</cite>, shows how the United States exported <span class="tt"><span class="tt-t">austerity</span>Keeping government spending tight, even on things a country needs. Dr. Claudio traces how American colonial rule ran the Philippines on a tight budget, and what that meant for what the state could build.</span> to the Philippines, shaping what the colonial state could and could not build. His <cite>Liberalism and the Postcolony</cite> won the Association for Asian Studies' George McT. Kahin Prize. Before Berkeley he taught at Ateneo de Manila and De La Salle.</p>
+          <p class="ev-speaker__email"><a href="mailto:lclaudio@berkeley.edu">lclaudio@berkeley.edu</a></p>
           <p class="ev-speaker__more">Books</p>
           <ul class="ev-speaker__links">
-            <li><a href="https://muse.jhu.edu/book/134987" target="_blank" rel="noopener"><cite>The Profligate Colonial: How the US Exported Austerity to the Philippines</cite><span class="sr"> (opens in a new tab)</span></a>, Cornell, 2025</li>
-            <li><a href="https://nuspress.nus.edu.sg/products/liberalism-and-the-postcolony-thinking-the-state-in-20th-century-philippines" target="_blank" rel="noopener"><cite>Liberalism and the Postcolony: Thinking the State in 20th-Century Philippines</cite><span class="sr"> (opens in a new tab)</span></a>, NUS Press, 2017</li>
-            <li><a href="https://link.springer.com/book/10.1007/978-3-030-01316-5" target="_blank" rel="noopener"><cite>Jose Rizal: Liberalism and the Paradox of Coloniality</cite><span class="sr"> (opens in a new tab)</span></a>, Palgrave Macmillan, 2019</li>
+            <li><a href="https://muse.jhu.edu/book/134987"><cite>The Profligate Colonial: How the US Exported Austerity to the Philippines</cite></a>, Cornell, 2025</li>
+            <li><a href="https://nuspress.nus.edu.sg/products/liberalism-and-the-postcolony-thinking-the-state-in-20th-century-philippines"><cite>Liberalism and the Postcolony: Thinking the State in 20th-Century Philippines</cite></a>, NUS Press, 2017</li>
+            <li><a href="https://link.springer.com/book/10.1007/978-3-030-01316-5"><cite>Jose Rizal: Liberalism and the Paradox of Coloniality</cite></a>, Palgrave Macmillan, 2019</li>
           </ul>
         </li>
         <li class="ev-speaker">
-          <div class="ev-speaker__photo" data-initials="DM"><img src="https://ced.berkeley.edu/wp-content/uploads/2023/07/2025_Diana-Martinez-400x400.jpg" alt="Dr. Diana Martinez" width="300" height="300" loading="lazy" referrerpolicy="no-referrer"></div>
+          <div class="ev-speaker__photo" data-initials="DM" style="--z: 1; --bg: url('https://ced.berkeley.edu/wp-content/uploads/2023/07/2025_Diana-Martinez-400x400.jpg')"><img src="https://ced.berkeley.edu/wp-content/uploads/2023/07/2025_Diana-Martinez-400x400.jpg" alt="Dr. Diana Martinez" width="400" height="400" loading="lazy" referrerpolicy="no-referrer"></div>
           <h3>Dr. Diana Martinez</h3>
           <p class="ev-speaker__role">Assistant Professor of Architecture, College of Environmental Design, UC Berkeley</p>
-          <p>Dr. Martinez is an architectural historian of American empire. Her book <cite>Concrete Colonialism</cite> shows how the United States used concrete, infrastructure and city planning to build its rule over the Philippines. Her next book traces the colonial roots of urban renewal, from Daniel Burnham's 1905 plan for Manila to American cities. She returned to Berkeley, where she studied architecture as an undergraduate, after directing the architectural studies program at Tufts.</p>
+          <p>Dr. Martinez is an architectural historian of American empire. Her book <cite>Concrete Colonialism</cite> shows how the United States used concrete, infrastructure and city planning to build its rule over the Philippines. Her next book traces the colonial roots of <span class="tt"><span class="tt-t">urban renewal</span>Programs, mostly in mid-20th-century American cities, that cleared older and often poorer neighbourhoods to rebuild them.</span>, from <span class="tt"><span class="tt-t">Daniel Burnham</span>The Chicago architect and planner who drew up plans for Manila and Baguio in 1905, when the Philippines was an American colony.</span>'s 1905 plan for Manila to American cities. She returned to Berkeley, where she studied architecture as an undergraduate, after directing the architectural studies program at Tufts.</p>
+          <p class="ev-speaker__email"><a href="mailto:dianajmartinez@berkeley.edu">dianajmartinez@berkeley.edu</a></p>
           <p class="ev-speaker__more">Selected work</p>
           <ul class="ev-speaker__links">
-            <li><a href="https://www.dukeupress.edu/concrete-colonialism" target="_blank" rel="noopener"><cite>Concrete Colonialism: Architecture, Urbanism, and the US Imperial Project in the Philippines</cite><span class="sr"> (opens in a new tab)</span></a>, Duke, 2025</li>
-            <li><a href="https://doi.org/10.1162/grey_a_00400" target="_blank" rel="noopener">Nation Building in the Philippines and the Racial Ordering of International Architecture<span class="sr"> (opens in a new tab)</span></a>, <cite>Grey Room</cite>, 2024</li>
+            <li><a href="https://www.dukeupress.edu/concrete-colonialism"><cite>Concrete Colonialism: Architecture, Urbanism, and the US Imperial Project in the Philippines</cite></a>, Duke, 2025</li>
+            <li><a href="https://doi.org/10.1162/grey_a_00400">Nation Building in the Philippines and the Racial Ordering of International Architecture</a>, <cite>Grey Room</cite>, 2024</li>
           </ul>
         </li>
       </ul>
-      <p class="section__note">The same morning, Dr. Lagmay also gives a guest lecture in Development Engineering 203. Speaker photos are from the speakers' university pages.</p>
+      <p class="section__note">The same morning, Dr. Lagmay also gives a guest lecture in <a href="https://developmentengineering.berkeley.edu/programs/dtod/training/">Development Engineering 203, Digital Transformation of Development</a>, a graduate course in Berkeley's <span class="tt"><span class="tt-t">Development Engineering</span>A Berkeley field that designs, tests and studies technology with and for communities in low-resource settings, from water systems to digital tools.</span> program. Speaker photos are from the speakers' university pages.</p>
+    </section>
+
+    <section class="section" aria-labelledby="sup-h">
+      <h2 id="sup-h">Made possible by</h2>
+      <p class="section__note">The departments, organizations and people helping bring Dr. Lagmay to the Bay Area.</p>
+      <ul class="ev-logos">
+        <li class="ev-logos__wide"><a href="https://developmentengineering.berkeley.edu/"><img src="img/logos/logo-deveng.png" alt="Development Engineering at UC Berkeley"></a></li>
+        <li class="ev-logos__wide"><a href="https://www.phildev.org/"><img src="img/logos/logo-phildev.png" alt="PhilDev"></a></li>
+        <li><a class="ev-logos__text" href="https://townsendcenter.berkeley.edu/">Townsend Center for the Humanities</a></li>
+        <li data-supporter="torres" hidden><a class="ev-logos__text" href="https://www.instagram.com/asucsenatorgabby/">ASUC Office of Senator Gabby Torres</a></li>
+      </ul>
     </section>
 
     <section class="section" aria-labelledby="ab-h">
-      <h2 id="ab-h">About the map and your answers</h2>
+      <h2 id="ab-h">About the map, your answers and the data</h2>
       <ul class="list">
         <li>Your name and email are only for the RSVP list. They never appear here or at the event.</li>
         <li>The map shows counts by Bay Area county and Philippine province. If you pick "Prefer not to say", you are counted but not placed.</li>
         <li>If you share a flood story and say yes to sharing it, a teammate reads it first. A few may be read aloud at the event, never with a name.</li>
-        <li>The blue is where a 100-year rain would flood, from UP NOAH's flood hazard maps (UP Resilience Institute), shaded by depth. Guimaras, Siquijor, Sulu and Tawi-Tawi have no NOAH 100-year map in this set, and some provinces are only partly mapped. At the event, the map zooms into a few towns to show every building: footprints from Google Open Buildings (CC BY 4.0), Microsoft and OpenStreetMap (ODbL), combined by VIDA.</li>
-        <li>Flood photos: Wikimedia Commons, credited on screen as they appear.</li>
-        <li>Province boundaries: PSA (2023), via philippines-json-maps. Bay Area counties: click_that_hood. </li>
+        <li>The blue is where a 100-year rain would flood, shaded by depth. Guimaras, Siquijor, Sulu and Tawi-Tawi have no NOAH 100-year map in this set, and some provinces are only partly mapped. At the event, the map zooms into a few towns to show every building and street.</li>
+      </ul>
+      <h3 class="ev-h3">Data and sources</h3>
+      <ul class="list ev-sources">
+        <li>Flood hazard: <a href="https://noah.up.edu.ph/">UP NOAH flood hazard maps</a> (UP Resilience Institute), for a 100-year rain.</li>
+        <li>Buildings: <a href="https://source.coop/vida/google-microsoft-osm-open-buildings">Google-Microsoft-OSM Open Buildings, combined by VIDA</a>, which joins <a href="https://sites.research.google/gr/open-buildings/">Google Open Buildings</a> (CC BY 4.0), <a href="https://github.com/microsoft/GlobalMLBuildingFootprints">Microsoft Global ML Building Footprints</a> (ODbL) and <span class="tt"><span class="tt-t">OpenStreetMap</span>A free map of the world made by volunteers, like Wikipedia for maps. The streets in the town closeups come from it too.</span>.</li>
+        <li>Streets: <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> (ODbL), from the <a href="https://download.geofabrik.de/asia/philippines.html">Geofabrik Philippines extract</a>.</li>
+        <li>Land and province outlines: <a href="https://data.humdata.org/dataset/cod-ab-phl">PSA administrative boundaries via HDX</a>, and <a href="https://github.com/faeldon/philippines-json-maps">philippines-json-maps</a> (PSA, 2023). Bay Area counties: <a href="https://github.com/codeforgermany/click_that_hood">click_that_hood</a>.</li>
+        <li>The floods named at the event: <a href="history/">Flood history</a>, from <a href="https://gregor-posadas.github.io/bahawatch/">BahaWatch</a>. Photos from Wikimedia Commons, credited where they appear.</li>
+        <li>The code for this page: <a href="https://github.com/gregor-posadas/lagmay-visit-hub">github.com/gregor-posadas/lagmay-visit-hub</a>.</li>
       </ul>
     </section>
   </div>
@@ -135,10 +167,10 @@
   </div>
   <p class="ev-present__sample" id="present-sample" hidden>Sample data</p>
 </div>
-
-<footer class="foot"><p>Organized by graduate students at UC Berkeley, with friends at Stanford. Questions: ask any of us on the night, or reply to your RSVP email.</p></footer>
+<footer class="foot"><p>Organized by graduate students at UC Berkeley, with friends at Stanford. Questions: see <a href="faq/">Questions</a>, ask any of us on the night, or reply to your RSVP email.</p></footer>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script src="config.js?v=20261002084704"></script>
-<script src="event.js?v=20261002084704"></script>
+<script src="site.js?v=20261002095759"></script>
+<script src="config.js?v=20261002095759"></script>
+<script src="event.js?v=20261002095759"></script>
 </body>
 </html>

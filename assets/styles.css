@@ -104,9 +104,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* Signage band */
 .band { background: var(--band); color: var(--band-ink); }
-/* A quiet nod to the Philippine flag: a blue-over-red stripe under the header, and the flag's eight-rayed sun by the name */
+/* A quiet nod to the Philippine flag: a blue-over-red stripe under the header */
 .band::after { content: ""; display: block; height: 6px; background: linear-gradient(to bottom, var(--flag-blue) 0 50%, var(--flag-red) 50% 100%); }
-.brand__sun { width: 1.05em; height: 1.05em; flex: none; color: var(--flag-gold); }
+.brand__mark { width: 1.15em; height: 1.15em; flex: none; }
 .band__inner { max-width: var(--wrap); margin: 0 auto; padding: 14px 16px; display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 @media (min-width: 720px) { .band__inner { padding: 18px 32px; } }
 .brand { text-decoration: none; display: flex; flex-direction: column; min-height: var(--tap); justify-content: center; }

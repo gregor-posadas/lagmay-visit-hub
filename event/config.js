@@ -6,5 +6,8 @@ window.EV_CONFIG = {
   apiUrl: "https://script.google.com/macros/s/AKfycbwzr5dKY7SYF8xUqL_0JkgbBGhuGas3v0OHo-DEoB9bmjSg3s6SylZh_UWmd6S7EdSZ/exec",
   rsvpUrl: "https://docs.google.com/forms/d/e/1FAIpQLSep5CC-7wR6JnsLgJwK2Sqd3Uy3FxqaIgfCPndmfU0bHdDDew/viewform",
   timeText: "Afternoon, time to be announced",
-  refreshSeconds: 60
+  timeTextFil: "Hapon, iaanunsyo pa ang oras",
+  refreshSeconds: 60,
+  // Supporters shown on the page once they've said yes. Set torres to true when Senator Torres's office agrees to be listed.
+  supporters: { torres: false }
 };

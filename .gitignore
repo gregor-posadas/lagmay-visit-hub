@@ -6,3 +6,5 @@ node_modules/
 # images that belong to the site
 !event/data/maps/*.png
 !event/img/*.png
+!event/img/logos/*.png
+__pycache__/

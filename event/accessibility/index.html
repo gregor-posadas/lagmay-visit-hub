@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accessibility: When the Waters Rise</title>
+<meta name="description" content="How the When the Waters Rise event page is designed for readers with low vision, colour blindness, older phones and screen readers, and where it still falls short.">
+<meta name="color-scheme" content="light dark">
+<link rel="preload" href="../../fonts/AtkinsonHyperlegibleNext-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../fonts/AtkinsonHyperlegibleNext-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23385F96'/%3E%3Cpath d='M6 19c3-3 5 3 10 0s7 3 10 0' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="alternate" hreflang="en" href="https://gregor-posadas.github.io/lagmay-visit-hub/event/">
+<link rel="alternate" hreflang="fil" href="https://gregor-posadas.github.io/lagmay-visit-hub/event/fil/">
+<link rel="stylesheet" href="../../assets/styles.css?v=20261002095759">
+<link rel="stylesheet" href="../site.css?v=20261002095759">
+<link rel="stylesheet" href="../event.css?v=20261002095759">
+<script>try { var t = localStorage.getItem("lv.theme"); if (t) document.documentElement.setAttribute("data-theme", t); if (/[?&#]present/.test(location.href)) document.documentElement.setAttribute("data-theme", /[?&#]dark/.test(location.href) ? "dark" : "light"); } catch (e) {}</script>
+</head>
+<body class="ev-page ev-page--access">
+<!-- Built by tools/build_event_pages.py from event/src/accessibility.html. Edit that file, not this one. -->
+<a class="skip" href="#main">Skip to content</a>
+<header class="band" role="banner">
+  <div class="band__inner">
+    <a class="brand" href="../">
+      <span class="brand__name"><svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="15" fill="#385F96"/><path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>When the Waters Rise</span>
+      <span class="brand__sub">Flooding in the Philippines, a public conversation</span>
+    </a>
+    <nav class="nav" aria-label="Pages">
+      <a href="../">Event</a>
+      <a href="../history/">Flood history</a>
+      <a href="../faq/">Questions</a>
+      <a href="../accessibility/" aria-current="page">Accessibility</a>
+      <a href="../fil/" lang="fil" hreflang="fil">Filipino</a>
+    </nav>
+    <div class="band__tools">
+      <button type="button" class="tool" id="sound-toggle" aria-pressed="true"><span class="tool__state">Sound on</span></button>
+      <button type="button" class="tool theme-toggle" id="theme-toggle">Dark mode</button>
+    </div>
+  </div>
+</header>
+<main id="main" tabindex="-1">
+  <div class="wrap">
+    <header class="rd-head">
+      <p class="ev-kicker">When the Waters Rise</p>
+      <h1>Accessibility and design</h1>
+      <p class="rd-lead">Floods hit everyone, and so should a page about them. These are the choices behind this site, where they come from, and where it still falls short.</p>
+    </header>
+    <div class="rd-body">
+      <nav class="rd-rail" aria-label="On this page">
+        <p>On this page</p>
+        <ul>
+          <li><a href="#a-look">Where the look comes from</a></li>
+          <li><a href="#a-type">Typeface</a></li>
+          <li><a href="#a-colour">Colour and shape</a></li>
+          <li><a href="#a-maps">The maps</a></li>
+          <li><a href="#a-keys">Touch and keyboard</a></li>
+          <li><a href="#a-sr">Screen readers</a></li>
+          <li><a href="#a-motion">Motion and sound</a></li>
+          <li><a href="#a-words">Words and languages</a></li>
+          <li><a href="#a-short">What still falls short</a></li>
+        </ul>
+      </nav>
+      <div class="rd-main">
+        <section aria-labelledby="a-look">
+          <h2 id="a-look" tabindex="-1">Where the look comes from</h2>
+          <p>The site borrows from signage: near-black type on warm paper (or white on black in dark mode), one typeface, few sizes, thick rules, and buttons that press down when you click them. It shares that style with <a href="https://gregor-posadas.github.io/">Gregor Posadas's website</a> and with <a href="https://gregor-posadas.github.io/bahawatch/">BahaWatch</a>, a low-cost flood-sensing project by Berkeley graduate students. The flood maps up close are drawn like BahaWatch's dashboard: paper-coloured land, white streets, and every building outlined.</p>
+          <p>A thin blue-over-red stripe under the header is a quiet nod to the Philippine flag.</p>
+          <p>Our target is the <span class="tt"><span class="tt-t">Web Content Accessibility Guidelines (WCAG) 2.1</span>The international standard for accessible web pages. Level AA is the level most laws and universities ask for.</span> at level AA.</p>
+        </section>
+        <section aria-labelledby="a-type">
+          <h2 id="a-type" tabindex="-1">Typeface</h2>
+          <ul class="list">
+            <li>All text is set in <a href="https://www.brailleinstitute.org/freefont/">Atkinson Hyperlegible Next</a>, a typeface the Braille Institute designed for readers with low vision. Letters that are easy to confuse are drawn to differ: capital I has serifs, lower-case l has a tail, and zero has a slash.</li>
+            <li>Reading text is 18 px, and lines stop at about 70 characters.</li>
+            <li>Two weights only, regular and bold, so emphasis stays clear.</li>
+          </ul>
+        </section>
+        <section aria-labelledby="a-colour">
+          <h2 id="a-colour" tabindex="-1">Colour and shape</h2>
+          <ul class="list">
+            <li><b>Contrast.</b> Text has at least 4.5:1 contrast with its background in both themes. The theme follows your device and can be switched in the header.</li>
+            <li><b>Never colour alone.</b> Every coloured mark also has a shape or a word: legends name every swatch, the people on the map are figures, and the lines to each province are labelled in the list view.</li>
+            <li><b>Colour-blind-safe colours.</b> Figure colours follow <a href="https://www.jackwbaker.com/">Jack Baker's guidance on choosing colours for figures</a>, from one palette: blue #385F96, orange #CF5921, light blue #9EB8DB, gold #E7B800 and maroon #800000. Every pair that must be told apart is checked under simulated red, green and blue colour blindness (<a href="https://doi.org/10.1109/TVCG.2009.113">Machado, Oliveira and Fernandes, 2009</a>), with a script in the site's code.</li>
+          </ul>
+        </section>
+        <section aria-labelledby="a-maps">
+          <h2 id="a-maps" tabindex="-1">The maps</h2>
+          <ul class="list">
+            <li><b>Water reads in greyscale.</b> Flood depth runs from pale to dark blue in one even step, so deeper water is darker even printed in black and white (brighter, in dark mode). The blues come from the same family as <a href="https://www.fabiocrameri.ch/colourmaps/">Fabio Crameri's Davos colour map</a>, made to be even to the eye and safe for colour blindness.</li>
+            <li><b>Buildings have outlines.</b> Up close, every building is a light shape with a thin dark outline, so it reads as a building whether it stands on dry land or in the deepest water.</li>
+            <li><b>Smooth edges.</b> The flood model works in 10 m squares; we smooth the edges when we draw them so the zoomed maps don't break into stair steps.</li>
+            <li><b>Every map has words.</b> The sentence above the map says what it shows, and "The map as a list" gives every number on it as a table.</li>
+          </ul>
+        </section>
+        <section aria-labelledby="a-keys">
+          <h2 id="a-keys" tabindex="-1">Touch and keyboard</h2>
+          <ul class="list">
+            <li>Buttons and links in menus are at least 48 × 48 px, larger than the WCAG minimum.</li>
+            <li>Everything works with a keyboard, and focus shows as a thick outline. In the presentation, the arrow keys step through it and Escape leaves it.</li>
+            <li>No page scrolls sideways, from a 375 px phone to a desktop screen.</li>
+            <li>Underlined terms open a short note when tapped, clicked or hovered; Escape or a click elsewhere closes it.</li>
+          </ul>
+        </section>
+        <section aria-labelledby="a-sr">
+          <h2 id="a-sr" tabindex="-1">Screen readers</h2>
+          <ul class="list">
+            <li>The map is described in words, and its numbers are in a table.</li>
+            <li>Every photo has a description, and decorative drawings are hidden from screen readers.</li>
+            <li>Links that open in a new tab say so, and cited facts say their source.</li>
+          </ul>
+        </section>
+        <section aria-labelledby="a-motion">
+          <h2 id="a-motion" tabindex="-1">Motion and sound</h2>
+          <ul class="list">
+            <li>If your device asks for reduced motion, the map doesn't animate, the presentation cuts instead of flying between places, and notes appear without fading.</li>
+            <li>Buttons make a soft click, like a real button. It's off by default under reduced motion, and the switch is in the header.</li>
+          </ul>
+        </section>
+        <section aria-labelledby="a-words">
+          <h2 id="a-words" tabindex="-1">Words and languages</h2>
+          <ul class="list">
+            <li>Plain language first. Terms that may be new, like <i>habagat</i> or "100-year flood", carry a short note.</li>
+            <li>The event page is also in <a href="../fil/" lang="fil" hreflang="fil">Filipino</a>.</li>
+          </ul>
+        </section>
+        <section aria-labelledby="a-short">
+          <h2 id="a-short" tabindex="-1">What still falls short</h2>
+          <ul class="list">
+            <li>The RSVP form is a Google Form, so its look and its accessibility are Google's.</li>
+            <li>The presentation at the event is visual. We'll read every caption aloud, and the same words are on screen.</li>
+            <li>The Filipino page was translated by our team; if something reads wrong, tell us.</li>
+            <li>The speaker photos load from the speakers' university websites, so they may be slow or missing; their names are always shown.</li>
+          </ul>
+          <p>If something on this site doesn't work for you, reply to your RSVP email or tell us on the day, and we'll fix it.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+<footer class="foot"><p>Organized by graduate students at UC Berkeley, with friends at Stanford. Questions: see <a href="../faq/">Questions</a>, ask any of us on the night, or reply to your RSVP email.</p></footer>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="../site.js?v=20261002095759"></script>
+</body>
+</html>

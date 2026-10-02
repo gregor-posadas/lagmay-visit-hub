@@ -3,7 +3,7 @@
   --land: #e2dac8; --land-home: #cdc2aa; --land-edge: var(--paper);
   --arc: #CF5921; --glow: #b58f00; --focus-edge: #800000;
   /* Flood depth: blues that get stronger with depth (darker on light paper, brighter on black); checked with tools/cvd_check.py */
-  --hz1: #9EB8DB; --hz2: #5A7FB5; --hz3: #233F78; --bld-in: #FF8A3D; --bld-out: #8A8A8A;
+  --hz1: #9EB8DB; --hz2: #5A7FB5; --hz3: #233F78;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --land: #262626; --land-home: #3b3b3b; --land-edge: #000;
@@ -66,7 +66,9 @@
 .k-scale { display: flex; flex-wrap: wrap; gap: 6px 16px; flex-basis: 100%; }
 .sw { display: inline-block; width: 18px; height: 14px; border: 1px solid var(--ink-2); }
 .sw--hz1 { background: var(--hz1); } .sw--hz2 { background: var(--hz2); } .sw--hz3 { background: var(--hz3); }
-.sw--bin { background: var(--bld-in); } .sw--bout { background: var(--bld-out); }
+.sw--lhz1 { background: #9EB8DB; } .sw--lhz2 { background: #5A7FB5; } .sw--lhz3 { background: #233F78; }
+.sw--bld { background: #D8D0C0; border: 2px solid #2A2622; }
+.sw--road { background: #fff; border: 2px solid #B9B09F; height: 10px; }
 
 /* Presentation: one step at a time, on a dark screen */
 body.is-presenting > .band, body.is-presenting > main, body.is-presenting > .foot, body.is-presenting > .notice { display: none; }
@@ -103,7 +105,7 @@ html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
 .ev-present .is-zoomed .m-people, .ev-present .is-zoomed .m-arc, .ev-present .is-zoomed .m-label, .ev-present .is-zoomed .m-ocean, .ev-present .is-zoomed .m-small, .ev-present .is-zoomed .m-gate, .ev-present .is-zoomed .m-more { opacity: 0 !important; transition-delay: 0s; }
 .ev-present .is-zoomed.has-focus .m-prov:not(.is-focus) { opacity: 1; }
 .ev-present .is-town .m-prov { stroke: none; }
-.ev-place { position: absolute; left: 3vw; bottom: 3vh; margin: 0; display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: clamp(1rem, 1.4vw, 1.4rem); color: var(--ink); background: rgba(0, 0, 0, 0.72); padding: 10px 14px; z-index: 2; }
+.ev-place { position: absolute; left: 3vw; bottom: 3vh; margin: 0; display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: clamp(1rem, 1.4vw, 1.4rem); color: var(--ink); background: var(--paper); border: 2px solid var(--rule-strong); padding: 10px 14px; z-index: 2; }
 .ev-place__bar { display: inline-flex; align-items: center; gap: 10px; font-weight: 400; font-size: 0.85em; }
 .ev-place__bar i { display: inline-block; height: 8px; border: 2px solid var(--ink); border-top: 0; }
 .ev-present__photo { order: 0; margin: 0 0 18px; }
@@ -126,8 +128,12 @@ html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
 .ev-speaker { border: 2px solid var(--rule-strong); padding: 0 0 18px; background: var(--surface); display: flex; flex-direction: column; }
 .ev-speaker > :not(.ev-speaker__photo) { margin-left: 20px; margin-right: 20px; }
 .ev-speaker h3 { font-size: var(--f3); margin: 16px 20px 4px; }
-.ev-speaker__photo { position: relative; aspect-ratio: 4 / 3; background: var(--sunk); border-bottom: 2px solid var(--rule-strong); overflow: hidden; }
-.ev-speaker__photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
+/* Every face about the same size: each photo is scaled by --z (1 = as published) and sits at the bottom of the frame,
+   over a blurred, enlarged copy of itself that fills the rest. Some university photos are cropped much tighter than others. */
+.ev-speaker__photo { position: relative; aspect-ratio: 1 / 1; max-height: 340px; background: var(--sunk); border-bottom: 2px solid var(--rule-strong); overflow: hidden; }
+.ev-speaker__photo::before { content: ""; position: absolute; inset: -24px; background: var(--bg, none) center / cover no-repeat; filter: blur(14px) saturate(0.9); opacity: 0.9; }
+.ev-speaker__photo img { position: absolute; left: 50%; bottom: 0; display: block; height: calc(100% * var(--z, 1)); width: auto; aspect-ratio: 1 / 1; transform: translateX(-50%); object-fit: cover; }
+.ev-speaker__photo.is-missing::before { display: none; }
 .ev-speaker__photo.is-missing img { display: none; }
 .ev-speaker__photo.is-missing::after { content: attr(data-initials); position: absolute; inset: 0; display: grid; place-items: center; font-size: 3rem; font-weight: 700; color: var(--ink-2); }
 .ev-speaker__role { font-weight: 700; color: var(--ink-2); font-size: var(--f1); margin-bottom: 10px; }
@@ -136,3 +142,9 @@ html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
 .ev-speaker__links { margin-top: 0; padding-left: 1.2em; font-size: var(--f1); }
 .ev-speaker__links li { margin-bottom: 6px; }
 .ev-speaker cite { font-style: italic; }
+
+.ev-speaker__email { font-size: var(--f1); margin: 0 0 10px; overflow-wrap: anywhere; }
+.ev-h3 { font-size: var(--f3); margin: 20px 0 8px; }
+.ev-sources a { overflow-wrap: anywhere; }
+.ev-subtitle { font-size: var(--f3); font-weight: 700; color: var(--ink-2); margin: -6px 0 14px; }
+.ev-place[hidden] { display: none; }

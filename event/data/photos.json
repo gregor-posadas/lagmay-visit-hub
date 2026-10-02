@@ -2,56 +2,56 @@
  "note": "Storm photos, from the BahaWatch gallery (each checked against its Wikimedia Commons file page on 2026-10-01). Keys are year|name in storms.json.",
  "photos": {
   "2009|Ondoy": {
-   "src": "img/floods/2009-ondoy-pasig-boat.jpg",
+   "src": "img/gallery/2009-ondoy-pasig-boat-1024.jpg",
    "alt": "Ondoy floodwaters in Pasig, Metro Manila, 2009.",
    "credit": "Photo: Department of Foreign Affairs and Trade, CC BY 2.0, via Wikimedia Commons",
    "page": "https://commons.wikimedia.org/wiki/File:Flooding_from_Typhoon_Ondoy_(Ketsana),_Philippines_2009._Photo-_AusAID_(10695893643).jpg",
    "licenceUrl": "https://creativecommons.org/licenses/by/2.0"
   },
   "2011|Sendong": {
-   "src": "img/floods/2011-sendong-memorial-wall.jpg",
+   "src": "img/gallery/2011-sendong-memorial-wall-1024.jpg",
    "alt": "The Sendong memorial wall in Cagayan de Oro, carved with the names of the dead.",
    "credit": "Photo: Shywise, CC BY-SA 4.0, via Wikimedia Commons",
    "page": "https://commons.wikimedia.org/wiki/File:Sendong_Memorial_Tombstone_at_Gaston_Park,_Cagayan_de_Oro_City.jpg",
    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
   },
   "2012|the habagat (monsoon) floods": {
-   "src": "img/floods/2012-habagat-manila-family.jpg",
+   "src": "img/gallery/2012-habagat-manila-family-1024.jpg",
    "alt": "A family carries what they can through the 2012 monsoon floods in Manila.",
    "credit": "Photo: Department of Foreign Affairs and Trade, CC BY 2.0, via Wikimedia Commons",
    "page": "https://commons.wikimedia.org/wiki/File:Flood_damage_in_Manila,_Philippines_2012._Photo-_AusAID_(10695737533).jpg",
    "licenceUrl": "https://creativecommons.org/licenses/by/2.0"
   },
   "2013|Yolanda": {
-   "src": "img/floods/2013-yolanda-tacloban-house.jpg",
+   "src": "img/gallery/2013-yolanda-tacloban-house-1024.jpg",
    "alt": "What Yolanda left of a house outside Tacloban, Leyte, 2013.",
    "credit": "Photo: Trocaire from Ireland, CC BY 2.0, via Wikimedia Commons",
    "page": "https://commons.wikimedia.org/wiki/File:Tacloban_Typhoon_Haiyan_2013-11-13.jpg",
    "licenceUrl": "https://creativecommons.org/licenses/by/2.0"
   },
   "2020|Ulysses": {
-   "src": "img/floods/2020-ulysses-calumpit.jpg",
+   "src": "img/gallery/2020-ulysses-calumpit-1024.jpg",
    "alt": "Ulysses floodwaters in Calumpit, Bulacan, 2020.",
    "credit": "Photo: Judgefloro, CC0, via Wikimedia Commons",
    "page": "https://commons.wikimedia.org/wiki/File:1147Effects_(floods)_of_Typhoon_Vamco_(2020)_in_Calumpit,_Bulacan_01.jpg",
    "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
   },
   "2024|Carina": {
-   "src": "img/floods/2024-carina-quiapo.jpg",
+   "src": "img/gallery/2024-carina-quiapo-1024.jpg",
    "alt": "Knee-deep water in Quiapo, Manila, during Carina and the monsoon, 2024.",
    "credit": "Photo: Michael Peronce, CC BY-SA 4.0, via Wikimedia Commons",
    "page": "https://commons.wikimedia.org/wiki/File:Quiapo,_Manila_Floods_Habagat-Carina_2024-1.jpg",
    "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
   },
   "2024|Kristine": {
-   "src": "img/floods/2024-kristine-naga.jpg",
+   "src": "img/gallery/2024-kristine-naga-1024.jpg",
    "alt": "Rice fields under water around Naga, Camarines Sur, after Kristine, 2024.",
    "credit": "Photo: Naga City Government, Public domain, via Wikimedia Commons",
    "page": "https://commons.wikimedia.org/wiki/File:Rice_fields_submerged_in_flooding_in_Naga,_Camarines_Sur.jpg",
    "licenceUrl": ""
   },
   "2025|Tino": {
-   "src": "img/floods/2025-tino-talisay.jpg",
+   "src": "img/gallery/2025-tino-talisay-1024.jpg",
    "alt": "The Mananga River in Talisay, Cebu, the morning after Tino, 2025.",
    "credit": "Photo: LadyPinayForever, CC0, via Wikimedia Commons",
    "page": "https://commons.wikimedia.org/wiki/File:Mananga_River_in_Talisay_01.jpg",
