@@ -5,12 +5,12 @@
 window.EV_CONFIG = {
   apiUrl: "https://script.google.com/macros/s/AKfycbwzr5dKY7SYF8xUqL_0JkgbBGhuGas3v0OHo-DEoB9bmjSg3s6SylZh_UWmd6S7EdSZ/exec",
   rsvpUrl: "https://docs.google.com/forms/d/e/1FAIpQLSep5CC-7wR6JnsLgJwK2Sqd3Uy3FxqaIgfCPndmfU0bHdDDew/viewform",
-  timeText: "4 to 6 PM Pacific",
+  timeText: "4 to 5 PM Pacific",
   // Start and end in Pacific time, 24-hour. Add to calendar and the countdown use these. If either is left blank,
   // the calendar event becomes all-day on Nov 9 and says the time is to be announced.
   startTime: "16:00",
-  endTime: "18:00",
-  timeTextFil: "4 hanggang 6 ng hapon (oras sa California)",
+  endTime: "17:00",
+  timeTextFil: "4 hanggang 5 ng hapon (oras sa California)",
   refreshSeconds: 60,
   // Supporters shown on the page once they've said yes. Set torres to true when Senator Torres's office agrees to be listed,
   // and phildev to true once PhilDev commits funding.

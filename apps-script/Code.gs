@@ -863,7 +863,7 @@ function createRsvpForm() {
   form.setDescription(
     'A free public conversation on flooding in the Philippines, with Dr. Mahar Lagmay (UP Resilience Institute and Project NOAH), ' +
     'Dr. Lisandro Claudio and Dr. Diana Martinez.\n' +
-    'Monday, November 9, 2026, 4 to 6 PM Pacific. Banatao Auditorium, Sutardja Dai Hall, UC Berkeley. Also livestreamed.\n\n' +
+    'Monday, November 9, 2026, 4 to 5 PM Pacific. Banatao Auditorium, Sutardja Dai Hall, UC Berkeley. Also livestreamed.\n\n' +
     'Everyone is welcome, whether or not you have ties to the Philippines. It takes about two minutes.\n\n' +
     'Your name and email are only for the RSVP list and are never shown. The places you pick (a Bay Area county and a province) ' +
     'appear as anonymous counts on a map at the event and on its web page. Every question about you is optional except your name, ' +
