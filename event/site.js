@@ -245,5 +245,43 @@
 
   Array.prototype.forEach.call(document.querySelectorAll('a.btn[href^="mailto:"]'), function (a) { a.insertAdjacentHTML("afterbegin", icon("mail")); });
   Array.prototype.forEach.call(document.querySelectorAll("[data-icon]"), function (a) { a.insertAdjacentHTML("afterbegin", icon(a.getAttribute("data-icon"))); });
+  /* ---------- email links: copy the address and say so, instead of jumping straight into a mail app ----------
+     A plain mailto: link opens whatever app the computer is set to (often Outlook). Here a click copies the address,
+     shows it in a small box in the middle of the screen, and offers Gmail or the computer's own email app. */
+  (function () {
+    var box = null, timer = null, lastLink = null;
+    var T = FIL ? { copied: "Nakopya ang email address!", nocopy: "Kopyahin ang email address na ito:", gmail: "Sumulat sa Gmail", app: "Buksan ang email app", close: "Isara", newtab: " (magbubukas sa bagong tab)" }
+                : { copied: "Email address copied!", nocopy: "Copy this email address:", gmail: "Write in Gmail", app: "Open your email app", close: "Close", newtab: " (opens in a new tab)" };
+    function hide() { if (!box) return; box.hidden = true; clearTimeout(timer); }
+    function show(href) {
+      var m = /^mailto:([^?]+)(?:\?(.*))?$/i.exec(href); if (!m) return false;
+      var to = decodeURIComponent(m[1]), q = {};
+      (m[2] || "").split("&").forEach(function (kv) { var i = kv.indexOf("="); if (i > 0) q[kv.slice(0, i).toLowerCase()] = decodeURIComponent(kv.slice(i + 1)); });
+      var gmail = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(to) + (q.subject ? "&su=" + encodeURIComponent(q.subject) : "");
+      if (!box) {
+        box = document.createElement("div"); box.className = "mailbox"; box.setAttribute("role", "status"); box.setAttribute("aria-live", "polite"); box.hidden = true;
+        document.body.appendChild(box);
+        box.addEventListener("mouseenter", function () { clearTimeout(timer); });
+        box.addEventListener("focusin", function () { clearTimeout(timer); });
+        box.addEventListener("click", function (e) { if (e.target.closest(".mailbox__close")) { hide(); if (lastLink) lastLink.focus(); } });
+        document.addEventListener("keydown", function (e) { if (e.key === "Escape" && box && !box.hidden) { hide(); if (lastLink) lastLink.focus(); } });
+      }
+      function paint(ok) {
+        box.innerHTML = '<p class="mailbox__msg">' + icon(ok ? "mail" : "link") + "<b>" + (ok ? T.copied : T.nocopy) + '</b></p><p class="mailbox__addr">' + to.replace(/[&<>"]/g, "") + "</p>" +
+          '<div class="mailbox__acts"><a class="btn btn--solid" href="' + gmail.replace(/"/g, "&quot;") + '" target="_blank" rel="noopener">' + T.gmail + '<span class="sr">' + T.newtab + "</span></a>" +
+          '<a class="btn" href="' + href.replace(/"/g, "&quot;") + '" data-plain-mail="1">' + T.app + '</a><button type="button" class="btn btn--quiet mailbox__close">' + T.close + "</button></div>";
+        box.hidden = false; clearTimeout(timer); timer = setTimeout(hide, 7000);
+        if (!ok) { var r = document.createRange(); r.selectNodeContents(box.querySelector(".mailbox__addr")); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+      }
+      try { navigator.clipboard.writeText(to).then(function () { paint(true); }, function () { paint(false); }); } catch (e) { paint(false); }
+      return true;
+    }
+    document.addEventListener("click", function (e) {
+      var a = e.target.closest && e.target.closest('a[href^="mailto:"]');
+      if (!a || a.hasAttribute("data-plain-mail") || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      if (show(a.getAttribute("href"))) { e.preventDefault(); lastLink = a; }
+    });
+  })();
+
   window.EV_SITE = { theme: theme, tick: tick, tipsInit: tipsInit, icon: icon };
 })();

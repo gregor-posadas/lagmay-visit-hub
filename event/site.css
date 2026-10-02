@@ -161,3 +161,13 @@
 .tool--lang .ico { width: 18px; height: 18px; }
 .sp-gauge { margin: 12px 0 8px; max-width: var(--read); }
 .sp-h3 { font-size: var(--f3); margin: 24px 0 0; }
+
+/* "Email address copied!" box, in the middle of the screen */
+.mailbox { position: fixed; z-index: 60; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, calc(100vw - 32px)); background: var(--surface); color: var(--ink); border: 3px solid var(--rule-strong); box-shadow: 8px 8px 0 0 var(--rule-strong); padding: 20px 22px; text-align: center; }
+.mailbox[hidden] { display: none; }
+.mailbox__msg { margin: 0; font-size: var(--f3); line-height: 1.3; }
+.mailbox__msg .ico { display: inline-block; vertical-align: -3px; margin-right: 8px; }
+.mailbox__addr { margin: 8px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.mailbox__acts { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+@media (prefers-reduced-motion: no-preference) { .mailbox:not([hidden]) { animation: mailbox-in 0.18s ease-out; } }
+@keyframes mailbox-in { from { opacity: 0; transform: translate(-50%, -46%); } to { opacity: 1; transform: translate(-50%, -50%); } }
