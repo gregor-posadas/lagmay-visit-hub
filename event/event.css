@@ -128,17 +128,8 @@ html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
 .ev-speaker { border: 2px solid var(--rule-strong); padding: 0 0 18px; background: var(--surface); display: flex; flex-direction: column; }
 .ev-speaker > :not(.ev-speaker__photo) { margin-left: 20px; margin-right: 20px; }
 .ev-speaker h3 { font-size: var(--f3); margin: 16px 20px 4px; }
-/* Every face about the same size: each photo is scaled by --z (1 = as published) and sits at the bottom of the frame,
-   over a blurred, enlarged copy of itself that fills the rest. Some university photos are cropped much tighter than others. */
 .ev-speaker__photo { position: relative; aspect-ratio: 1 / 1; max-height: 340px; background: var(--sunk); border-bottom: 2px solid var(--rule-strong); overflow: hidden; }
-/* the backdrop is the photo's top-left corner (its background, never the face), enlarged and blurred */
-.ev-speaker__photo::before { content: ""; position: absolute; inset: -24px; background: var(--bg, none) 0 0 / 600% auto no-repeat; filter: blur(18px) saturate(0.9); }
-.ev-speaker__photo img { position: absolute; left: 50%; bottom: 0; display: block; height: calc(100% * var(--z, 1)); width: auto; aspect-ratio: 1 / 1; transform: translateX(-50%); object-fit: cover; }
-/* feather the photo's top and sides into the blur, so there's no visible box (the bottom stays solid) */
-.ev-speaker__photo img { -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 18%);
-  -webkit-mask-composite: source-in; mask-image: linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 18%); mask-composite: intersect; }
-.ev-speaker__photo[style*="--z: 1;"] img { -webkit-mask-image: none; mask-image: none; }
-.ev-speaker__photo.is-missing::before { display: none; }
+.ev-speaker__photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
 .ev-speaker__photo.is-missing img { display: none; }
 .ev-speaker__photo.is-missing::after { content: attr(data-initials); position: absolute; inset: 0; display: grid; place-items: center; font-size: 3rem; font-weight: 700; color: var(--ink-2); }
 .ev-speaker__role { font-weight: 700; color: var(--ink-2); font-size: var(--f1); margin-bottom: 10px; }
