@@ -7,6 +7,22 @@
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var store = { get: function (k) { try { return localStorage.getItem("lv." + k); } catch (e) { return null; } }, set: function (k, v) { try { localStorage.setItem("lv." + k, v); } catch (e) { /* ignore */ } } };
   var FIL = document.documentElement.lang === "fil";
+
+  /* ---------- stay on the newest version ----------
+     GitHub Pages lets browsers keep a page for up to 10 minutes, so after an update someone could get an old page
+     (an old menu, say) next to new ones. version.json is fetched fresh; if it is newer than this page, reload once. */
+  (function () {
+    var me = document.querySelector('script[src*="site.js"]'), m = me && /[?&]v=(\w+)/.exec(me.src);
+    if (!m || m[1] === "0" || !window.fetch) return;
+    fetch(me.src.replace(/event\/site\.js.*$/, "version.json") + "?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j.v || j.v === m[1]) return;
+        var k = "lv.reloaded." + j.v;
+        try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, "1"); } catch (e) { return; }
+        location.reload();
+      }).catch(function () {});
+  })();
   /* Icons beside button labels (decorative; the words carry the meaning). Brand marks from Simple Icons (CC0),
      the LinkedIn mark from Font Awesome Free (CC BY 4.0), Google Calendar's from Google's product icons. */
   var ICONS = {

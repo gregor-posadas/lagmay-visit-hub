@@ -189,10 +189,11 @@ html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
 
 /* Countdown: a flood gauge beside the title (desktop), under the lede (phone) */
 @media (min-width: 900px) {
-  .ev-hero { display: grid; grid-template-columns: minmax(0, 1fr) 360px; column-gap: 40px; align-items: start; }
-  .ev-hero > * { grid-column: 1; }
-  .ev-hero > .ev-gauge { grid-column: 2; grid-row: 1 / span 3; align-self: stretch; min-height: 340px; }
-  .ev-hero > .ev-facts, .ev-hero > .ev-actions, .ev-hero > .ev-welcome { grid-column: 1 / -1; }
+  /* The words and the gauge sit side by side in one row, so a longer title or subtitle (Filipino) never shifts the rest */
+  .ev-hero { display: grid; grid-template-columns: minmax(0, 1fr) 360px; column-gap: 40px; align-items: stretch; }
+  .ev-hero > * { grid-column: 1 / -1; }
+  .ev-hero > .ev-hero__text { grid-column: 1; grid-row: 1; }
+  .ev-hero > .ev-gauge { grid-column: 2; grid-row: 1; min-height: 340px; margin-top: 0; }
 }
 .ev-gauge { position: relative; overflow: hidden; border: 3px solid var(--rule-strong); box-shadow: 8px 8px 0 0 var(--rule-strong); background: var(--surface); min-height: 300px; margin-top: 20px; display: flex; flex-direction: column; justify-content: flex-start; padding: 18px 18px 18px 52px; }
 .ev-gauge[hidden] { display: none; }

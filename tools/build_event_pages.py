@@ -19,7 +19,7 @@ MARK = ('<svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusab
 NAV = {
     "en": [("event", "", "Event"), ("about", "about/", "About"), ("history", "history/", "Flood history"), ("faq", "faq/", "Questions"), ("directions", "directions/", "Directions"),
            ("support", "support/", "Support us"), ("access", "accessibility/", "Accessibility")],
-    "fil": [("event", "fil/", "Ang pagtitipon"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan ng baha"), ("faq", "faq/", "Mga tanong"), ("directions", "fil/directions/", "Direksyon"),
+    "fil": [("event", "fil/", "Pagtitipon"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan"), ("faq", "faq/", "Mga tanong"), ("directions", "fil/directions/", "Direksyon"),
             ("support", "support/", "Suportahan"), ("access", "accessibility/", "Accessibility")],
 }
 # The language link goes to the same page in the other language where there is one, else to the other language's event page.
@@ -28,7 +28,7 @@ SITE = "https://gregor-posadas.github.io/lagmay-visit-hub/event/"
 WORDS = {
     "en": dict(skip="Skip to content", sub="Flooding in the Philippines, a public conversation", sound="Sound on", theme="Dark mode", share="Share",
                foot='Organized by Gregor Posadas, Noam Anglo and Veronica Sison at UC Berkeley, with Rapha Felipe at Stanford. Questions: see <a href="{R}faq/">Questions</a>, ask any of us on the day, or reply to your RSVP email.'),
-    "fil": dict(skip="Lumaktaw sa nilalaman", sub="Pagbaha sa Pilipinas, isang pampublikong talakayan", sound="May tunog", theme="Madilim", share="Ibahagi",
+    "fil": dict(skip="Lumaktaw sa nilalaman", sub="Baha sa Pilipinas, isang pampublikong talakayan", sound="May tunog", theme="Madilim", share="Ibahagi",
                 foot='Inorganisa nina Gregor Posadas, Noam Anglo at Veronica Sison sa UC Berkeley, kasama si Rapha Felipe sa Stanford. May tanong? Tingnan ang <a href="{R}faq/">Mga tanong</a>, lapitan kami sa mismong araw, o sumagot sa email ng iyong RSVP.'),
 }
 
