@@ -4,7 +4,7 @@
 // Add ?sample to the address to see the map with made-up people (for testing and rehearsal).
 window.EV_CONFIG = {
   apiUrl: "https://script.google.com/macros/s/AKfycbwzr5dKY7SYF8xUqL_0JkgbBGhuGas3v0OHo-DEoB9bmjSg3s6SylZh_UWmd6S7EdSZ/exec",
-  rsvpUrl: "",
+  rsvpUrl: "https://docs.google.com/forms/d/e/1FAIpQLSep5CC-7wR6JnsLgJwK2Sqd3Uy3FxqaIgfCPndmfU0bHdDDew/viewform",
   timeText: "Afternoon, time to be announced",
   refreshSeconds: 60
 };
