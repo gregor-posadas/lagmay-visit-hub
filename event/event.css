@@ -2,17 +2,21 @@
 :root {
   --land: #e2dac8; --land-home: #cdc2aa; --land-edge: var(--paper);
   --arc: #CF5921; --glow: #b58f00; --focus-edge: #800000;
-  --water-bg: #9EB8DB; --water-line: #385F96;
+  /* Crameri Davos, light to dark: more buildings in the flood zone reads darker */
+  --x0: #dce1b0; --x1: #89a188; --x2: #5f8597; --x3: #356199; --x4: #0f286d;
+  --nd-bg: var(--land); --nd-line: #a99f8a;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --land: #262626; --land-home: #3b3b3b; --land-edge: #000;
   --arc: #e8743f; --glow: #E7B800; --focus-edge: #E7B800;
-  --water-bg: #385F96; --water-line: #9EB8DB;
+  --x0: #18397e; --x1: #3f6b9c; --x2: #6c8d92; --x3: #9eb088; --x4: #f0f1ce;
+  --nd-bg: var(--land); --nd-line: #555;
 } }
 :root[data-theme="dark"] {
   --land: #262626; --land-home: #3b3b3b; --land-edge: #000;
   --arc: #e8743f; --glow: #E7B800; --focus-edge: #E7B800;
-  --water-bg: #385F96; --water-line: #9EB8DB;
+  --x0: #18397e; --x1: #3f6b9c; --x2: #6c8d92; --x3: #9eb088; --x4: #f0f1ce;
+  --nd-bg: var(--land); --nd-line: #555;
 }
 
 /* Hero */
@@ -50,13 +54,18 @@
 .m--v .m-label { font-size: 24px; } .m--v .m-ocean { font-size: 20px; }
 .m-prov, .m-county { fill: var(--land); stroke: var(--land-edge); stroke-width: 0.8; transition: fill 0.4s, opacity 0.6s; }
 .m-prov.is-home, .m-county.is-home { fill: var(--land-home); }
-.m-water { pointer-events: none; }
-.m-flood { fill: url(#ev-hatch); stroke: var(--water-line); stroke-width: 0.8; opacity: 0; }
-.m-water-bg { fill: var(--water-bg); } .m-water-line { stroke: var(--water-line); stroke-width: 3; }
+.m-prov.x-0 { fill: var(--x0); } .m-prov.x-1 { fill: var(--x1); } .m-prov.x-2 { fill: var(--x2); } .m-prov.x-3 { fill: var(--x3); } .m-prov.x-4 { fill: var(--x4); }
+.m-prov.x-none { fill: url(#ev-nodata); }
+.m-nd-bg { fill: var(--nd-bg); } .m-nd-line { stroke: var(--nd-line); stroke-width: 1.2; }
 .m-arc { fill: none; stroke: var(--arc); stroke-linecap: round; opacity: 0.8; }
 .m-gate { fill: var(--arc); }
-.m-people use { fill: var(--ink); }
-.m-people--ph use { fill: var(--ink); }
+/* A paper-coloured outline keeps each figure readable on any shade */
+.m-people use { fill: var(--ink); stroke: var(--paper); stroke-width: 1.6px; paint-order: stroke; stroke-linejoin: round; }
+.k-title { flex-basis: 100%; font-weight: 700; color: var(--ink); }
+.k-scale { display: flex; flex-wrap: wrap; gap: 6px 16px; flex-basis: 100%; }
+.sw { display: inline-block; width: 18px; height: 14px; border: 1px solid var(--ink-2); }
+.sw.x-0 { background: var(--x0); } .sw.x-1 { background: var(--x1); } .sw.x-2 { background: var(--x2); } .sw.x-3 { background: var(--x3); } .sw.x-4 { background: var(--x4); }
+.sw.x-none { background: repeating-linear-gradient(45deg, var(--nd-bg) 0 3px, var(--nd-line) 3px 4.5px); }
 
 /* Presentation: one step at a time, on a dark screen */
 body.is-presenting > .band, body.is-presenting > main, body.is-presenting > .foot, body.is-presenting > .notice { display: none; }
@@ -80,15 +89,22 @@ html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
 .ev-present .show-bay .m-people--bay { opacity: 1; }
 .ev-present .show-arcs .m-arc { stroke-dashoffset: 0; }
 .ev-present .show-ph .m-people--ph { opacity: 1; transition-delay: 1.8s; }
-.ev-present .show-water .m-flood { opacity: 1; transition: opacity 2.6s ease-in; }
-.ev-present .has-focus .m-prov:not(.is-focus), .ev-present .has-focus .m-flood:not(.is-focus) { opacity: 0.35; }
+/* In the reveal, provinces stay plain land until the flood step, then fill in */
+.ev-present svg:not(.show-water) .m-prov { fill: var(--land); }
+.ev-present .m-prov { transition: fill 2.6s ease-in, opacity 0.6s; }
+.ev-present .has-focus .m-prov:not(.is-focus) { opacity: 0.35; }
+/* Let the shading show through on the flood steps */
+.ev-present .show-water .m-arc { opacity: 0.4; }
+.ev-present .show-water.has-focus .m-arc.is-focus { opacity: 1; }
+.ev-present .show-water.has-focus .m-prov:not(.is-focus) { opacity: 0.6; }
+.ev-present__legend { order: 3; margin-top: 22px; padding: 0; border: 0; font-size: clamp(0.9rem, 1.1vw, 1.1rem); }
 .ev-present .has-focus .m-arc:not(.is-focus) { opacity: 0.2; }
 .ev-present .has-focus .m-people--ph:not(.is-focus) { opacity: 0.45; }
 .ev-present .m-prov.is-focus { stroke: var(--focus-edge); stroke-width: 2.5; }
 .ev-present .show-glow .m-arc { stroke: var(--glow); opacity: 1; }
 .ev-present .m .m-label { font-size: 22px; }
 @media (prefers-reduced-motion: reduce) {
-  .ev-present .m-people--bay, .ev-present .m-people--ph, .ev-present .m-arc, .ev-present .m-flood, .m-prov { transition: none !important; }
+  .ev-present .m-people--bay, .ev-present .m-people--ph, .ev-present .m-arc, .m-prov, .ev-present .m-prov { transition: none !important; }
 }
 
 .ev-speakers { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 16px; grid-template-columns: 1fr; }

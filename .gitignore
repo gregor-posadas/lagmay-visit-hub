@@ -1,3 +1,4 @@
-tools/
+tools/noah_exposure/*.npy
+tools/noah_exposure/part-*
 node_modules/
 *.png
