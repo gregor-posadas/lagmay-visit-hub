@@ -17,17 +17,17 @@ GLOBE = ('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="fal
 MARK = ('<svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="15" fill="#385F96"/>'
         '<path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>')
 NAV = {
-    "en": [("event", "", "Event"), ("about", "about/", "About"), ("history", "history/", "Flood history"), ("faq", "faq/", "Questions"),
+    "en": [("event", "", "Event"), ("about", "about/", "About"), ("history", "history/", "Flood history"), ("faq", "faq/", "Questions"), ("directions", "directions/", "Directions"),
            ("support", "support/", "Support us"), ("access", "accessibility/", "Accessibility")],
-    "fil": [("event", "fil/", "Ang pagtitipon"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan ng baha"), ("faq", "faq/", "Mga tanong"),
+    "fil": [("event", "fil/", "Ang pagtitipon"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan ng baha"), ("faq", "faq/", "Mga tanong"), ("directions", "fil/directions/", "Direksyon"),
             ("support", "support/", "Suportahan"), ("access", "accessibility/", "Accessibility")],
 }
 # The language link goes to the same page in the other language where there is one, else to the other language's event page.
-OTHER = {"": "fil/", "about/": "fil/about/", "fil/": "", "fil/about/": "about/"}
+OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "fil/": "", "fil/about/": "about/", "fil/directions/": "directions/"}
 SITE = "https://gregor-posadas.github.io/lagmay-visit-hub/event/"
 WORDS = {
     "en": dict(skip="Skip to content", sub="Flooding in the Philippines, a public conversation", sound="Sound on", theme="Dark mode", share="Share",
-               foot='Organized by Gregor Posadas, Noam Anglo and Veronica Sison at UC Berkeley, with Rapha Felipe at Stanford. Questions: see <a href="{R}faq/">Questions</a>, ask any of us on the night, or reply to your RSVP email.'),
+               foot='Organized by Gregor Posadas, Noam Anglo and Veronica Sison at UC Berkeley, with Rapha Felipe at Stanford. Questions: see <a href="{R}faq/">Questions</a>, ask any of us on the day, or reply to your RSVP email.'),
     "fil": dict(skip="Lumaktaw sa nilalaman", sub="Pagbaha sa Pilipinas, isang pampublikong talakayan", sound="May tunog", theme="Madilim", share="Ibahagi",
                 foot='Inorganisa nina Gregor Posadas, Noam Anglo at Veronica Sison sa UC Berkeley, kasama si Rapha Felipe sa Stanford. May tanong? Tingnan ang <a href="{R}faq/">Mga tanong</a>, lapitan kami sa mismong araw, o sumagot sa email ng iyong RSVP.'),
 }

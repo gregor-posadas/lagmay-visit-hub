@@ -512,20 +512,6 @@
   }
   var tt = FIL ? cfg.timeTextFil : cfg.timeText; if (tt && $("ev-time")) $("ev-time").textContent = tt;
 
-  /* ---------- the left rail: mark the section in view ---------- */
-  (function () {
-    var rail = document.querySelector(".ev-rail"); if (!rail || !("IntersectionObserver" in window)) return;
-    var links = {}; rail.querySelectorAll('a[href^="#"]').forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
-    var seen = {};
-    var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { seen[e.target.id] = e.isIntersecting ? e.intersectionRatio : 0; });
-      var best = null; Object.keys(links).forEach(function (k) { if (seen[k] > 0 && (best === null || seen[k] > seen[best])) best = k; });
-      if (!best) return;
-      Object.keys(links).forEach(function (k) { if (k === best) links[k].setAttribute("aria-current", "location"); else links[k].removeAttribute("aria-current"); });
-    }, { rootMargin: "-20% 0px -55% 0px", threshold: [0, 0.01, 0.25, 0.5, 1] });
-    Object.keys(links).forEach(function (k) { var el = $(k); if (el) io.observe(el); });
-  })();
-
   /* ---------- countdown: a flood gauge. The water rises a little every day from Sep 2, when planning began,
      and reaches the top when the event starts; the tiles give the exact time left. ---------- */
   (function () {
