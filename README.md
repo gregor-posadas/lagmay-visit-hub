@@ -6,7 +6,7 @@ Built for Gregor, Noam, Veronica and Rapha. Same design and code base as the [Mi
 
 - **Website:** plain HTML, CSS and JavaScript, served by GitHub Pages. No build step.
 - **Data:** the Google Sheet "Lagmay Visit Hub data" in the "Dr. Lagmay Visit (Nov 2026)" Drive folder. Nothing about the team or the people we're talking to is stored in this repository.
-- **Backend:** a Google Apps Script web app attached to that Sheet. It reads and writes the Sheet, puts deadlines on a shared Google Calendar, emails reminders, lists files from the Drive folder, and summarizes the notes docs in its Meetings subfolder.
+- **Backend:** a Google Apps Script web app attached to that Sheet. It reads and writes the Sheet, puts deadlines on Gregor's "Lagmay visit deadlines" calendar, emails Gregor a daily summary, lists files from the Drive folder, and summarizes the notes docs in its Meetings subfolder.
 - **Font:** Atkinson Hyperlegible Next, under the SIL Open Font License (`fonts/OFL.txt`).
 
 Until the backend is connected, the site runs on sample data from `data/demo.json`, so you can look around first. The sample uses first names and made-up organizations only.
@@ -16,7 +16,7 @@ Until the backend is connected, the site runs on sample data from `data/demo.jso
 | Page | What it's for |
 | --- | --- |
 | **Team** | Countdown to Nov 9, the next meeting, how many contacts are waiting on us, three pace meters (planning time gone by, assignments done, budget secured), the milestone line, and a card for each person. |
-| **Your page** | Your assignments by due date, the contacts you own that aren't settled, the funding you're chasing, and your reminder email setting. |
+| **Your page** | Your assignments by due date, the contacts you own that aren't settled, and the funding you're chasing. |
 | **Funding** | The money gauge (secured, waiting on a decision, gap), what still needs a funder, every funding source grouped by where it stands, the budget table, and our ground rules. |
 | **Contacts** | Everyone outside the team, grouped by whose move it is: follow-up overdue, our move, waiting on them, not contacted yet, settled. Filter by workstream, owner or campus. Each contact has a **Log what happened** button that adds a dated line to their history and sets the next follow-up. |
 | **Meetings** | The next meeting, what's coming up, and past meeting notes from the Meetings folder with a search box. |
@@ -34,10 +34,10 @@ Until the backend is connected, the site runs on sample data from `data/demo.jso
 2. Go to **Extensions > Apps Script**. Delete whatever is in `Code.gs` and paste in the contents of `apps-script/Code.gs` from this repository.
 3. Click the gear icon (**Project Settings**) and tick **Show "appsscript.json" manifest file in editor**. Back in the editor, open `appsscript.json` and replace it with `apps-script/appsscript.json`. Save.
 4. In the function menu at the top, pick `setup` and click **Run**. Approve the permissions when Google asks (Sheets, Calendar, Drive, Docs, send email).
-   - This creates a calendar called "Lagmay visit deadlines", a daily 8 AM reminder, and two access codes. It doesn't change any data already in the Sheet.
+   - This creates a calendar called "Lagmay visit deadlines", your daily 8 AM summary email, and two access codes. It doesn't change any data already in the Sheet, and it doesn't email or invite anyone.
    - Open **Execution log** to see the codes. The **team code** is for the four of us. The **project manager code** is for Gregor only.
    - Lost them? They are under **Project Settings > Script properties** (`TEAM_CODE`, `PM_CODE`).
-5. Still in **Script properties**, add `APP_URL` with the GitHub Pages address, `https://gregor-posadas.github.io/lagmay-visit-hub/`. Reminder emails and calendar events link back to it.
+5. Still in **Script properties**, add `APP_URL` with the GitHub Pages address, `https://gregor-posadas.github.io/lagmay-visit-hub/`. Your summary email and the calendar events link back to it.
 6. Pick `syncAllCalendarEvents` and **Run**. This puts every open assignment, workstream and funding deadline on the shared "Lagmay visit deadlines" calendar. No one is invited and no emails are sent.
 7. Click **Deploy > New deployment**, choose type **Web app**, set **Execute as: Me** and **Who has access: Anyone**, then **Deploy**. Copy the URL that ends in `/exec`.
 8. In this repository, open `assets/config.js` and paste that URL into `apiUrl`. Commit. The site switches from sample data to the Sheet.
@@ -52,19 +52,19 @@ Some university Google accounts only allow web apps for people signed in to that
 ## Using it
 
 - **Everyone:** open the site, enter the team code once, and tap your name. Mark assignments **In progress** or **Done** as that becomes true.
-- **After any email, call or meeting with someone outside the team:** open them on **Contacts**, click **Log what happened**, write one or two sentences, say whose move it is now, and pick a follow-up date (it defaults to a week out). The contact moves to the right group, and its owner gets a reminder on the follow-up date.
+- **After any email, call or meeting with someone outside the team:** open them on **Contacts**, click **Log what happened**, write one or two sentences, say whose move it is now, and pick a follow-up date (it defaults to a week out). The contact moves to the right group, and it shows up in Gregor's summary when the follow-up date comes.
 - **When a funder answers:** open them on **Funding** and change where it stands. Only **Secured** and **Waiting on decision** count in the money gauge. A budget line shows **Covered** only when the funding source linked to it is secured.
 - **Meetings:** add a meeting with its call link and doc. Afterwards, put the notes doc in the Meetings folder of the Drive folder. Any Google Doc there shows up under Past meeting notes; a heading called **Key takeaway** (or failing that, the first point under **Decisions**) becomes its summary line. Start the file name with the date, for example `2026-10-08 Team check-in`, so it sorts right.
-- **Project manager:** **Project view** for assignments and workstreams, the budget table on **Funding**, and **Send reminders now**. The first edit asks for the project manager code, which the browser then remembers until you choose **Forget the project manager code on this device**.
+- **Project manager:** **Project view** for assignments and workstreams, the budget table on **Funding**, and **Email me the summary now**. The first edit asks for the project manager code, which the browser then remembers until you choose **Forget the project manager code on this device**.
 - **Sound and theme:** the header has a **Sound** switch for the key clicks (off by default for anyone whose device asks for reduced motion) and a **Light mode / Dark mode** switch. Both are remembered per device.
 
-### Reminders
+### Email and calendar
 
-- Emails come from the hub at 8 AM Pacific, at most once a day per person, and only on days with something to say.
-- Each email lists what's **overdue**, what's **due soon** (next 2 days), what's **new for you**, **people to follow up with** (contacts you own whose follow-up date is today, soon, or past), and **funding deadlines** you own in the next week. Every item links straight to its page.
-- Overdue items and missed follow-ups come up the day after, then every third day, so nobody gets nagged daily.
-- Each person chooses **Daily**, **Mondays only** or **Off** at the bottom of their own page.
-- The project manager also gets a team summary: funding changes, funding deadlines this week, overdue work, follow-ups past their date, and what finished.
+- **The team gets no email from the hub.** Nothing is added to anyone's personal calendar either. Teammates see their work by opening the hub.
+- **Gregor gets one summary email** at 8 AM Pacific, only on days with something in it: funding changes, funding deadlines this week, overdue work, follow-ups due by tomorrow, what's due in the next 7 days, and what finished. **Email me the summary now** in Project view sends it on demand.
+- **Every open deadline is on the "Lagmay visit deadlines" calendar** in Gregor's Google Calendar: assignments (titled with the person's name, for example "Due (Noam): ..."), workstreams, and funding deadlines. No one is invited. Each event has pop-up reminders a day and an hour before, which only Gregor sees. Turn the calendar's notifications off in Google Calendar if that's too much.
+- Anyone can still put a single deadline on their own calendar with **Add to Google Calendar** on its page.
+- To turn per-person reminder emails on later, add `TEAM_EMAILS` = `on` in **Script properties**. Each person's `emailPref` in the Members tab (`daily`, `weekly` or `off`) then decides how often they get one.
 
 ### Editing the Sheet directly
 

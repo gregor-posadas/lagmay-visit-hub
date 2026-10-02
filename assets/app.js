@@ -398,23 +398,6 @@
   }
 
   /* ---------- member ---------- */
-  var EMAIL_OPTS = [["daily", "Daily", "Only on days something is due, overdue, new or needs a follow-up"], ["weekly", "Mondays only", "One email with the whole week"], ["off", "Off", "No reminder emails"]];
-  function emailPrefHtml(m) {
-    var cur = m.emailPref || "daily";
-    return '<section class="section" id="email" aria-labelledby="email-h"><h2 id="email-h" tabindex="-1">Email reminders</h2>' +
-      '<p class="section__note">Reminders come from the hub at 8 AM, at most once a day, and only when there is something to say: assignments due soon or overdue, contacts due for a follow-up, and funding deadlines you own. Each item links straight to its page here. This setting is for ' + esc(first(m.name)) + " only.</p>" +
-      '<fieldset class="picker picker--email"><legend class="sr">How often ' + esc(first(m.name)) + ' gets reminder emails</legend><div class="picker__opts" data-email-for="' + esc(m.id) + '">' +
-      EMAIL_OPTS.map(function (o) { return '<label><input type="radio" name="emailPref" value="' + o[0] + '"' + (o[0] === cur ? " checked" : "") + "><span><b>" + o[1] + "</b><small>" + o[2] + "</small></span></label>"; }).join("") +
-      "</div></fieldset></section>";
-  }
-  function setEmailPref(memberId, pref) {
-    var m = byId(state.data.members, memberId); if (!m) return;
-    var prev = m.emailPref; m.emailPref = pref;
-    apiPost({ action: "setEmailPref", memberId: memberId, pref: pref }).then(function (r) {
-      toast("Email reminders: " + EMAIL_OPTS.filter(function (o) { return o[0] === pref; })[0][1] + demoNote(r));
-    }).catch(function (e) { m.emailPref = prev; route(); toast("Not saved: " + e.message); });
-  }
-
   function viewMember(id) {
     var m = byId(state.data.members, id);
     if (!m) return notFound("We couldn't find that team member.");
@@ -447,7 +430,7 @@
     return '<div class="wrap"><div class="head"><a class="crumb" href="#/">Team</a>' +
       '<div class="detail__who">' + bullet(m, "lg") + '<div><h1 tabindex="-1">' + esc(m.name) + "</h1><p>" + esc(m.role) + " " + campusTag(m.campus, true) + "</p></div></div></div>" +
       sec("late", "Overdue") + sec("week", "Due in the next 7 days", "Nothing due in the next 7 days.") + sec("later", "Later") + sec("none", "No due date") +
-      contactsHtml + moneyHtml + doneHtml + emailPrefHtml(m) + "</div>";
+      contactsHtml + moneyHtml + doneHtml + "</div>";
   }
 
   /* ---------- rich text from the Sheet ----------
@@ -710,9 +693,9 @@
     var projects = '<section class="section" aria-labelledby="proj-h"><h2 id="proj-h">Workstreams</h2><p class="section__note">Every task and contact belongs to one. Open a workstream to edit it, add assignments, or mark it done.</p><ul class="rows">' +
       state.data.projects.slice().sort(sortByDue).map(projectRowHtml).join("") + '</ul><div class="actions"><button type="button" class="btn" data-act="new-project">New workstream</button></div></section>';
     var needUs = contactsNeedingUs(state.data.contacts).length;
-    var reminders = '<section class="section" aria-labelledby="rem-h"><h2 id="rem-h">Reminders and calendar</h2>' +
-      '<p style="margin-top:12px;max-width:var(--read)">Every morning at 8 AM, the hub emails each person only if something of theirs is due in the next 2 days, overdue, newly assigned, due for a follow-up, or a funding deadline they own. People choose Daily, Mondays only or Off on their own page. You also get a summary of the whole team. Assignment, workstream and funding deadlines go on the shared Lagmay visit deadlines calendar, not on anyone\'s personal calendar.</p>' +
-      '<div class="actions"><button type="button" class="btn" data-act="send-reminders"' + (state.demo ? " disabled" : "") + ">Send reminders now</button>" +
+    var reminders = '<section class="section" aria-labelledby="rem-h"><h2 id="rem-h">Your summary and calendar</h2>' +
+      '<p style="margin-top:12px;max-width:var(--read)">The hub never emails the team. Only you get an email: a summary at 8 AM on days with something in it (funding changes and deadlines, overdue work, follow-ups past their date, what\'s due this week). Every assignment, workstream and funding deadline is on your Lagmay visit deadlines calendar. Nobody is invited to those events.</p>' +
+      '<div class="actions"><button type="button" class="btn" data-act="send-reminders"' + (state.demo ? " disabled" : "") + ">Email me the summary now</button>" +
       (store.get("pmCode") ? '<button type="button" class="btn btn--quiet" data-act="forget-pm">Forget the project manager code on this device</button>' : "") + "</div></section>";
     return '<div class="wrap"><div class="head"><h1 tabindex="-1">Project view</h1><p>Everything the team owes, by workstream. Anyone can look. Adding or changing assignments and workstreams needs the project manager code.</p></div>' +
       '<div class="stats stats--5">' +
@@ -849,7 +832,7 @@
       faq("Who should own a contact?", "<p>Whoever already has the relationship or the email thread. One owner per person outside the team, so they never get two emails from us saying different things.</p>") +
       faq("How is the money gauge worked out?", "<p>The total is the sum of the budget lines, minus anything marked not needed. Solid is money a funder has said yes to. Hatched is money we applied for and are waiting on. The gap is everything else. A budget line counts as covered only when the funder linked to it has said yes.</p>") +
       faq("My assignment is wrong, or something is missing.", "<p>Tell " + esc(pm) + ". Only the project manager can add, change or delete assignments, so one person is responsible for the list.</p>") +
-      faq("What emails will I get, and can I turn them down?", "<p>At most one reminder email a day, at 8 AM, and only when something of yours is due in the next 2 days, overdue, newly assigned, due for a follow-up, or a funding deadline you own. Every item links to its page here. To change how often, open your page from <a href=\"#/\">Team</a> and scroll to Email reminders. Nothing is added to your personal Google Calendar unless you click <b>Add to Google Calendar</b>.</p>") +
+      faq("Will the hub email me?", "<p>No. The hub never emails the team and never adds anything to your Google Calendar. Check <a href=\"#/\">Team</a> and your own page when you want to see what's on your plate. If you want a deadline on your own calendar, open it here and click <b>Add to Google Calendar</b>.</p>") +
       faq("Where are the notes from past meetings?", "<p>On <a href=\"#/meetings/notes\">Meetings</a>, under Past meeting notes. Any Google Doc in the Meetings folder of the shared Drive folder shows up there, newest first.</p>") +
       faq("What is the team code, and what if I lose it?", "<p>It keeps the team's details private. You enter it once on each device. If you lose it, ask " + esc(pm) + ". Please don't share it outside the four of us.</p>") +
       faq("It says my change wasn't saved.", "<p>Usually a dropped connection. Reload the page and try again. If it keeps happening, tell " + esc(pm) + ".</p>") +
@@ -896,7 +879,6 @@
     route._moved = true;
     window.scrollTo(0, 0);
     if (view === "meetings" && h[1]) { var sec = document.getElementById(h[1]); if (sec) { sec.scrollIntoView(); var hd = sec.querySelector("h2"); if (hd) { hd.setAttribute("tabindex", "-1"); hd.focus({ preventScroll: true }); } } }
-    if (view === "m" && h[2] === "email") { var em = document.getElementById("email-h"); if (em) { em.scrollIntoView(); em.focus({ preventScroll: true }); } }
   }
 
   /* ---------- writes ---------- */
@@ -1204,7 +1186,6 @@
     if (t.name === "status" && t.closest("[data-status-for]")) setStatus(t.closest("[data-status-for]").getAttribute("data-status-for"), t.value);
     if (t.name === "cstatus" && t.closest("[data-cstatus-for]")) setContactStatus(t.closest("[data-cstatus-for]").getAttribute("data-cstatus-for"), t.value);
     if (t.name === "fstatus" && t.closest("[data-fstatus-for]")) setFundingStatus(t.closest("[data-fstatus-for]").getAttribute("data-fstatus-for"), t.value);
-    if (t.name === "emailPref" && t.closest("[data-email-for]")) setEmailPref(t.closest("[data-email-for]").getAttribute("data-email-for"), t.value);
     if (t.closest && t.closest("#pm-filter")) {
       store.set("f.who", document.getElementById("f-who").value);
       store.set("f.proj", document.getElementById("f-proj").value);
@@ -1250,8 +1231,8 @@
     if (act === "edit-meeting") { x = byId(state.data.meetings, id); openDialog(meetingForm(x), function (v) { return saveMeetingFrom(x, v); }); }
     if (act === "forget-pm") { store.del("pmCode"); route(); toast("Project manager code removed from this device"); }
     if (act === "send-reminders") {
-      var send = function () { return apiPost({ action: "sendReminders" }).then(function (r) { toast("Sent " + (r.sent || 0) + " reminder emails"); }); };
-      if (needPmCode()) openDialog(dlgShell("Send reminders now", "<p>Everyone with something due soon, overdue, or due for a follow-up gets an email.</p>" + pmCodeField(), '<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn btn--solid">Send reminders</button>'), send);
+      var send = function () { return apiPost({ action: "sendReminders" }).then(function (r) { toast(r.sent ? "Summary sent to you" : "Nothing to report today, so no email"); }); };
+      if (needPmCode()) openDialog(dlgShell("Email me the summary now", "<p>Sends today\'s summary to you only. Nobody else gets an email.</p>" + pmCodeField(), '<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn btn--solid">Email me the summary</button>'), send);
       else { b.disabled = true; send().catch(function (e) { toast("Not sent: " + e.message); }).then(function () { b.disabled = false; }); }
     }
   });
@@ -1357,7 +1338,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261002032827";
+  var BUILD = "20261002034308";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp
