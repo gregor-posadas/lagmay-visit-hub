@@ -1,0 +1,97 @@
+/* When the Waters Rise: event page. Builds on ../assets/styles.css (the hub's signage style). */
+:root {
+  --land: #e2dac8; --land-home: #cdc2aa; --land-edge: var(--paper);
+  --arc: #CF5921; --glow: #b58f00; --focus-edge: #800000;
+  --water-bg: #9EB8DB; --water-line: #385F96;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --land: #262626; --land-home: #3b3b3b; --land-edge: #000;
+  --arc: #e8743f; --glow: #E7B800; --focus-edge: #E7B800;
+  --water-bg: #385F96; --water-line: #9EB8DB;
+} }
+:root[data-theme="dark"] {
+  --land: #262626; --land-home: #3b3b3b; --land-edge: #000;
+  --arc: #e8743f; --glow: #E7B800; --focus-edge: #E7B800;
+  --water-bg: #385F96; --water-line: #9EB8DB;
+}
+
+/* Hero */
+.ev-hero { padding: 40px 0 32px; }
+.ev-kicker { font-weight: 700; color: var(--ink-2); }
+.ev-hero h1 { font-size: clamp(2.2rem, 7vw, 3.6rem); line-height: 1.05; margin: 6px 0 14px; letter-spacing: -0.01em; }
+.ev-lede { font-size: var(--f3); max-width: 38rem; }
+.ev-facts { margin: 28px 0 8px; max-width: 60rem; }
+.ev-facts dt { font-size: var(--f1); color: var(--ink-2); }
+.ev-facts dd { margin: 0; font-weight: 700; }
+.ev-facts dd small { font-weight: 400; color: var(--ink-2); font-size: var(--f1); }
+.ev-actions { margin-top: 20px; }
+.btn--big { min-height: 56px; padding: 0 32px; font-size: var(--f3); }
+.ev-welcome { margin-top: 14px; max-width: 38rem; color: var(--ink-2); }
+
+/* Map */
+.ev-summary { margin: 14px 0 12px; max-width: 46rem; font-size: var(--f2); }
+.ev-map { margin: 0; border: 2px solid var(--rule-strong); background: var(--surface); }
+.ev-map__svg svg { display: block; width: 100%; height: auto; }
+.ev-key { display: flex; flex-wrap: wrap; gap: 6px 24px; padding: 10px 16px; border-top: 1px solid var(--rule); font-size: var(--f1); color: var(--ink-2); }
+.ev-key .k { display: inline-flex; align-items: center; gap: 8px; }
+.ev-key svg { fill: var(--ink); }
+.k-arc { display: inline-block; width: 26px; height: 0; border-top: 3px solid var(--arc); }
+.k--sample { font-weight: 700; color: var(--ink); border: 2px solid var(--ink); padding: 0 8px; }
+.ev-table { margin-top: 8px; }
+.ev-tables { display: grid; gap: 8px 40px; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .ev-tables { grid-template-columns: 1fr 1fr; } }
+.ev-tbl tr { display: table-row !important; }
+.ev-tbl td, .ev-tbl th { display: table-cell !important; padding: 6px 8px !important; border-bottom: 1px solid var(--rule) !important; }
+.ev-tbl thead { display: table-header-group !important; }
+
+.m .m-label { font-size: 20px; font-weight: 700; fill: var(--ink); }
+.m .m-ocean { font-size: 18px; font-style: italic; fill: var(--ink-2); letter-spacing: 0.2em; }
+.m .m-small, .m .m-more { font-size: 13px; fill: var(--ink-2); }
+.m--v .m-label { font-size: 24px; } .m--v .m-ocean { font-size: 20px; }
+.m-prov, .m-county { fill: var(--land); stroke: var(--land-edge); stroke-width: 0.8; transition: fill 0.4s, opacity 0.6s; }
+.m-prov.is-home, .m-county.is-home { fill: var(--land-home); }
+.m-water { pointer-events: none; }
+.m-flood { fill: url(#ev-hatch); stroke: var(--water-line); stroke-width: 0.8; opacity: 0; }
+.m-water-bg { fill: var(--water-bg); } .m-water-line { stroke: var(--water-line); stroke-width: 3; }
+.m-arc { fill: none; stroke: var(--arc); stroke-linecap: round; opacity: 0.8; }
+.m-gate { fill: var(--arc); }
+.m-people use { fill: var(--ink); }
+.m-people--ph use { fill: var(--ink); }
+
+/* Presentation: one step at a time, on a dark screen */
+body.is-presenting > .band, body.is-presenting > main, body.is-presenting > .foot, body.is-presenting > .notice { display: none; }
+.ev-present[hidden] { display: none; }
+.ev-present { position: fixed; inset: 0; z-index: 40; background: var(--paper); color: var(--ink); display: grid; grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr); grid-template-rows: 1fr auto; gap: 0 3vw; padding: 3vh 3vw; }
+.ev-present__map { grid-row: 1 / 3; display: flex; align-items: center; min-height: 0; }
+.ev-present__map svg { width: 100%; height: 100%; max-height: 94vh; }
+.ev-present__text { align-self: center; }
+.ev-present__caption { font-size: clamp(1.6rem, 2.9vw, 3rem); font-weight: 700; line-height: 1.2; }
+.ev-present__caption.is-story { font-weight: 400; font-size: clamp(1.4rem, 2.4vw, 2.4rem); }
+.ev-present__step { order: 2; margin-top: 18px; font-size: clamp(1rem, 1.5vw, 1.5rem); color: var(--ink-2); }
+.ev-present__text { display: flex; flex-direction: column; }
+.ev-present__caption { order: 1; }
+.ev-present__controls { display: flex; gap: 12px; flex-wrap: wrap; align-self: end; }
+.ev-present__sample { position: fixed; top: 16px; right: 24px; border: 2px solid var(--ink); padding: 2px 10px; font-weight: 700; }
+html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
+@media (max-width: 800px) { .ev-present { grid-template-columns: 1fr; grid-template-rows: auto auto auto; overflow: auto; } .ev-present__map { grid-row: auto; } }
+
+.ev-present .m-people--bay, .ev-present .m-people--ph { opacity: 0; transition: opacity 0.9s ease-out; }
+.ev-present .m-arc { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 2.4s ease-in-out, stroke 0.8s, opacity 0.6s; }
+.ev-present .show-bay .m-people--bay { opacity: 1; }
+.ev-present .show-arcs .m-arc { stroke-dashoffset: 0; }
+.ev-present .show-ph .m-people--ph { opacity: 1; transition-delay: 1.8s; }
+.ev-present .show-water .m-flood { opacity: 1; transition: opacity 2.6s ease-in; }
+.ev-present .has-focus .m-prov:not(.is-focus), .ev-present .has-focus .m-flood:not(.is-focus) { opacity: 0.35; }
+.ev-present .has-focus .m-arc:not(.is-focus) { opacity: 0.2; }
+.ev-present .has-focus .m-people--ph:not(.is-focus) { opacity: 0.45; }
+.ev-present .m-prov.is-focus { stroke: var(--focus-edge); stroke-width: 2.5; }
+.ev-present .show-glow .m-arc { stroke: var(--glow); opacity: 1; }
+.ev-present .m .m-label { font-size: 22px; }
+@media (prefers-reduced-motion: reduce) {
+  .ev-present .m-people--bay, .ev-present .m-people--ph, .ev-present .m-arc, .ev-present .m-flood, .m-prov { transition: none !important; }
+}
+
+.ev-speakers { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 760px) { .ev-speakers { grid-template-columns: repeat(3, 1fr); } }
+.ev-speaker { border: 2px solid var(--rule-strong); padding: 18px 20px; background: var(--surface); }
+.ev-speaker h3 { font-size: var(--f3); margin-bottom: 6px; }

@@ -78,6 +78,27 @@ You can also edit the Sheet by hand. The columns are named in the first row of e
 - **Rules** holds the ground rules shown at the bottom of the Funding page, one per row.
 - After editing dates by hand, run `syncAllCalendarEvents` again to update the calendar.
 
+## The event page and the RSVP map
+
+`event/` is the public page for the Nov 9 dialogue: gregor-posadas.github.io/lagmay-visit-hub/event/. It has the event details, an **RSVP** button that opens a Google Form, and a live map of who is coming. The map shows the Bay Area and the Philippines with a person figure for each RSVP, placed in their Bay Area county and, if they chose one, the Philippine province they have ties to. One line per province crosses the Pacific from the Golden Gate, thicker when more people are tied to it.
+
+- **Inclusive by design.** Everyone appears on the Bay Area side, including people born here and people with no ties to the Philippines. Places come from dropdowns (nine Bay Area counties; 82 provinces plus Metro Manila), so every answer matches a shape on the map.
+- **Private by design.** The public page gets only counts (`action=map`). Names, emails, access needs and questions stay in the Sheet and the hub. A story appears only if the person said yes to sharing it without their name **and** a teammate ticked it on the hub's **RSVPs** page.
+- **The opening on Nov 9:** open `event/?present` on the projector and press the right arrow (or Next). Steps: the room on the map, the lines home, the floods (provinces named in BahaWatch's flood history are shaded), up to four "if your family is from…" moments, a hands-up moment, the ticked stories, and a closing line. Press R to refresh the counts, Esc to leave.
+- **Rehearse any time** with made-up people: `event/?sample&present`. Every view says "Sample data".
+- **Flood data:** provinces come from `event/data/storms.json` (the floods on BahaWatch's Flood history tab). When UPRI shares province-level NOAH exposure figures, they can replace or join this layer.
+- **Map files:** `event/data/ph-provinces.json` (PSA PSGC 2023 boundaries via faeldon/philippines-json-maps, MIT) and `event/data/bay-counties.json` (click_that_hood), built by `tools/build_map_data.py`.
+
+### Making the RSVP form (once)
+
+1. In Apps Script, replace `Code.gs` and `appsscript.json` with the versions in this repo and save. The new manifest adds permission to make Google Forms.
+2. **Deploy > Manage deployments >** pencil icon **> Version: New version > Deploy.** The `/exec` link stays the same.
+3. Pick `createRsvpForm` and click **Run**. Approve the Forms permission. The log shows the form's share link. Its answers go to a new **RSVP responses** tab in the Sheet.
+4. Put the share link in `event/config.js` as `rsvpUrl`, then commit.
+5. RSVP once yourself, then check the hub's **RSVPs** page and the event map. Delete the test row from the RSVP responses tab afterwards.
+
+The form never emails anyone. Tests for the backend's RSVP code: `node tests/rsvp_backend.test.js`.
+
 ## Files in this repository
 
 | Path | What it is |
@@ -88,6 +109,9 @@ You can also edit the Sheet by hand. The columns are named in the first row of e
 | `assets/config.js` | The backend URL, Drive folder links, time zone and event dates |
 | `apps-script/` | Backend code to paste into Apps Script |
 | `data/demo.json` | Sample data used when no backend is connected |
+| `event/` | The public event page, RSVP map and the Nov 9 opening (`?present`) |
+| `tools/build_map_data.py` | Builds the event map's boundary files |
+| `tests/` | Backend tests (run with Node) |
 | `fonts/` | Atkinson Hyperlegible Next and its license |
 
 ## Publishing changes

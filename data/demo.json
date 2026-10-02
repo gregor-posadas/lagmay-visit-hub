@@ -618,5 +618,59 @@
   }
  ],
  "files": [],
- "notes": []
+ "notes": [],
+ "rsvps": [
+  {
+   "id": "r2",
+   "at": "2026-10-05T10:00:00-07:00",
+   "name": "Sample Person A",
+   "role": "UC Berkeley student",
+   "attend": "In person at Banatao Auditorium",
+   "county": "Alameda",
+   "tie": "parents",
+   "prov1": "Pampanga",
+   "prov2": "",
+   "story": "Sample story: my lola still talks about Ondoy. They waited on the roof until morning.",
+   "consent": true,
+   "question": "Sample question: what can students here do between typhoons?",
+   "access": "Live captions",
+   "storyOk": false,
+   "questionOk": false
+  },
+  {
+   "id": "r3",
+   "at": "2026-10-05T11:00:00-07:00",
+   "name": "Sample Person B",
+   "role": "Community member",
+   "attend": "Online, on the livestream",
+   "county": "Outside the Bay Area",
+   "tie": "none",
+   "prov1": "",
+   "prov2": "",
+   "story": "",
+   "consent": false,
+   "question": "",
+   "access": "",
+   "storyOk": false,
+   "questionOk": false
+  },
+  {
+   "id": "r4",
+   "at": "2026-10-06T09:00:00-07:00",
+   "name": "Sample Person C",
+   "role": "Stanford student, faculty or staff",
+   "attend": "In person at Banatao Auditorium",
+   "county": "Santa Clara",
+   "tie": "born",
+   "prov1": "Leyte",
+   "prov2": "Cebu",
+   "story": "Sample story: a private story about Yolanda.",
+   "consent": false,
+   "question": "Sample question: how good are the flood maps outside the big river basins?",
+   "access": "",
+   "storyOk": false,
+   "questionOk": true
+  }
+ ],
+ "rsvpFormUrl": ""
 }

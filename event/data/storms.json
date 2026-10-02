@@ -1,0 +1,14 @@
+{
+  "source": "BahaWatch flood history (gregor-posadas.github.io/bahawatch, Flood history tab). Each flood's provinces are the places its BahaWatch entry names; the tolls are the official counts cited there.",
+  "storms": [
+    { "year": 1991, "name": "Uring", "intl": "Thelma", "dead": 4922, "provinces": ["Leyte"], "line": "the Ormoc flash flood" },
+    { "year": 2009, "name": "Ondoy", "intl": "Ketsana", "dead": 464, "provinces": ["Metro Manila", "Rizal"], "line": "341 mm of rain in six hours" },
+    { "year": 2011, "name": "Sendong", "intl": "Washi", "dead": 1268, "provinces": ["Misamis Oriental", "Lanao del Norte"], "line": "the river rose 8 metres overnight" },
+    { "year": 2012, "name": "the habagat (monsoon) floods", "intl": "", "dead": 109, "provinces": ["Metro Manila"], "line": "about half of Manila under water" },
+    { "year": 2013, "name": "Yolanda", "intl": "Haiyan", "dead": 6300, "provinces": ["Leyte", "Samar", "Eastern Samar"], "line": "the storm surge in Tacloban" },
+    { "year": 2020, "name": "Ulysses", "intl": "Vamco", "dead": 101, "provinces": ["Metro Manila", "Cagayan"], "line": "the Marikina River above Ondoy's mark" },
+    { "year": 2024, "name": "Carina", "intl": "Gaemi", "dead": 46, "provinces": ["Metro Manila"], "line": "a state of calamity in Metro Manila" },
+    { "year": 2024, "name": "Kristine", "intl": "Trami", "dead": 145, "provinces": ["Albay", "Camarines Norte", "Camarines Sur", "Catanduanes", "Masbate", "Sorsogon"], "line": "the worst flooding in Bicol in 30 years" },
+    { "year": 2025, "name": "Tino", "intl": "Kalmaegi", "dead": 269, "provinces": ["Cebu"], "line": "families on rooftops in Cebu" }
+  ]
+}
