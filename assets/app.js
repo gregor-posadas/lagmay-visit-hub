@@ -116,8 +116,8 @@
     if (key === "done") s += '<circle cx="9" cy="9" r="8.5" fill="var(--st-done)"/><path d="M5 9.4l2.6 2.6L13 6.6" fill="none" stroke="var(--paper)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
     else if (key === "late") s += '<path d="M9 1.2L17.2 16.4H0.8Z" fill="var(--st-late)"/><path d="M9 6.5v4.6" stroke="var(--paper)" stroke-width="2.2" stroke-linecap="round"/><circle cx="9" cy="13.6" r="1.2" fill="var(--paper)"/>';
     else if (key === "doing") s += '<circle cx="9" cy="9" r="7.5" fill="none" stroke="var(--st-doing)" stroke-width="2.5"/><path d="M9 1.5a7.5 7.5 0 0 1 0 15z" fill="var(--st-doing)"/>';
-    else if (key === "soon") s += '<circle cx="9" cy="9" r="7.5" fill="none" stroke="var(--st-soon)" stroke-width="2.5"/><path d="M9 4.5V9l3.2 2" fill="none" stroke="var(--st-soon)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>';
-    else if (key === "move") s += '<circle cx="9" cy="9" r="8.5" fill="var(--st-soon)"/><path d="M4.8 9h7.4M9.2 5.6L12.6 9l-3.4 3.4" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>';
+    else if (key === "soon") s += '<circle cx="9" cy="9" r="8" fill="var(--st-soon)" stroke="var(--st-soon-edge)" stroke-width="1"/><path d="M9 4.2V9l3.2 2" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>';
+    else if (key === "move") s += '<circle cx="9" cy="9" r="8" fill="var(--st-soon)" stroke="var(--st-soon-edge)" stroke-width="1"/><path d="M4.8 9h7.4M9.2 5.6L12.6 9l-3.4 3.4" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>';
     else if (key === "no") s += '<circle cx="9" cy="9" r="7.5" fill="none" stroke="var(--ink-2)" stroke-width="2.5"/><path d="M6 6l6 6M12 6l-6 6" stroke="var(--ink-2)" stroke-width="2.2" stroke-linecap="round"/>';
     else s += '<circle cx="9" cy="9" r="7.5" fill="none" stroke="var(--st-todo)" stroke-width="2.5"/>';
     return s + "</svg>";
@@ -1388,7 +1388,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261002055430";
+  var BUILD = "20261002084704";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp

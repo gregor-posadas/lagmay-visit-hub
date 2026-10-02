@@ -1,0 +1,415 @@
+{
+ "source": "UP NOAH 100-year flood hazard maps (UP Resilience Institute); buildings: VIDA combined footprints (Google Open Buildings CC BY 4.0, Microsoft ODbL, OpenStreetMap ODbL); land: PSA boundaries. Made by tools/flood_maps/render_maps.py.",
+ "levels": {
+  "1": "under 0.5 m",
+  "2": "0.5 to 1.5 m",
+  "3": "over 1.5 m"
+ },
+ "images": {
+  "ph-hazard-light.png": {
+   "bounds": [
+    116.929,
+    4.646719,
+    126.605,
+    20.834
+   ],
+   "note": "2x2 max-pooled: a cell is blue if any of its four ~470 m samples is in a hazard zone"
+  },
+  "ph-hazard-dark.png": {
+   "bounds": [
+    116.929,
+    4.646719,
+    126.605,
+    20.834
+   ],
+   "note": "2x2 max-pooled: a cell is blue if any of its four ~470 m samples is in a hazard zone"
+  },
+  "prov-metro-manila.png": {
+   "bounds": [
+    120.906395,
+    14.35173,
+    121.135036,
+    14.785292
+   ],
+   "province": "Metro Manila"
+  },
+  "prov-rizal.png": {
+   "bounds": [
+    121.095891,
+    14.278244,
+    121.451051,
+    14.834803
+   ],
+   "province": "Rizal"
+  },
+  "prov-misamis-oriental.png": {
+   "bounds": [
+    124.246434,
+    8.160146,
+    125.262599,
+    9.093653
+   ],
+   "province": "Misamis Oriental"
+  },
+  "prov-lanao-del-norte.png": {
+   "bounds": [
+    123.621689,
+    7.696532,
+    124.567186,
+    8.332102
+   ],
+   "province": "Lanao del Norte"
+  },
+  "prov-leyte.png": {
+   "bounds": [
+    124.285675,
+    10.185136,
+    125.174125,
+    11.563612
+   ],
+   "province": "Leyte"
+  },
+  "prov-samar.png": {
+   "bounds": [
+    124.145165,
+    11.085856,
+    125.309116,
+    12.340963
+   ],
+   "province": "Samar"
+  },
+  "prov-eastern-samar.png": {
+   "bounds": [
+    125.125405,
+    10.687791,
+    125.969181,
+    12.349578
+   ],
+   "province": "Eastern Samar"
+  },
+  "prov-cagayan.png": {
+   "bounds": [
+    120.958673,
+    17.499331,
+    122.337621,
+    19.573924
+   ],
+   "province": "Cagayan"
+  },
+  "prov-camarines-sur.png": {
+   "bounds": [
+    122.55091,
+    13.258541,
+    124.002333,
+    14.128891
+   ],
+   "province": "Camarines Sur"
+  },
+  "prov-albay.png": {
+   "bounds": [
+    123.280548,
+    12.986185,
+    124.220111,
+    13.523255
+   ],
+   "province": "Albay"
+  },
+  "prov-camarines-norte.png": {
+   "bounds": [
+    122.298648,
+    13.837582,
+    123.118058,
+    14.501164
+   ],
+   "province": "Camarines Norte"
+  },
+  "prov-catanduanes.png": {
+   "bounds": [
+    124.012611,
+    13.516628,
+    124.42487,
+    14.100211
+   ],
+   "province": "Catanduanes"
+  },
+  "prov-sorsogon.png": {
+   "bounds": [
+    123.482159,
+    12.523465,
+    124.198409,
+    13.122403
+   ],
+   "province": "Sorsogon"
+  },
+  "prov-masbate.png": {
+   "bounds": [
+    122.800096,
+    11.72048,
+    124.103475,
+    13.180159
+   ],
+   "province": "Masbate"
+  },
+  "prov-cebu.png": {
+   "bounds": [
+    123.296368,
+    9.412867,
+    124.570972,
+    11.524289
+   ],
+   "province": "Cebu"
+  },
+  "town-metro-manila.png": {
+   "bounds": [
+    121.078746,
+    14.609554,
+    121.120472,
+    14.635331
+   ],
+   "province": "Metro Manila",
+   "town": "Marikina",
+   "buildings": 48975,
+   "in_hazard": 46376,
+   "deep": 44621,
+   "sources": {
+    "google": 47783,
+    "microsoft": 356,
+    "osm": 836
+   }
+  },
+  "town-rizal.png": {
+   "bounds": [
+    121.077193,
+    14.554005,
+    121.118913,
+    14.579781
+   ],
+   "province": "Rizal",
+   "town": "Cainta",
+   "buildings": 72553,
+   "in_hazard": 62073,
+   "deep": 57052,
+   "sources": {
+    "google": 71199,
+    "microsoft": 480,
+    "osm": 874
+   }
+  },
+  "town-misamis-oriental.png": {
+   "bounds": [
+    124.628165,
+    8.466819,
+    124.669894,
+    8.492596
+   ],
+   "province": "Misamis Oriental",
+   "town": "Cagayan de Oro",
+   "buildings": 45184,
+   "in_hazard": 32428,
+   "deep": 26121,
+   "sources": {
+    "google": 42866,
+    "microsoft": 584,
+    "osm": 1734
+   }
+  },
+  "town-lanao-del-norte.png": {
+   "bounds": [
+    124.228394,
+    8.216183,
+    124.270122,
+    8.241959
+   ],
+   "province": "Lanao del Norte",
+   "town": "Iligan",
+   "buildings": 34931,
+   "in_hazard": 19391,
+   "deep": 13723,
+   "sources": {
+    "google": 34566,
+    "microsoft": 357,
+    "osm": 8
+   }
+  },
+  "town-leyte.png": {
+   "bounds": [
+    124.58086,
+    11.001725,
+    124.62258,
+    11.027502
+   ],
+   "province": "Leyte",
+   "town": "Ormoc",
+   "buildings": 23044,
+   "in_hazard": 11161,
+   "deep": 7787,
+   "sources": {
+    "google": 22004,
+    "microsoft": 344,
+    "osm": 696
+   }
+  },
+  "town-samar.png": {
+   "bounds": [
+    124.85915,
+    11.770453,
+    124.900879,
+    11.796229
+   ],
+   "province": "Samar",
+   "town": "Catbalogan",
+   "buildings": 16083,
+   "in_hazard": 7556,
+   "deep": 6409,
+   "sources": {
+    "google": 15449,
+    "microsoft": 260,
+    "osm": 374
+   }
+  },
+  "town-eastern-samar.png": {
+   "bounds": [
+    125.403208,
+    11.603089,
+    125.444936,
+    11.628865
+   ],
+   "province": "Eastern Samar",
+   "town": "Borongan",
+   "buildings": 10734,
+   "in_hazard": 6138,
+   "deep": 4534,
+   "sources": {
+    "google": 9431,
+    "microsoft": 545,
+    "osm": 758
+   }
+  },
+  "town-cagayan.png": {
+   "bounds": [
+    121.70083,
+    17.618631,
+    121.742556,
+    17.644407
+   ],
+   "province": "Cagayan",
+   "town": "Tuguegarao",
+   "buildings": 27520,
+   "in_hazard": 25527,
+   "deep": 23007,
+   "sources": {
+    "google": 26247,
+    "microsoft": 664,
+    "osm": 609
+   }
+  },
+  "town-camarines-sur.png": {
+   "bounds": [
+    123.154506,
+    13.608728,
+    123.196233,
+    13.634504
+   ],
+   "province": "Camarines Sur",
+   "town": "Naga",
+   "buildings": 31544,
+   "in_hazard": 25426,
+   "deep": 20243,
+   "sources": {
+    "google": 29587,
+    "microsoft": 1055,
+    "osm": 902
+   }
+  },
+  "town-albay.png": {
+   "bounds": [
+    123.715633,
+    13.136361,
+    123.757353,
+    13.162138
+   ],
+   "province": "Albay",
+   "town": "Legazpi",
+   "buildings": 44945,
+   "in_hazard": 26315,
+   "deep": 16423,
+   "sources": {
+    "google": 43658,
+    "microsoft": 468,
+    "osm": 819
+   }
+  },
+  "town-camarines-norte.png": {
+   "bounds": [
+    122.939015,
+    14.096638,
+    122.980738,
+    14.122415
+   ],
+   "province": "Camarines Norte",
+   "town": "Daet",
+   "buildings": 21429,
+   "in_hazard": 17906,
+   "deep": 14308,
+   "sources": {
+    "google": 20858,
+    "microsoft": 561,
+    "osm": 10
+   }
+  },
+  "town-catanduanes.png": {
+   "bounds": [
+    124.188034,
+    13.570091,
+    124.229757,
+    13.595868
+   ],
+   "province": "Catanduanes",
+   "town": "Virac",
+   "buildings": 14968,
+   "in_hazard": 4354,
+   "deep": 1397,
+   "sources": {
+    "google": 13814,
+    "microsoft": 593,
+    "osm": 561
+   }
+  },
+  "town-masbate.png": {
+   "bounds": [
+    123.594403,
+    12.351094,
+    123.63613,
+    12.37687
+   ],
+   "province": "Masbate",
+   "town": "Masbate City",
+   "buildings": 17080,
+   "in_hazard": 4497,
+   "deep": 2029,
+   "sources": {
+    "google": 15818,
+    "microsoft": 938,
+    "osm": 324
+   }
+  },
+  "town-cebu.png": {
+   "bounds": [
+    123.829788,
+    10.25472,
+    123.871516,
+    10.280497
+   ],
+   "province": "Cebu",
+   "town": "Talisay",
+   "buildings": 54632,
+   "in_hazard": 17914,
+   "deep": 8724,
+   "sources": {
+    "google": 53766,
+    "microsoft": 756,
+    "osm": 110
+   }
+  }
+ }
+}

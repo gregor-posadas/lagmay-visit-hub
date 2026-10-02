@@ -19,12 +19,15 @@
   --band: #1b1a17;
   --band-ink: #ffffff;
   --focus: #0072b2;
-  /* Okabe-Ito status colours; each is always paired with a shape and a word */
-  --st-doing: #0072b2;
-  --st-done: #008a64;
-  --st-late: #c85500;
-  --st-soon: #e69f00;
+  /* Status colours, from the team palette and checked with a colour-blindness simulation (tools/cvd_check.py).
+     Each is always paired with its own shape and a word. Done is plain ink: finished things step back. */
+  --st-doing: #385F96;
+  --st-done: #1b1a17;
+  --st-late: #B8481A;
+  --st-soon: #E7B800;
+  --st-soon-edge: #1b1a17;
   --st-todo: #1b1a17;
+  --flag-blue: #385F96; --flag-red: #A3242A; --flag-gold: #E7B800;
   color-scheme: light;
 
   --f1: 0.875rem;  /* 15.75px meta */
@@ -50,10 +53,11 @@
     --band: #000000;
     --band-ink: #ffffff;
     --focus: #56b4e9;
-    --st-doing: #56b4e9;
-    --st-done: #19b58a;
+    --st-doing: #9EB8DB;
+    --st-done: #ffffff;
     --st-late: #ff7a2e;
-    --st-soon: #e69f00;
+    --st-soon: #ffe27a;
+    --st-soon-edge: transparent;
     --st-todo: #ffffff;
     color-scheme: dark;
   }
@@ -69,10 +73,11 @@
   --band: #000000;
   --band-ink: #ffffff;
   --focus: #56b4e9;
-  --st-doing: #56b4e9;
-  --st-done: #19b58a;
+  --st-doing: #9EB8DB;
+  --st-done: #ffffff;
   --st-late: #ff7a2e;
-  --st-soon: #e69f00;
+  --st-soon: #ffe27a;
+  --st-soon-edge: transparent;
   --st-todo: #ffffff;
   color-scheme: dark;
 }
@@ -98,11 +103,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
 @media (min-width: 720px) { .wrap { padding: 0 32px; } }
 
 /* Signage band */
-.band { background: var(--band); color: var(--band-ink); border-bottom: 6px solid var(--band); }
+.band { background: var(--band); color: var(--band-ink); }
+/* A quiet nod to the Philippine flag: a blue-over-red stripe under the header, and the flag's eight-rayed sun by the name */
+.band::after { content: ""; display: block; height: 6px; background: linear-gradient(to bottom, var(--flag-blue) 0 50%, var(--flag-red) 50% 100%); }
+.brand__sun { width: 1.05em; height: 1.05em; flex: none; color: var(--flag-gold); }
 .band__inner { max-width: var(--wrap); margin: 0 auto; padding: 14px 16px; display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 @media (min-width: 720px) { .band__inner { padding: 18px 32px; } }
 .brand { text-decoration: none; display: flex; flex-direction: column; min-height: var(--tap); justify-content: center; }
-.brand__name { font-size: var(--f3); font-weight: 700; letter-spacing: 0.01em; }
+.brand__name { font-size: var(--f3); font-weight: 700; letter-spacing: 0.01em; display: inline-flex; align-items: center; gap: 10px; }
 .brand__sub { font-size: var(--f1); color: #cfcfcf; }
 .nav { display: flex; gap: 4px; flex-wrap: wrap; }
 .nav a { min-height: var(--tap); display: inline-flex; align-items: center; padding: 0 14px; text-decoration: none; border-bottom: 4px solid transparent; }
@@ -360,9 +368,10 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
 /* About */
 .about-roles { display: grid; gap: 28px; margin-top: 20px; max-width: var(--read); }
 .about-role h3 { font-size: var(--f2); }
-.legend { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; max-width: var(--read); }
-.legend li { display: grid; grid-template-columns: 10rem 1fr; gap: 12px; align-items: center; }
-@media (max-width: 480px) { .legend li { grid-template-columns: 1fr; gap: 2px; } }
+.legend { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 24px; max-width: 48rem; }
+/* each row shares the list's two columns, so the widest status word sets the column and nothing overlaps */
+.legend li { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; }
+@media (max-width: 480px) { .legend { grid-template-columns: 1fr; } .legend li { grid-template-columns: 1fr; gap: 2px; } }
 .faq { border-bottom: 1px solid var(--rule); max-width: var(--read); }
 .faq summary { min-height: var(--tap); padding: 12px 0; font-weight: 700; cursor: pointer; display: list-item; }
 .faq__a { padding: 0 0 16px; }
