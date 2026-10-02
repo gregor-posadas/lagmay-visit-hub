@@ -182,3 +182,22 @@ html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
 .ev-cal__menu .btn { justify-content: flex-start; }
 .ev-cal__note { font-size: var(--f1); color: var(--ink-2); margin: 0; }
 @media (max-width: 600px) { .ev-cal { flex: 1 1 100%; } .ev-cal__menu { position: static; margin-top: 10px; min-width: 0; } }
+
+/* Every button in the hero row is the same height, whatever its width */
+.ev-actions { align-items: stretch; }
+.ev-actions > .btn, .ev-actions .ev-cal > summary { min-height: 56px; box-sizing: border-box; }
+
+/* Countdown band at the top of the event page */
+.ev-count { position: relative; background: var(--ink); color: var(--paper); }
+.ev-count__in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; padding-top: 12px; padding-bottom: 16px; }
+.ev-count__text { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.ev-count__n b { font-size: var(--f4); line-height: 1; margin-right: 6px; font-variant-numeric: tabular-nums; }
+.ev-count__until { flex-basis: auto; }
+.ev-count__rsvp { color: var(--paper); font-weight: 700; min-height: var(--tap); display: inline-flex; align-items: center; padding: 0 16px; border: 2px solid var(--paper); text-decoration: none; }
+.ev-count__rsvp:hover { background: var(--paper); color: var(--ink); }
+.ev-count__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: rgba(127, 127, 127, 0.35); }
+.ev-count__bar i { display: block; height: 100%; background: #E7B800; }
+/* "Want to be featured here?" under the supporters */
+.ev-feature { margin-top: 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 18px 20px; border: 2px dashed var(--rule-strong); max-width: var(--wrap); }
+.ev-feature p { margin: 0; max-width: 40rem; }
+.ev-feature .btn { margin: 0; }

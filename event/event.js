@@ -509,6 +509,33 @@
   }
   var tt = FIL ? cfg.timeTextFil : cfg.timeText; if (tt && $("ev-time")) $("ev-time").textContent = tt;
 
+  /* ---------- countdown to Nov 9 (to the minute once startTime is set in config.js; in days until then) ---------- */
+  (function () {
+    var el = $("countdown"); if (!el) return;
+    var timed = /^\d\d:\d\d$/.test(cfg.startTime || "") && /^\d\d:\d\d$/.test(cfg.endTime || "");
+    // Nov 9, 2026 in California is UTC-8.
+    var start = new Date("2026-11-09T" + (timed ? cfg.startTime : "00:00") + ":00-08:00"), end = new Date("2026-11-09T" + (timed ? cfg.endTime : "23:59") + ":00-08:00");
+    var opened = new Date("2026-10-01T00:00:00-07:00");   // when we started counting, for the bar
+    var L = FIL ? { d: ["araw", "araw"], h: ["oras", "oras"], m: ["minuto", "minuto"], until: "bago ang <b>When the Waters Rise</b>, Lunes, Nobyembre 9" + (timed ? "" : ". Iaanunsyo pa ang oras."), today: "Ngayon na! Banatao Auditorium, UC Berkeley.", now: "Nagaganap na ngayon sa Banatao Auditorium.", after: "Salamat sa lahat ng dumalo. Malapit nang ilabas ang recording.", rsvp: "Mag-RSVP", label: "Pagbibilang hanggang sa pagtitipon" }
+                : { d: ["day", "days"], h: ["hour", "hours"], m: ["minute", "minutes"], until: "until <b>When the Waters Rise</b>, Monday, November 9" + (timed ? "" : ". Time to be announced."), today: "It's today! Banatao Auditorium, UC Berkeley.", now: "Happening now in Banatao Auditorium.", after: "Thank you to everyone who came. The recording is coming soon.", rsvp: "RSVP", label: "Countdown to the event" };
+    el.setAttribute("aria-label", L.label);
+    function unit(n, w) { return '<span class="ev-count__n"><b>' + n + "</b>" + (n === 1 ? w[0] : w[1]) + "</span>"; }
+    function pacificDay(d) { return new Date(d.toLocaleString("en-US", { timeZone: "America/Los_Angeles" })).setHours(0, 0, 0, 0); }
+    function paint() {
+      var now = new Date(), ms = start - now, msg;
+      var pct = Math.max(0, Math.min(100, (now - opened) / (start - opened) * 100));
+      if (now >= end) msg = '<span class="ev-count__msg">' + L.after + "</span>";
+      else if (now >= start && timed) msg = '<span class="ev-count__msg">' + L.now + "</span>";
+      else if (!timed && pacificDay(now) === pacificDay(start)) msg = '<span class="ev-count__msg">' + L.today + "</span>";
+      else if (timed) { var m = Math.floor(ms / 60000); msg = unit(Math.floor(m / 1440), L.d) + unit(Math.floor(m / 60) % 24, L.h) + unit(m % 60, L.m) + '<span class="ev-count__until">' + L.until + "</span>"; }
+      else { var days = Math.round((pacificDay(start) - pacificDay(now)) / 864e5); msg = unit(days, L.d) + '<span class="ev-count__until">' + L.until + "</span>"; }
+      el.innerHTML = '<div class="wrap ev-count__in"><p class="ev-count__text">' + msg + '</p>' + (now < start && cfg.rsvpUrl ? '<a class="ev-count__rsvp" href="' + esc(cfg.rsvpUrl) + '" target="_blank" rel="noopener">' + L.rsvp + '<span class="sr">' + (FIL ? " (magbubukas ng Google Form sa bagong tab)" : " (opens a Google Form in a new tab)") + "</span></a>" : "") +
+        '</div><span class="ev-count__bar" aria-hidden="true"><i style="width:' + pct.toFixed(1) + '%"></i></span>';
+      el.hidden = false;
+    }
+    paint(); setInterval(paint, 30000);
+  })();
+
   /* ---------- add to calendar: Google, Outlook.com, or an .ics file for Apple Calendar, Outlook and the rest ---------- */
   (function () {
     var box = $("cal-menu"); if (!box) return;
@@ -531,11 +558,12 @@
       timed ? "DTSTART:" + utc(cfg.startTime) : "DTSTART;VALUE=DATE:20261109", timed ? "DTEND:" + utc(cfg.endTime) : "DTEND;VALUE=DATE:20261110",
       "SUMMARY:" + icsText(title), "LOCATION:" + icsText(where), "DESCRIPTION:" + icsText(about), "URL:" + url, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
     var icsUrl = "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
-    var nt = FIL ? " (magbubukas sa bagong tab)" : " (opens in a new tab)";
+    var nt = FIL ? " (magbubukas sa bagong tab)" : " (opens in a new tab)", ic = window.EV_SITE ? window.EV_SITE.icon : function () { return ""; };
+    var sum = box.parentNode.querySelector("summary"); if (sum) sum.insertAdjacentHTML("afterbegin", ic("calendar"));
     box.innerHTML =
-      '<a class="btn" href="' + esc(google) + '" target="_blank" rel="noopener">Google Calendar<span class="sr">' + nt + '</span></a>' +
-      '<a class="btn" href="' + esc(outlook) + '" target="_blank" rel="noopener">Outlook.com<span class="sr">' + nt + '</span></a>' +
-      '<a class="btn" href="' + esc(icsUrl) + '" download="when-the-waters-rise.ics">' + (FIL ? "Apple, Outlook o iba pa (.ics)" : "Apple, Outlook or other (.ics)") + '</a>' +
+      '<a class="btn" href="' + esc(google) + '" target="_blank" rel="noopener">' + ic("gcal") + 'Google Calendar<span class="sr">' + nt + '</span></a>' +
+      '<a class="btn" href="' + esc(outlook) + '" target="_blank" rel="noopener">' + ic("microsoft") + 'Outlook.com<span class="sr">' + nt + '</span></a>' +
+      '<a class="btn" href="' + esc(icsUrl) + '" download="when-the-waters-rise.ics">' + ic("apple") + (FIL ? "Apple, Outlook o iba pa (.ics)" : "Apple, Outlook or other (.ics)") + '</a>' +
       (timed ? "" : '<p class="ev-cal__note">' + (FIL ? "Buong araw muna sa Nob 9 hangga't hindi pa naitatakda ang oras." : "Saved as all day on Nov 9 until the time is set.") + "</p>");
   })();
 

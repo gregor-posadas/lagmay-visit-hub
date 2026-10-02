@@ -150,3 +150,8 @@
 .sh__end { margin-top: 10px; }
 @media (max-width: 599px) { .sh__body { grid-template-columns: 1fr; } .sh__img { width: 120px; } .sh__actions .btn { flex: 1 1 100%; justify-content: center; } }
 @media print { .sh, #share-btn { display: none !important; } }
+
+/* Icons beside button labels */
+.ico { width: 20px; height: 20px; flex: none; display: inline-block; }
+.tool .ico { width: 18px; height: 18px; margin-right: 8px; vertical-align: -3px; }
+.sh__post { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 2px solid var(--rule-strong); background: var(--paper); color: var(--ink); font: inherit; font-size: var(--f1); line-height: 1.45; resize: vertical; }

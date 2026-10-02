@@ -7,6 +7,23 @@
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var store = { get: function (k) { try { return localStorage.getItem("lv." + k); } catch (e) { return null; } }, set: function (k, v) { try { localStorage.setItem("lv." + k, v); } catch (e) { /* ignore */ } } };
   var FIL = document.documentElement.lang === "fil";
+  /* Icons beside button labels (decorative; the words carry the meaning). Brand marks from Simple Icons (CC0),
+     the LinkedIn mark from Font Awesome Free (CC BY 4.0), Google Calendar's from Google's product icons. */
+  var ICONS = {
+"instagram": "<svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#E1306C\" d=\"M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077\"/></svg>",
+"facebook": "<svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#0866FF\" d=\"M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z\"/></svg>",
+"whatsapp": "<svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#25D366\" d=\"M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z\"/></svg>",
+"apple": "<svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"currentColor\" d=\"M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701\"/></svg>",
+"gcal": "<img class=\"ico\" src=\"https://ssl.gstatic.com/images/branding/product/1x/calendar_2020q4_48dp.png\" alt=\"\" aria-hidden=\"true\" width=\"20\" height=\"20\">",
+"linkedin": "<svg class=\"ico\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#0A66C2\" d=\"M416 32L31.9 32C14.3 32 0 46.5 0 64.3L0 447.7C0 465.5 14.3 480 31.9 480L416 480c17.6 0 32-14.5 32-32.3l0-383.4C448 46.5 433.6 32 416 32zM135.4 416l-66.4 0 0-213.8 66.5 0 0 213.8-.1 0zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77zM384.3 416l-66.4 0 0-104c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9l0 105.8-66.4 0 0-213.8 63.7 0 0 29.2 .9 0c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9l0 117.2z\"/></svg>",
+"microsoft": "<svg class=\"ico\" viewBox=\"0 0 22 22\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#F25022\" d=\"M0 0h10v10H0z\"/><path fill=\"#7FBA00\" d=\"M12 0h10v10H12z\"/><path fill=\"#00A4EF\" d=\"M0 12h10v10H0z\"/><path fill=\"#FFB900\" d=\"M12 12h10v10H12z\"/></svg>",
+"link": "<svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" d=\"M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4L11.6 6M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1.6-1.6\"/></svg>",
+"share": "<svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 15V3M7 8l5-5 5 5M5 12v8h14v-8\"/></svg>",
+"calendar": "<svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linejoin=\"round\" d=\"M4 6h16v14H4zM4 10h16M8 3v5M16 3v5\"/></svg>",
+"download": "<svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 3v12M7 10l5 5 5-5M5 20h14\"/></svg>",
+"mail": "<svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linejoin=\"round\" d=\"M3 5h18v14H3zM3 6l9 7 9-7\"/></svg>"
+};
+  function icon(k) { return ICONS[k] || ""; }
 
   /* ---------- theme ---------- */
   function theme() { return document.documentElement.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }
@@ -131,14 +148,27 @@
      where the browser cannot share files. The link is copied too, for Instagram's Link sticker. */
   (function () {
     var btn = $("share-btn"); if (!btn) return;
-    var T = FIL ? { h: "Ibahagi ang pagtitipon", story: "Ibahagi sa Instagram story", dl: "I-download ang story image", link: "Iba pang app", copy: "Kopyahin ang link", copied: "Nakopya ang link.", nocopy: "Hindi makopya. Piliin at kopyahin ang link sa itaas.", close: "Isara", alt: "Story card ng pagtitipon", urlLabel: "Link ng pahinang ito", on: "Ibahagi sa", note: "Kinokopya rin ng Ibahagi sa story ang link, kaya sa Instagram ay maaari kang magdagdag ng Link sticker at i-paste ito.", noteDesk: "Para sa Instagram Stories: i-download ang larawan, i-post ito mula sa iyong telepono, at magdagdag ng Link sticker na may link sa itaas.", toast: "Nakopya ang link. Idagdag ito gamit ang Link sticker sa Instagram.", newtab: " (magbubukas sa bagong tab)", msg: "Libreng talakayan tungkol sa baha sa Pilipinas, kasama si Dr. Mahar Lagmay, Nob 9 sa UC Berkeley:" }
-                : { h: "Share the event", story: "Share to Instagram story", dl: "Download story image", link: "Other apps", copy: "Copy link", copied: "Link copied.", nocopy: "Could not copy. Select and copy the link above.", close: "Close", alt: "Story card for the event", urlLabel: "Link to this page", on: "Share on", note: "Share to story also copies the link, so in Instagram you can add a Link sticker and paste it.", noteDesk: "For Instagram Stories: download the image, post it from your phone, and add a Link sticker with the link above.", toast: "Link copied. Add it with a Link sticker in Instagram.", newtab: " (opens in a new tab)", msg: "A free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Nov 9 at UC Berkeley:" };
+    var T = FIL ? { h: "Ibahagi ang pagtitipon", story: "Ibahagi sa Instagram story", dl: "I-download ang story image", link: "Iba pang app", copy: "Kopyahin ang link", copied: "Nakopya ang link.", nocopy: "Hindi makopya. Piliin at kopyahin ang link sa itaas.", close: "Isara", alt: "Story card ng pagtitipon", urlLabel: "Link ng pahinang ito", on: "Ibahagi sa", note: "Kinokopya rin ng Ibahagi sa story ang link, kaya sa Instagram ay maaari kang magdagdag ng Link sticker at i-paste ito.", noteDesk: "Para sa Instagram Stories: i-download ang larawan, i-post ito mula sa iyong telepono, at magdagdag ng Link sticker na may link sa itaas.", toast: "Nakopya ang link. Idagdag ito gamit ang Link sticker sa Instagram.", newtab: " (magbubukas sa bagong tab)", post: "Mungkahing post", postNote: "Lalabas na ito sa LinkedIn at WhatsApp. Sa Facebook, kinokopya namin ito para i-paste mo.", copyPost: "Kopyahin ang post", postCopied: "Nakopya ang post.", fbToast: "Nakopya ang post. I-paste ito sa Facebook." }
+                : { h: "Share the event", story: "Share to Instagram story", dl: "Download story image", link: "Other apps", copy: "Copy link", copied: "Link copied.", nocopy: "Could not copy. Select and copy the link above.", close: "Close", alt: "Story card for the event", urlLabel: "Link to this page", on: "Share on", note: "Share to story also copies the link, so in Instagram you can add a Link sticker and paste it.", noteDesk: "For Instagram Stories: download the image, post it from your phone, and add a Link sticker with the link above.", toast: "Link copied. Add it with a Link sticker in Instagram.", newtab: " (opens in a new tab)", post: "Suggested post", postNote: "LinkedIn and WhatsApp open with this already filled in. For Facebook, we copy it so you can paste it.", copyPost: "Copy post text", postCopied: "Post text copied.", fbToast: "Post text copied. Paste it into your Facebook post." };
+    // Ready-made words for the post, so sharing takes one click. Edit them in the dialog before posting.
+    var SUPPORT = /\/support\/?$/.test(btn.getAttribute("data-url") || "");
+    var POST = FIL
+      ? "Sa Lunes, Nobyembre 9, darating sa UC Berkeley si Dr. Mahar Lagmay, ang siyentipiko sa likod ng pambansang flood hazard maps ng Pilipinas (Project NOAH), para sa isang libreng pampublikong talakayan kasama ang mga historyador na sina Dr. Lisandro Claudio at Dr. Diana Martinez. Bakit paulit-ulit na binabaha ang Pilipinas, sino ang nagbabayad, at ano ang magagawa natin dito sa Bay Area? Sa Banatao Auditorium, at may livestream. Bukas sa lahat. Mag-RSVP dito"
+      : SUPPORT
+      ? "We're bringing Dr. Mahar Lagmay, who leads the Philippines' national flood mapping program (Project NOAH), to UC Berkeley on November 9 for a free public conversation on why the Philippines keeps flooding, with historians Dr. Lisandro Claudio and Dr. Diana Martinez. The talk is free for everyone, but his flight from Manila still needs a sponsor. If your organization can help, here is how"
+      : "On Monday, November 9, Dr. Mahar Lagmay, the scientist behind the Philippines' national flood hazard maps (Project NOAH), comes to UC Berkeley for a free public conversation with historians Dr. Lisandro Claudio and Dr. Diana Martinez. Why does the Philippines keep flooding, who pays for it, and what can we in the Bay Area do? In Banatao Auditorium and livestreamed. Everyone is welcome. RSVP here";
+    var TAGS = "#Philippines #Flooding #ClimateAdaptation #DisasterResilience #UCBerkeley #FilipinoAmerican";
     var url = btn.getAttribute("data-url"), card = btn.getAttribute("data-card"), title = btn.getAttribute("data-title"), file = null;
-    var nets = [
-      ["LinkedIn", "https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(url)],
-      ["Facebook", "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url)],
-      ["WhatsApp", "https://wa.me/?text=" + encodeURIComponent(T.msg + " " + url)]
-    ];
+    btn.insertAdjacentHTML("afterbegin", icon("share"));
+    function postText() { var ta = dlg && dlg.querySelector(".sh__post"); return ta ? ta.value : POST + ": " + url; }
+    // LinkedIn's composer takes the text (with the link in it); Facebook's sharer only takes the link, so the text is copied for pasting.
+    function netUrl(k) {
+      var t = postText();
+      if (k === "linkedin") return "https://www.linkedin.com/feed/?shareActive=true&text=" + encodeURIComponent(t + "\n\n" + TAGS);
+      if (k === "facebook") return "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url);
+      return "https://wa.me/?text=" + encodeURIComponent(t);
+    }
+    var nets = [["linkedin", "LinkedIn"], ["facebook", "Facebook"], ["whatsapp", "WhatsApp"]];
     function load() {
       if (file || !window.fetch || typeof File === "undefined") return;
       fetch(card).then(function (r) { return r.blob(); }).then(function (b) { file = new File([b], card.split("/").pop(), { type: "image/jpeg" }); }).catch(function () {});
@@ -153,18 +183,31 @@
       dlg = document.createElement("dialog"); dlg.className = "sh"; dlg.setAttribute("aria-labelledby", "sh-h");
       dlg.innerHTML = '<h2 id="sh-h">' + T.h + '</h2><div class="sh__body"><img class="sh__img" alt="' + T.alt + '" width="216" height="384">' +
         '<div><label class="sh__label" for="sh-url">' + T.urlLabel + '</label><input class="sh__url" id="sh-url" type="text" readonly value="' + url + '">' +
-        '<div class="actions sh__actions"><button type="button" class="btn btn--solid sh__story">' + T.story + '</button><a class="btn btn--solid sh__dl" download>' + T.dl + '</a>' +
-        '<button type="button" class="btn sh__copy">' + T.copy + '</button></div>' +
-        '<p class="sh__label sh__on">' + T.on + '</p><div class="actions sh__nets">' + nets.map(function (n) {
-          return '<a class="btn" href="' + n[1] + '" target="_blank" rel="noopener">' + n[0] + '<span class="sr">' + T.newtab + '</span></a>';
-        }).join("") + '<button type="button" class="btn sh__link">' + T.link + '</button></div>' +
-        '<p class="sh__status" aria-live="polite"></p><p class="sh__note"></p><div class="actions sh__end"><button type="button" class="btn btn--quiet sh__close">' + T.close + '</button></div></div></div>';
+        '<div class="actions sh__actions"><button type="button" class="btn btn--solid sh__story">' + icon("instagram") + T.story + '</button><a class="btn btn--solid sh__dl" download>' + icon("instagram") + T.dl + '</a>' +
+        '<button type="button" class="btn sh__copy">' + icon("link") + T.copy + '</button></div><p class="sh__note sh__ig"></p>' +
+        '<label class="sh__label sh__on" for="sh-post">' + T.post + '</label><textarea class="sh__post" id="sh-post" rows="5"></textarea><p class="sh__note">' + T.postNote + '</p>' +
+        '<div class="actions sh__nets">' + nets.map(function (n) {
+          return '<a class="btn sh__net" data-net="' + n[0] + '" href="#" target="_blank" rel="noopener">' + icon(n[0]) + n[1] + '<span class="sr">' + T.newtab + '</span></a>';
+        }).join("") + '<button type="button" class="btn sh__copypost">' + icon("link") + T.copyPost + '</button><button type="button" class="btn sh__link">' + icon("share") + T.link + '</button></div>' +
+        '<p class="sh__status" aria-live="polite"></p><div class="actions sh__end"><button type="button" class="btn btn--quiet sh__close">' + T.close + '</button></div></div></div>';
       document.body.appendChild(dlg);
       status = dlg.querySelector(".sh__status");
       dlg.querySelector(".sh__close").addEventListener("click", function () { dlg.close(); });
       dlg.querySelector(".sh__url").addEventListener("focus", function (e) { e.target.select(); });
       dlg.querySelector(".sh__copy").addEventListener("click", function () { copy().then(function () { status.textContent = T.copied; }, function () { status.textContent = T.nocopy; dlg.querySelector(".sh__url").select(); }); });
-      dlg.querySelector(".sh__link").addEventListener("click", function () { navigator.share({ title: title, text: T.msg, url: url }).catch(function () {}); });
+      dlg.querySelector(".sh__post").value = POST + ": " + url;
+      // Fill each network's link at the moment of the click, so edits to the post are included.
+      Array.prototype.forEach.call(dlg.querySelectorAll(".sh__net"), function (a) {
+        a.addEventListener("click", function () {
+          var k = a.getAttribute("data-net"); a.href = netUrl(k);
+          if (k === "facebook") { try { navigator.clipboard.writeText(postText()).then(function () { toast(T.fbToast); }, function () {}); } catch (e) {} }
+        });
+        a.href = netUrl(a.getAttribute("data-net"));
+      });
+      dlg.querySelector(".sh__copypost").addEventListener("click", function () {
+        try { navigator.clipboard.writeText(postText()).then(function () { status.textContent = T.postCopied; }, function () { dlg.querySelector(".sh__post").select(); }); } catch (e) { dlg.querySelector(".sh__post").select(); }
+      });
+      dlg.querySelector(".sh__link").addEventListener("click", function () { navigator.share({ title: title, text: postText() }).catch(function () {}); });
       dlg.querySelector(".sh__story").addEventListener("click", function () { copy().then(function () { toast(T.toast); }, function () {}); navigator.share({ files: [file], title: title }).catch(function () {}); });
       dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
       dlg.addEventListener("close", function () { btn.focus(); });
@@ -176,12 +219,13 @@
       dlg.querySelector(".sh__img").src = card; dlg.querySelector(".sh__dl").href = card;
       dlg.querySelector(".sh__story").hidden = !fileOK; dlg.querySelector(".sh__dl").hidden = fileOK;   // show only what this device can do
       dlg.querySelector(".sh__link").hidden = !navigator.share;
-      dlg.querySelector(".sh__note").textContent = fileOK ? T.note : T.noteDesk;
+      dlg.querySelector(".sh__ig").textContent = fileOK ? T.note : T.noteDesk;
       status.textContent = "";
       if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
       (fileOK ? dlg.querySelector(".sh__story") : dlg.querySelector(".sh__copy")).focus();
     });
   })();
 
-  window.EV_SITE = { theme: theme, tick: tick, tipsInit: tipsInit };
+  Array.prototype.forEach.call(document.querySelectorAll('a.btn[href^="mailto:"]'), function (a) { a.insertAdjacentHTML("afterbegin", icon("mail")); });
+  window.EV_SITE = { theme: theme, tick: tick, tipsInit: tipsInit, icon: icon };
 })();
