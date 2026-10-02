@@ -519,7 +519,13 @@ td.money, th.money { text-align: right; }
 .meter__meta a { color: inherit; }
 .table-scroll { max-width: 100%; }
 .meet__title b { font-size: var(--f3); }
-.fact .st { font-size: var(--f2); }
+.fact .st { font-size: var(--f2); white-space: normal; align-items: flex-start; }
+.fact .st__shape { flex: none; margin-top: 0.2em; }
+.fact { min-width: 0; overflow-wrap: anywhere; }
+.fact b .bullet { margin-right: 4px; vertical-align: middle; }
+/* Facts grid: inner rules only, so the outer frame never doubles up on the last column or row */
+.facts { overflow: hidden; }
+.fact { border: 0; box-shadow: 1px 0 0 var(--rule), 0 1px 0 var(--rule); }
 .fact small { font-weight: 400; color: var(--ink-2); font-size: var(--f1); }
 .sign__name + .for { vertical-align: 2px; margin-left: 4px; }
 .detail__who p .for { vertical-align: 1px; margin-left: 6px; }
@@ -535,3 +541,6 @@ td.money, th.money { text-align: right; }
   .band__tools { order: 2; }
   .nav { order: 3; flex: 1 1 100%; margin: 0 -14px -14px; }
 }
+/* Facts always come in fours: two across on small screens, four across on wide ones */
+.facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 760px) { .facts { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

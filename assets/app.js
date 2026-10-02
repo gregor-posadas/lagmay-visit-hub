@@ -824,7 +824,7 @@
       '<section class="section" aria-labelledby="how-h"><h2 id="how-h">How to use it</h2><div class="about-roles">' +
       role("Everyone", ["On <a href=\"#/\">Team</a>, tap your name. You'll see your assignments, the contacts you own, and any funding you're chasing.", "Open an assignment for the steps and a button to the right doc. Set it to <b>In progress</b> when you start and <b>Done</b> when you finish.", "After any email or call with someone outside the team, open them on <a href=\"#/contacts\">Contacts</a> and click <b>Log what happened</b>. Say whose move it is and when to follow up.", "When a funder answers, open them on <a href=\"#/funding\">Funding</a> and change where it stands. The money gauge updates for everyone."]) +
       role("Rapha, on the Stanford side", ["Stanford contacts and funding carry an outlined " + campusTag("stanford", true) + " tag; Berkeley's are filled " + campusTag("berkeley", true) + ". Filter Contacts by campus to see just yours.", "Add Stanford people and funding leads yourself with <b>Add a contact</b> and <b>Add a funding source</b>. No special code needed.", "The Stanford day has its own workstream with its own milestones."]) +
-      role(esc(pm) + ", project manager", ["Use <a href=\"#/pm\">Project view</a> to see everything by workstream and filter by person or status.", "Add assignments there or from a workstream's page. One assignment can go to several people, each with their own copy.", "Your code is only needed for assignments, workstreams, the budget, and deleting things. Every morning you get a summary email."]) +
+      role(esc(pm), ["Use <a href=\"#/pm\">Project view</a> to see everything by workstream and filter by person or status.", "Add assignments there or from a workstream's page. One assignment can go to several people, each with their own copy.", "Your code is only needed for assignments, workstreams, the budget, and deleting things. Every morning you get a summary email."]) +
       "</div></section>" +
       '<section class="section" aria-labelledby="sym-h"><h2 id="sym-h">What the symbols mean</h2><p class="section__note">Each status has its own shape and word, so colour is never the only clue.</p><ul class="legend">' + legend + "</ul></section>" +
       '<section class="section" aria-labelledby="faq-h"><h2 id="faq-h">Questions</h2>' +
@@ -1338,7 +1338,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261002035131";
+  var BUILD = "20261002041325";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp
