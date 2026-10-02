@@ -112,8 +112,8 @@
   // Switch the province and town images to the other theme's set without redrawing the map.
   function rethemeMaps() {
     var dark = theme() === "dark";
-    Array.prototype.forEach.call(document.querySelectorAll("image.m-hazp, image.m-town"), function (im) {
-      ["href", "data-href"].forEach(function (a) {
+    Array.prototype.forEach.call(document.querySelectorAll("img.m-hazp, img.m-town"), function (im) {
+      ["src", "data-src"].forEach(function (a) {
         var v = im.getAttribute(a); if (!v) return;
         var light = v.replace(/-dark(\.\w+)(\?.*)?$/, "$1$2");
         im.setAttribute(a, dark ? light.replace(/(\.\w+)(\?.*)?$/, "-dark$1$2") : light);
@@ -125,6 +125,56 @@
   function townOf(p) { var m = geo.maps && geo.maps.images["town-" + slug(p) + ".webp"]; return m && m.in_hazard > 0 ? m : null; }
   function stormSet() { var s = {}; geo.storms.forEach(function (st) { st.provinces.forEach(function (p) { s[p] = true; }); }); return s; }
 
+  /* The reveal's layers, bottom to top: the map SVG, the province and town images, and an SVG of province outlines
+     so the outline of the place in focus still shows above its flood map. The camera moves all three together. */
+  function rasterLayer(host, svg, rasters, pp) {
+    var ras = document.createElement("div"); ras.className = "m-raster"; ras.setAttribute("aria-hidden", "true");
+    rasters.forEach(function (r) {
+      var im = document.createElement("img");
+      im.className = r.cls; im.alt = ""; im.decoding = "async"; im.draggable = false;
+      im.setAttribute("data-src", r.src); im.setAttribute("data-prov", r.prov); im.__box = r.box;
+      ras.appendChild(im);
+    });
+    var provs = {}; rasters.forEach(function (r) { provs[r.prov] = true; });
+    var top = '<svg class="m m-top" viewBox="' + svg.getAttribute("viewBox") + '" aria-hidden="true" focusable="false">' +
+      geo.ph.features.filter(function (f) { return provs[f.name]; }).map(function (f) {
+        return '<path class="m-edge" data-name="' + esc(f.name) + '" d="' + pathOf(f, pp) + '"/>';
+      }).join("") + "</svg>";
+    host.appendChild(ras); host.insertAdjacentHTML("beforeend", top);
+    svg.__ras = ras; svg.__top = host.lastChild;
+    // The national flood map moves into the image layer too (bottom of it), and the lines, people and labels move up
+    // into the top SVG, so the order on screen stays land, water, then people.
+    Array.prototype.slice.call(svg.querySelectorAll("image.m-haz")).reverse().forEach(function (old) {
+      var im = document.createElement("img");
+      im.className = old.getAttribute("class"); im.alt = ""; im.decoding = "async"; im.draggable = false;
+      im.__box = ["x", "y", "width", "height"].map(function (a) { return +old.getAttribute(a); });
+      im.setAttribute("src", old.getAttribute("href")); if (im.decode) im.decode().catch(function () {});
+      ras.insertBefore(im, ras.firstChild); old.parentNode.removeChild(old);
+    });
+    svg.querySelectorAll(".m-arcs, .m-people, .m-label, .m-ocean, .m-small").forEach(function (el) { svg.__top.appendChild(el); });
+    fitLayers(svg);
+  }
+  // Line the image layer and the outline SVG up with the map SVG (on start and on resize, not every frame).
+  function fitLayers(svg) {
+    if (!svg.__ras) return;
+    var r = svg.getBoundingClientRect(), h = svg.parentNode.getBoundingClientRect();
+    var box = { left: (r.left - h.left) + "px", top: (r.top - h.top) + "px", width: r.width + "px", height: r.height + "px" };
+    [svg.__ras, svg.__top].forEach(function (el) { Object.keys(box).forEach(function (k) { el.style[k] = box[k]; }); });
+    svg.__px = [r.width, r.height];
+    placeRasters(svg);
+  }
+  // Put each loaded image where the current viewBox puts its lon/lat box (the SVG's default "xMidYMid meet" fit).
+  function placeRasters(svg) {
+    if (!svg.__ras || !svg.__px) return;
+    var v = vb || [0, 0, svg.__L.W, svg.__L.H], W = svg.__px[0], H = svg.__px[1];
+    var k = Math.min(W / v[2], H / v[3]), ox = (W - v[2] * k) / 2 - v[0] * k, oy = (H - v[3] * k) / 2 - v[1] * k;
+    Array.prototype.forEach.call(svg.__ras.children, function (im) {
+      if (!im.getAttribute("src")) return;
+      var b = im.__box, st = im.style;
+      st.left = (ox + b[0] * k).toFixed(2) + "px"; st.top = (oy + b[1] * k).toFixed(2) + "px";
+      st.width = (b[2] * k).toFixed(2) + "px"; st.height = (b[3] * k).toFixed(2) + "px";
+    });
+  }
   function drawMap(host, d, opts) {
     opts = opts || {};
     var L = layoutFor(opts.width || host.clientWidth || 1000);
@@ -151,19 +201,19 @@
     // Flood hazard: the whole country (light and dark versions; CSS shows the one that fits the theme).
     // In the reveal, sharper maps of each storm province and closeups of one town in each, loaded only when needed.
     s += '<g class="m-hazard">' + imgTag("m-haz m-haz--light", "ph-hazard-light.png", pp) + imgTag("m-haz m-haz--dark", "ph-hazard-dark.png", pp);
-    if (opts.present && geo.maps) Object.keys(geo.maps.images).forEach(function (n) {
-      var m = geo.maps.images[n];
-      if (!/^prov-/.test(n)) return;
-      // clip each province's sharper map to the province itself, so it doesn't show as a rectangle
-      var f = geo.ph.features.filter(function (x) { return x.name === m.province; })[0];
-      if (f) s += '<clipPath id="clip-' + slug(m.province) + '"><path d="' + pathOf(f, pp) + '"/></clipPath>';
-      s += imgTag("m-hazp", themed(n), pp, ' data-prov="' + esc(m.province) + '"' + (f ? ' clip-path="url(#clip-' + slug(m.province) + ')"' : ""), true);
-    });
-    if (opts.present && geo.maps) Object.keys(geo.maps.images).forEach(function (n) {
-      var m = geo.maps.images[n];
-      if (/^town-/.test(n) && !/-dark\./.test(n) && m.in_hazard > 0) s += imgTag("m-town", themed(n), pp, ' data-prov="' + esc(m.province) + '"', true);
-    });
     s += "</g>";
+    // In the reveal, the sharper province maps and town closeups go in an HTML layer above the SVG (rasterLayer), not in it:
+    // browsers decode an SVG <image> in the middle of drawing a frame, which made the camera stutter, while an HTML <img>
+    // can be decoded ahead of time, off the main thread. Each province map already has the province's outline cut into it.
+    var rasters = [];
+    if (opts.present && geo.maps) ["prov", "town"].forEach(function (kind) {
+      Object.keys(geo.maps.images).forEach(function (n) {
+        var m = geo.maps.images[n];
+        if (n.indexOf(kind + "-") !== 0 || /-dark\./.test(n) || (kind === "town" && !(m.in_hazard > 0))) return;
+        var p0 = pp([m.bounds[0], m.bounds[3]]), p1 = pp([m.bounds[2], m.bounds[1]]);
+        rasters.push({ cls: kind === "prov" ? "m-hazp" : "m-town", src: BASE + "data/maps/" + themed(n), prov: m.province, box: [p0[0], p0[1], p1[0] - p0[0], p1[1] - p0[1]] });
+      });
+    });
     // Lines across the ocean
     // One line per province, all leaving the Bay at the Golden Gate, as thick as the number of people tied to it.
     var gate = bp([-122.478, 37.815]);
@@ -187,8 +237,10 @@
     if (d.bay.outside) s += '<text class="m-small" x="' + bayPt.outside[0].toFixed(1) + '" y="' + (bayPt.outside[1] + (L.vertical ? 40 : 46)).toFixed(1) + '" text-anchor="middle">' + W.outside + '</text>';
     s += "</svg>";
     host.innerHTML = s;
-    host.firstChild.__proj = pp; host.firstChild.__L = L;
-    return host.firstChild;
+    var svg = host.firstChild;
+    svg.__proj = pp; svg.__L = L;
+    if (opts.present) rasterLayer(host, svg, rasters, pp);
+    return svg;
   }
 
   /* ---------- words ---------- */
@@ -340,13 +392,20 @@
     if (w / h > W / H) h = w * H / W; else w = h * W / H;   // keep the screen's shape so nothing stretches
     return [cx - w / 2, cy - h / 2, w, h];
   }
-  function setVB(svg, v) { vb = v; svg.setAttribute("viewBox", v.map(function (x) { return x.toFixed(3); }).join(" ")); }
+  function setVB(svg, v) {
+    vb = v; var a = v.map(function (x) { return x.toFixed(3); }).join(" ");
+    svg.setAttribute("viewBox", a);
+    if (svg.__top) svg.__top.setAttribute("viewBox", a);
+    placeRasters(svg);
+  }
   function zoomTo(svg, target, done) {
     if (zoomAnim) cancelAnimationFrame(zoomAnim);
     var from = vb || [0, 0, svg.__L.W, svg.__L.H];
     if (reduced || from.join() === target.join()) { setVB(svg, target); if (done) done(); return; }
     // zoom out a little on long moves, like a flight, and spend longer on big changes of scale
     var ratio = Math.abs(Math.log(target[2] / from[2])), ms = Math.min(2600, 1100 + ratio * 380), t0 = performance.now();
+    // While the camera flies, the people, lines and labels stay hidden and fade in on arrival: fewer things to redraw each frame.
+    if (pres) pres.classList.add("is-flying");
     function frame(now) {
       var t = Math.min(1, (now - t0) / ms), e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       // interpolate size in log space so the zoom feels even
@@ -354,7 +413,7 @@
       var cx = from[0] + from[2] / 2 + ((target[0] + target[2] / 2) - (from[0] + from[2] / 2)) * e;
       var cy = from[1] + from[3] / 2 + ((target[1] + target[3] / 2) - (from[1] + from[3] / 2)) * e;
       setVB(svg, [cx - w / 2, cy - h / 2, w, h]);
-      if (t < 1) zoomAnim = requestAnimationFrame(frame); else { zoomAnim = null; setVB(svg, target); if (done) done(); }
+      if (t < 1) zoomAnim = requestAnimationFrame(frame); else { zoomAnim = null; setVB(svg, target); if (pres) pres.classList.remove("is-flying"); if (done) done(); }
     }
     zoomAnim = requestAnimationFrame(frame);
   }
@@ -373,34 +432,52 @@
   function loadImgs(svg, st) {
     if (!st || !st.zoom) return;
     var want = st.zoom.kind === "prov" ? st.zoom.provs : st.zoom.kind === "town" ? [st.zoom.prov] : [];
-    svg.querySelectorAll(st.zoom.kind === "town" ? ".m-town, .m-hazp" : ".m-hazp").forEach(function (im) {
-      if (want.indexOf(im.getAttribute("data-prov")) > -1 && !im.getAttribute("href")) im.setAttribute("href", im.getAttribute("data-href"));
+    if (!svg.__ras) return;
+    svg.__ras.querySelectorAll(st.zoom.kind === "town" ? ".m-town, .m-hazp" : ".m-hazp").forEach(function (im) {
+      if (want.indexOf(im.getAttribute("data-prov")) > -1 && !im.getAttribute("src")) {
+        im.setAttribute("src", im.getAttribute("data-src"));
+        if (im.decode) im.decode().catch(function () {});   // decode now, off the main thread, not when it first fades in
+        placeRasters(svg);
+      }
     });
   }
   function show(i) {
     stepIndex = Math.max(0, Math.min(steps.length - 1, i));
     var st = steps[stepIndex], svg = pres.querySelector("svg"), z = st.zoom || FULL;
-    ["bay", "arcs", "ph", "water", "glow"].forEach(function (k) { svg.classList.toggle("show-" + k, st.show.indexOf(k) > -1); });
-    svg.classList.toggle("has-focus", !!(st.focus && st.focus.length));
-    svg.classList.toggle("is-zoomed", z.kind !== "full");
-    svg.classList.toggle("is-town", z.kind === "town");
+    [svg, pres].forEach(function (el) {   // on the host too, so the image and outline layers follow
+      ["bay", "arcs", "ph", "water", "glow"].forEach(function (k) { el.classList.toggle("show-" + k, st.show.indexOf(k) > -1); });
+      el.classList.toggle("has-focus", !!(st.focus && st.focus.length));
+      el.classList.toggle("is-zoomed", z.kind !== "full");
+      el.classList.toggle("is-town", z.kind === "town");
+    });
+    pres.querySelectorAll(".m-edge").forEach(function (p) { p.classList.toggle("is-focus", !!(st.focus && st.focus.indexOf(p.getAttribute("data-name")) > -1)); });
     svg.querySelectorAll(".m-prov").forEach(function (p) { p.classList.toggle("is-focus", !!(st.focus && st.focus.indexOf(p.getAttribute("data-name")) > -1)); });
     svg.querySelectorAll(".m-arc").forEach(function (p) { p.classList.toggle("is-focus", !!(st.focus && st.focus.indexOf(p.getAttribute("data-to")) > -1)); });
     svg.querySelectorAll(".m-people--ph").forEach(function (p) { p.classList.toggle("is-focus", !!(st.focus && st.focus.indexOf(p.getAttribute("data-name")) > -1)); });
     loadImgs(svg, st); loadImgs(svg, steps[stepIndex + 1]);   // fetch this step's maps and the next one's
     var provs = z.kind === "prov" ? z.provs : z.kind === "town" ? [z.prov] : [];
-    svg.querySelectorAll(".m-hazp").forEach(function (im) { im.classList.toggle("is-on", provs.indexOf(im.getAttribute("data-prov")) > -1); });
-    svg.querySelectorAll(".m-town").forEach(function (im) { im.classList.toggle("is-on", z.kind === "town" && im.getAttribute("data-prov") === z.prov); });
+    pres.querySelectorAll(".m-hazp").forEach(function (im) { im.classList.toggle("is-on", provs.indexOf(im.getAttribute("data-prov")) > -1); });
+    pres.querySelectorAll(".m-town").forEach(function (im) { im.classList.toggle("is-on", z.kind === "town" && im.getAttribute("data-prov") === z.prov); });
     $("present-place").hidden = true;
     zoomTo(svg, boxFor(z, svg), function () { paintPlace(st, svg); });
-    var lg = $("present-legend"); lg.hidden = !st.legend; if (st.legend) lg.innerHTML = hazardKey(st.legend === "town");
-    var ph = $("present-photo");
-    if (st.photo) { ph.querySelector("img").src = BASE + st.photo.src; ph.querySelector("img").alt = st.photo.alt; ph.querySelector("figcaption").textContent = st.photo.alt + " " + st.photo.credit + "."; ph.hidden = false; }
-    else ph.hidden = true;
-    ph.parentNode.classList.toggle("has-photo", !!st.photo);
-    $("present-caption").textContent = st.caption;
-    $("present-caption").classList.toggle("is-story", !!st.story);
-    $("present-step").textContent = st.sub;
+    // The words fade out, change, and fade back in (they just change under reduced motion).
+    var txt = $("present-photo").parentNode;
+    function fill() {
+      var lg = $("present-legend"); lg.hidden = !st.legend; if (st.legend) lg.innerHTML = hazardKey(st.legend === "town");
+      var ph = $("present-photo"), img = ph.querySelector("img");
+      if (st.photo) { if (img.getAttribute("src") !== BASE + st.photo.src) img.src = BASE + st.photo.src; img.alt = st.photo.alt; ph.querySelector("figcaption").textContent = st.photo.alt + " " + st.photo.credit + "."; ph.hidden = false; }
+      else ph.hidden = true;
+      txt.classList.toggle("has-photo", !!st.photo);
+      $("present-caption").textContent = st.caption;
+      $("present-caption").classList.toggle("is-story", !!st.story);
+      $("present-step").textContent = st.sub;
+    }
+    clearTimeout(txt.__t);
+    if (reduced || !txt.__shown) { fill(); txt.__shown = true; txt.classList.remove("is-fading"); }
+    else { txt.classList.add("is-fading"); txt.__t = setTimeout(function () { fill(); txt.classList.remove("is-fading"); }, 260); }
+    // Fetch and decode the next step's photo now, so it is ready when its words fade in.
+    var nx = steps[stepIndex + 1];
+    if (nx && nx.photo) { var pre = new Image(); pre.src = BASE + nx.photo.src; if (pre.decode) pre.decode().catch(function () {}); }
     $("present-prev").disabled = stepIndex === 0;
     $("present-next").textContent = stepIndex === steps.length - 1 ? "Done" : "Next";
     document.documentElement.classList.toggle("is-title", stepIndex === 0);
@@ -413,7 +490,7 @@
     $("present-sample").hidden = !data.sample;
     $("present-next").addEventListener("click", function () { if (stepIndex === steps.length - 1) { location.href = "./"; return; } show(stepIndex + 1); });
     $("present-prev").addEventListener("click", function () { show(stepIndex - 1); });
-    window.addEventListener("resize", function () { var st = steps[stepIndex]; if (st) paintPlace(st, pres.querySelector("svg")); });
+    window.addEventListener("resize", function () { var svg = pres.querySelector("svg"), st = steps[stepIndex]; fitLayers(svg); if (st) paintPlace(st, svg); });
     document.addEventListener("keydown", function (e) {
       if (e.target.closest && e.target.closest("button, a") && (e.key === " " || e.key === "Enter")) return;
       if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); show(stepIndex + 1); }

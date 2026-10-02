@@ -96,7 +96,11 @@ html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
 .ev-present .show-arcs .m-arc { stroke-dashoffset: 0; }
 .ev-present .show-ph .m-people--ph { opacity: 1; transition-delay: 1.8s; }
 /* In the reveal the flood map fades in on its step; province maps and town closeups fade in when the camera arrives */
-.ev-present .m-haz, .ev-present .m-hazp, .ev-present .m-town { opacity: 0; transition: opacity 1.6s ease-in; }
+.ev-present .m-haz { opacity: 0; visibility: hidden; transition: opacity 1.2s ease-in, visibility 0s linear 1.2s; }
+.ev-present .show-water:not(.is-zoomed) .m-haz { visibility: visible; transition: opacity 1.6s ease-in, visibility 0s; }
+/* Province and town images fade out quickly and then drop out of drawing altogether, so the camera isn't dragging huge hidden images along */
+.ev-present .m-hazp, .ev-present .m-town { opacity: 0; visibility: hidden; transition: opacity 0.5s ease-out, visibility 0s linear 0.5s; }
+.ev-present .show-water .m-hazp.is-on, .ev-present .m-town.is-on { visibility: visible; transition: opacity 1.6s ease-in, visibility 0s; }
 .ev-present .show-water .m-haz { opacity: 1; }
 .ev-present .is-zoomed .m-haz { opacity: 0; }
 .ev-present__text.has-photo .ev-present__caption { font-size: clamp(1.4rem, 2.3vw, 2.4rem); }
@@ -154,3 +158,16 @@ html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
 .ev-why__lead { font-size: var(--f3); }
 .ev-why__fields { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 12px; }
 .ev-why__fields li { border-left: 4px solid var(--rule-strong); padding: 4px 0 4px 14px; }
+
+/* Presentation layers: province and town images in HTML over the map SVG, outlines on top (see rasterLayer in event.js) */
+.ev-present__map { position: relative; }
+.m-raster { position: absolute; overflow: hidden; pointer-events: none; contain: strict; }
+.m-raster img { position: absolute; display: block; max-width: none; max-height: none; user-select: none; }
+.ev-present__map .m-top { position: absolute; pointer-events: none; max-height: none; overflow: hidden; }
+.m-edge { fill: none; stroke: none; vector-effect: non-scaling-stroke; }
+.ev-present .is-zoomed:not(.is-town) .m-edge.is-focus { stroke: var(--focus-edge); stroke-width: 2.5; }
+.ev-present .is-flying .m-top .m-people, .ev-present .is-flying .m-top .m-arcs, .ev-present .is-flying .m-top text { opacity: 0 !important; transition: opacity 0.25s; }
+/* Presentation words: fade out, change, fade in */
+.ev-present__text { transition: opacity 0.45s ease-out; }
+.ev-present__text.is-fading { opacity: 0; transition: opacity 0.24s ease-in; }
+@media (prefers-reduced-motion: reduce) { .ev-present__text, .ev-present__text.is-fading { transition: none; } }

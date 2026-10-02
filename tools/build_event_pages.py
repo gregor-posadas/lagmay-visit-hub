@@ -15,15 +15,18 @@ ICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0
 MARK = ('<svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="15" fill="#385F96"/>'
         '<path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>')
 NAV = {
-    "en": [("event", "", "Event"), ("history", "history/", "Flood history"), ("faq", "faq/", "Questions"),
-           ("access", "accessibility/", "Accessibility"), ("fil", "fil/", "Filipino")],
-    "fil": [("event", "fil/", "Ang pagtitipon"), ("history", "history/", "Kasaysayan ng baha"), ("faq", "faq/", "Mga tanong"),
-            ("access", "accessibility/", "Accessibility"), ("en", "", "English")],
+    "en": [("event", "", "Event"), ("about", "about/", "About"), ("history", "history/", "Flood history"), ("faq", "faq/", "Questions"),
+           ("support", "support/", "Support us"), ("access", "accessibility/", "Accessibility"), ("fil", None, "Filipino")],
+    "fil": [("event", "fil/", "Ang pagtitipon"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan ng baha"), ("faq", "faq/", "Mga tanong"),
+            ("support", "support/", "Suportahan"), ("access", "accessibility/", "Accessibility"), ("en", None, "English")],
 }
+# The language link goes to the same page in the other language where there is one, else to the other language's event page.
+OTHER = {"": "fil/", "about/": "fil/about/", "fil/": "", "fil/about/": "about/"}
+SITE = "https://gregor-posadas.github.io/lagmay-visit-hub/event/"
 WORDS = {
-    "en": dict(skip="Skip to content", sub="Flooding in the Philippines, a public conversation", sound="Sound on", theme="Dark mode",
+    "en": dict(skip="Skip to content", sub="Flooding in the Philippines, a public conversation", sound="Sound on", theme="Dark mode", share="Share",
                foot='Organized by graduate students at UC Berkeley, with friends at Stanford. Questions: see <a href="{R}faq/">Questions</a>, ask any of us on the night, or reply to your RSVP email.'),
-    "fil": dict(skip="Lumaktaw sa nilalaman", sub="Pagbaha sa Pilipinas, isang pampublikong talakayan", sound="May tunog", theme="Madilim",
+    "fil": dict(skip="Lumaktaw sa nilalaman", sub="Pagbaha sa Pilipinas, isang pampublikong talakayan", sound="May tunog", theme="Madilim", share="Ibahagi",
                 foot='Inorganisa ng mga gradwadong estudyante sa UC Berkeley, kasama ang mga kaibigan sa Stanford. May tanong? Tingnan ang <a href="{R}faq/">Mga tanong</a>, lapitan kami sa mismong araw, o sumagot sa email ng iyong RSVP.'),
 }
 
@@ -40,7 +43,9 @@ def build(src):
     lang = meta.get("lang", "en")
     w = WORDS[lang]
     links = []
+    here = meta["out"][: -len("index.html")]
     for key, href, label in NAV[lang]:
+        if href is None: href = OTHER.get(here, "fil/" if lang == "en" else "")
         cur = ' aria-current="page"' if key == meta.get("nav") else ""
         lng = ' lang="fil" hreflang="fil"' if key == "fil" else (' lang="en" hreflang="en"' if key == "en" else "")
         links.append(f'      <a href="{(R + href) or "./"}"{cur}{lng}>{label}</a>')
@@ -59,6 +64,15 @@ def build(src):
 <link rel="preload" href="{A}fonts/AtkinsonHyperlegibleNext-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{A}fonts/AtkinsonHyperlegibleNext-Bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="{ICON}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="When the Waters Rise">
+<meta property="og:title" content="{html.escape(meta["title"])}">
+<meta property="og:description" content="{html.escape(meta.get("desc", ""))}">
+<meta property="og:url" content="{SITE + here}">
+<meta property="og:image" content="{SITE}img/share/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" hreflang="en" href="https://gregor-posadas.github.io/lagmay-visit-hub/event/">
 <link rel="alternate" hreflang="fil" href="https://gregor-posadas.github.io/lagmay-visit-hub/event/fil/">
 <link rel="stylesheet" href="{A}assets/styles.css?v=0">
@@ -81,6 +95,7 @@ def build(src):
     <div class="band__tools">
       <button type="button" class="tool" id="sound-toggle" aria-pressed="true"><span class="tool__state">{w["sound"]}</span></button>
       <button type="button" class="tool theme-toggle" id="theme-toggle">{w["theme"]}</button>
+      <button type="button" class="tool" id="share-btn" aria-haspopup="dialog" data-url="{SITE + here}" data-title="{html.escape(meta["title"])}" data-card="{R}img/share/{meta.get("card", "event-fil" if lang == "fil" else "event-en")}.jpg">{w["share"]}</button>
     </div>
   </div>
 </header>

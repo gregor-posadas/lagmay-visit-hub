@@ -125,5 +125,63 @@
     if (!a.querySelector(".sr")) a.setAttribute("aria-describedby", ((a.getAttribute("aria-describedby") || "") + " ext-note").trim());
   });
 
+
+  /* ---------- share (same as gregor-posadas.github.io, plus LinkedIn, Facebook and WhatsApp) ----------
+     Share to story: a 1080 x 1920 card through the phone's share sheet (Instagram Stories is a target), or a download
+     where the browser cannot share files. The link is copied too, for Instagram's Link sticker. */
+  (function () {
+    var btn = $("share-btn"); if (!btn) return;
+    var T = FIL ? { h: "Ibahagi ang pagtitipon", story: "Ibahagi sa Instagram story", dl: "I-download ang story image", link: "Iba pang app", copy: "Kopyahin ang link", copied: "Nakopya ang link.", nocopy: "Hindi makopya. Piliin at kopyahin ang link sa itaas.", close: "Isara", alt: "Story card ng pagtitipon", urlLabel: "Link ng pahinang ito", on: "Ibahagi sa", note: "Kinokopya rin ng Ibahagi sa story ang link, kaya sa Instagram ay maaari kang magdagdag ng Link sticker at i-paste ito.", noteDesk: "Para sa Instagram Stories: i-download ang larawan, i-post ito mula sa iyong telepono, at magdagdag ng Link sticker na may link sa itaas.", toast: "Nakopya ang link. Idagdag ito gamit ang Link sticker sa Instagram.", newtab: " (magbubukas sa bagong tab)", msg: "Libreng talakayan tungkol sa baha sa Pilipinas, kasama si Dr. Mahar Lagmay, Nob 9 sa UC Berkeley:" }
+                : { h: "Share the event", story: "Share to Instagram story", dl: "Download story image", link: "Other apps", copy: "Copy link", copied: "Link copied.", nocopy: "Could not copy. Select and copy the link above.", close: "Close", alt: "Story card for the event", urlLabel: "Link to this page", on: "Share on", note: "Share to story also copies the link, so in Instagram you can add a Link sticker and paste it.", noteDesk: "For Instagram Stories: download the image, post it from your phone, and add a Link sticker with the link above.", toast: "Link copied. Add it with a Link sticker in Instagram.", newtab: " (opens in a new tab)", msg: "A free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Nov 9 at UC Berkeley:" };
+    var url = btn.getAttribute("data-url"), card = btn.getAttribute("data-card"), title = btn.getAttribute("data-title"), file = null;
+    var nets = [
+      ["LinkedIn", "https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(url)],
+      ["Facebook", "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url)],
+      ["WhatsApp", "https://wa.me/?text=" + encodeURIComponent(T.msg + " " + url)]
+    ];
+    function load() {
+      if (file || !window.fetch || typeof File === "undefined") return;
+      fetch(card).then(function (r) { return r.blob(); }).then(function (b) { file = new File([b], card.split("/").pop(), { type: "image/jpeg" }); }).catch(function () {});
+    }
+    function canShareFile() { return !!(file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })); }
+    if (window.matchMedia("(pointer: coarse)").matches) { if ("requestIdleCallback" in window) requestIdleCallback(load, { timeout: 4000 }); else setTimeout(load, 2500); }
+    btn.addEventListener("pointerenter", load); btn.addEventListener("focus", load);
+    function copy() { try { if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(url); } catch (e) {} return Promise.reject(); }
+    function toast(msg) { var t = $("toast"); if (!t) return; t.textContent = msg; t.classList.add("is-on"); clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove("is-on"); }, 6000); }
+    var dlg = null, status = null;
+    function build() {
+      dlg = document.createElement("dialog"); dlg.className = "sh"; dlg.setAttribute("aria-labelledby", "sh-h");
+      dlg.innerHTML = '<h2 id="sh-h">' + T.h + '</h2><div class="sh__body"><img class="sh__img" alt="' + T.alt + '" width="216" height="384">' +
+        '<div><label class="sh__label" for="sh-url">' + T.urlLabel + '</label><input class="sh__url" id="sh-url" type="text" readonly value="' + url + '">' +
+        '<div class="actions sh__actions"><button type="button" class="btn btn--solid sh__story">' + T.story + '</button><a class="btn btn--solid sh__dl" download>' + T.dl + '</a>' +
+        '<button type="button" class="btn sh__copy">' + T.copy + '</button></div>' +
+        '<p class="sh__label sh__on">' + T.on + '</p><div class="actions sh__nets">' + nets.map(function (n) {
+          return '<a class="btn" href="' + n[1] + '" target="_blank" rel="noopener">' + n[0] + '<span class="sr">' + T.newtab + '</span></a>';
+        }).join("") + '<button type="button" class="btn sh__link">' + T.link + '</button></div>' +
+        '<p class="sh__status" aria-live="polite"></p><p class="sh__note"></p><div class="actions sh__end"><button type="button" class="btn btn--quiet sh__close">' + T.close + '</button></div></div></div>';
+      document.body.appendChild(dlg);
+      status = dlg.querySelector(".sh__status");
+      dlg.querySelector(".sh__close").addEventListener("click", function () { dlg.close(); });
+      dlg.querySelector(".sh__url").addEventListener("focus", function (e) { e.target.select(); });
+      dlg.querySelector(".sh__copy").addEventListener("click", function () { copy().then(function () { status.textContent = T.copied; }, function () { status.textContent = T.nocopy; dlg.querySelector(".sh__url").select(); }); });
+      dlg.querySelector(".sh__link").addEventListener("click", function () { navigator.share({ title: title, text: T.msg, url: url }).catch(function () {}); });
+      dlg.querySelector(".sh__story").addEventListener("click", function () { copy().then(function () { toast(T.toast); }, function () {}); navigator.share({ files: [file], title: title }).catch(function () {}); });
+      dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
+      dlg.addEventListener("close", function () { btn.focus(); });
+    }
+    btn.addEventListener("click", function () {
+      if (!dlg) build();
+      load();
+      var fileOK = canShareFile();
+      dlg.querySelector(".sh__img").src = card; dlg.querySelector(".sh__dl").href = card;
+      dlg.querySelector(".sh__story").hidden = !fileOK; dlg.querySelector(".sh__dl").hidden = fileOK;   // show only what this device can do
+      dlg.querySelector(".sh__link").hidden = !navigator.share;
+      dlg.querySelector(".sh__note").textContent = fileOK ? T.note : T.noteDesk;
+      status.textContent = "";
+      if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+      (fileOK ? dlg.querySelector(".sh__story") : dlg.querySelector(".sh__copy")).focus();
+    });
+  })();
+
   window.EV_SITE = { theme: theme, tick: tick, tipsInit: tipsInit };
 })();

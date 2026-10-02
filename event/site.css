@@ -118,3 +118,35 @@
   .gl-figs .gl-fig.gl-wide { grid-column: 1 / -1; }
   .gl-sticky { position: sticky; top: 16px; }
 }
+
+/* Support page: what is covered, applied for and still needed. Each status has a shape and a word, not just a colour. */
+.sp-need { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 12px; max-width: var(--read); }
+.sp-need__item { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; border: 2px solid var(--rule-strong); padding: 14px 16px; background: var(--surface, var(--paper)); }
+.sp-need__item b { display: block; }
+.sp-need__what { display: block; margin-top: 2px; }
+.sp-mark { width: 22px; height: 22px; margin-top: 2px; display: inline-block; box-sizing: border-box; }
+.is-open .sp-mark { border: 4px solid #CF5921; border-radius: 50%; }                                  /* ring: still needed */
+.is-pending .sp-mark { border: 3px solid var(--ink); border-radius: 50%; background: linear-gradient(90deg, var(--ink) 50%, transparent 50%); }  /* half: applied for */
+.is-done .sp-mark { background: #385F96; border: 3px solid var(--ink); }                             /* filled square: covered */
+.sp-ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 16px; }
+.sp-way { border: 2px solid var(--rule-strong); padding: 18px; box-shadow: 4px 4px 0 0 var(--rule-strong); background: var(--surface, var(--paper)); }
+.sp-way h3 { font-size: var(--f3); margin: 0 0 8px; }
+.sp-way p + p { margin-top: 10px; }
+.sp-way__get { color: var(--ink-2); }
+
+/* Share dialog (as on gregor-posadas.github.io) */
+.sh { border: 2px solid var(--rule-strong); background: var(--surface); color: var(--ink); padding: 24px; width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 32px); box-shadow: 8px 8px 0 0 var(--rule-strong); }
+.sh::backdrop { background: rgba(0, 0, 0, 0.6); }
+.sh h2 { font-size: var(--f3); margin: 0 0 14px; }
+.sh__body { display: grid; grid-template-columns: 216px 1fr; gap: 20px; align-items: start; }
+.sh__img { display: block; width: 216px; height: auto; border: 2px solid var(--rule-strong); }
+.sh__label { display: block; font-size: var(--f1); font-weight: 700; margin: 0 0 6px; }
+.sh__on { margin-top: 18px; }
+.sh__url { width: 100%; min-height: var(--tap); padding: 0 12px; border: 2px solid var(--rule-strong); background: var(--paper); color: var(--ink); font: inherit; font-size: var(--f1); box-sizing: border-box; }
+.sh__actions { margin-top: 14px; }
+.sh__actions [hidden], .sh__nets [hidden] { display: none; }
+.sh__status { margin-top: 10px; font-size: var(--f1); color: var(--ink-2); min-height: 1.5em; overflow-wrap: anywhere; }
+.sh__note { margin-top: 6px; font-size: var(--f1); color: var(--ink-2); }
+.sh__end { margin-top: 10px; }
+@media (max-width: 599px) { .sh__body { grid-template-columns: 1fr; } .sh__img { width: 120px; } .sh__actions .btn { flex: 1 1 100%; justify-content: center; } }
+@media print { .sh, #share-btn { display: none !important; } }

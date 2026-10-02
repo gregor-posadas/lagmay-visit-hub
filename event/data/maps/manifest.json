@@ -24,7 +24,7 @@
    ],
    "note": "2x2 max-pooled: a cell is blue if any of its four ~470 m samples is in a hazard zone"
   },
-  "prov-metro-manila.png": {
+  "prov-metro-manila.webp": {
    "bounds": [
     120.906395,
     14.35173,
@@ -33,7 +33,7 @@
    ],
    "province": "Metro Manila"
   },
-  "prov-rizal.png": {
+  "prov-rizal.webp": {
    "bounds": [
     121.095891,
     14.278244,
@@ -42,7 +42,7 @@
    ],
    "province": "Rizal"
   },
-  "prov-misamis-oriental.png": {
+  "prov-misamis-oriental.webp": {
    "bounds": [
     124.246434,
     8.160146,
@@ -51,7 +51,7 @@
    ],
    "province": "Misamis Oriental"
   },
-  "prov-lanao-del-norte.png": {
+  "prov-lanao-del-norte.webp": {
    "bounds": [
     123.621689,
     7.696532,
@@ -60,7 +60,7 @@
    ],
    "province": "Lanao del Norte"
   },
-  "prov-leyte.png": {
+  "prov-leyte.webp": {
    "bounds": [
     124.285675,
     10.185136,
@@ -69,7 +69,7 @@
    ],
    "province": "Leyte"
   },
-  "prov-samar.png": {
+  "prov-samar.webp": {
    "bounds": [
     124.145165,
     11.085856,
@@ -78,7 +78,7 @@
    ],
    "province": "Samar"
   },
-  "prov-eastern-samar.png": {
+  "prov-eastern-samar.webp": {
    "bounds": [
     125.125405,
     10.687791,
@@ -87,7 +87,7 @@
    ],
    "province": "Eastern Samar"
   },
-  "prov-cagayan.png": {
+  "prov-cagayan.webp": {
    "bounds": [
     120.958673,
     17.499331,
@@ -96,7 +96,7 @@
    ],
    "province": "Cagayan"
   },
-  "prov-camarines-sur.png": {
+  "prov-camarines-sur.webp": {
    "bounds": [
     122.55091,
     13.258541,
@@ -105,7 +105,7 @@
    ],
    "province": "Camarines Sur"
   },
-  "prov-albay.png": {
+  "prov-albay.webp": {
    "bounds": [
     123.280548,
     12.986185,
@@ -114,7 +114,7 @@
    ],
    "province": "Albay"
   },
-  "prov-camarines-norte.png": {
+  "prov-camarines-norte.webp": {
    "bounds": [
     122.298648,
     13.837582,
@@ -123,7 +123,7 @@
    ],
    "province": "Camarines Norte"
   },
-  "prov-catanduanes.png": {
+  "prov-catanduanes.webp": {
    "bounds": [
     124.012611,
     13.516628,
@@ -132,7 +132,7 @@
    ],
    "province": "Catanduanes"
   },
-  "prov-sorsogon.png": {
+  "prov-sorsogon.webp": {
    "bounds": [
     123.482159,
     12.523465,
@@ -141,7 +141,7 @@
    ],
    "province": "Sorsogon"
   },
-  "prov-masbate.png": {
+  "prov-masbate.webp": {
    "bounds": [
     122.800096,
     11.72048,
@@ -150,7 +150,7 @@
    ],
    "province": "Masbate"
   },
-  "prov-cebu.png": {
+  "prov-cebu.webp": {
    "bounds": [
     123.296368,
     9.412867,
