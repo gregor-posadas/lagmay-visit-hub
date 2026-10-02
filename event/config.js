@@ -6,6 +6,10 @@ window.EV_CONFIG = {
   apiUrl: "https://script.google.com/macros/s/AKfycbwzr5dKY7SYF8xUqL_0JkgbBGhuGas3v0OHo-DEoB9bmjSg3s6SylZh_UWmd6S7EdSZ/exec",
   rsvpUrl: "https://docs.google.com/forms/d/e/1FAIpQLSep5CC-7wR6JnsLgJwK2Sqd3Uy3FxqaIgfCPndmfU0bHdDDew/viewform",
   timeText: "Afternoon, time to be announced",
+  // Add to calendar: once the time slot is set, fill these in (Pacific time, 24-hour) and the calendar event gets the exact time.
+  // Until then it is an all-day event on Nov 9 that says the time is to be announced.
+  startTime: "",   // for example "15:00"
+  endTime: "",     // for example "17:00"
   timeTextFil: "Hapon, iaanunsyo pa ang oras",
   refreshSeconds: 60,
   // Supporters shown on the page once they've said yes. Set torres to true when Senator Torres's office agrees to be listed.

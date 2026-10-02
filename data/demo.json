@@ -584,9 +584,9 @@
    "id": "mt2",
    "title": "Call with a foundation about the flight",
    "start": "2026-10-02T15:00:00-07:00",
-   "end": "2026-10-02T15:30:00-07:00",
-   "where": "Phone",
-   "link": "",
+   "end": "2026-10-02T16:00:00-07:00",
+   "where": "Google Meet",
+   "link": "https://meet.google.com/abc-defg-hij",
    "docUrl": "",
    "attendees": "Gregor and Noam",
    "takeaway": "- Ask about the flight\n- Ask about catering"

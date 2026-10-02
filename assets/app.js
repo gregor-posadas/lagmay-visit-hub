@@ -1013,7 +1013,7 @@
   function meetingRow(m) {
     var s = new Date(m.start), past = new Date(m.end || m.start) < new Date();
     return '<li class="row' + (past ? " is-done" : "") + '"><a href="#/mt/' + esc(m.id) + '"><span class="row__main"><span class="row__title">' + esc(m.title || "Team meeting") + "</span>" +
-      '<span class="row__meta"><span>' + esc(fmtDay(s)) + "</span>" + (m.attendees ? "<span>With " + esc(m.attendees) + "</span>" : "") + (m.docUrl ? "<span>Doc ready</span>" : "") + "</span></span>" +
+      '<span class="row__meta"><span>' + esc(fmtDay(s)) + "</span>" + (m.attendees ? "<span>With " + esc(m.attendees) + "</span>" : "") + (m.link && !past ? "<span>" + esc(joinLabel(m.link).replace(/^(Join|Open) (on |the )?/, "")) + " link</span>" : "") + (m.docUrl ? "<span>Doc ready</span>" : "") + "</span></span>" +
       '<span class="row__due"><span class="row__day">' + esc(meetTime(m)) + '</span><span class="row__rel">' + esc(meetRel(m)) + "</span></span></a></li>";
   }
   function pastNotes() {
@@ -1454,7 +1454,7 @@
       '<div class="two">' + textField("mt-date", "date", "Date", s.date, { type: "date", required: true }) + textField("mt-attend", "attendees", "With", m.attendees, { placeholder: "For example: Chinky (PhilDev)" }) + "</div>" +
       '<div class="two">' + textField("mt-start", "startTime", "Starts", s.time, { type: "time" }) + textField("mt-end", "endTime", "Ends", e.time, { type: "time" }) + "</div>" +
       textField("mt-where", "where", "Where", m.where, { placeholder: "For example: Zoom, or 410 Davis Hall" }) +
-      textField("mt-link", "link", "Call link", m.link, { type: "url", placeholder: "https://" }) +
+      textField("mt-link", "link", "Google Meet or Zoom link", m.link, { type: "url", placeholder: "https://meet.google.com/abc-defg-hij", note: "Copy it from the calendar invite. The hub then shows a Join button on Team, Meetings and the meeting's page." }) +
       textField("mt-doc", "docUrl", "Agenda or notes doc", m.docUrl, { type: "url", placeholder: "https://docs.google.com/..." }) +
       areaField("mt-take", "takeaway", "Agenda, or the key takeaway afterwards", m.takeaway, "One or two sentences, or a short list."),
       footBtns(editing, "Add meeting", "delete-meeting", m.id, "Delete meeting"));
@@ -1652,7 +1652,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261002110159";
+  var BUILD = "20261002110511";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp

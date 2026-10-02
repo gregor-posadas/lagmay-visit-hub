@@ -509,6 +509,36 @@
   }
   var tt = FIL ? cfg.timeTextFil : cfg.timeText; if (tt && $("ev-time")) $("ev-time").textContent = tt;
 
+  /* ---------- add to calendar: Google, Outlook.com, or an .ics file for Apple Calendar, Outlook and the rest ---------- */
+  (function () {
+    var box = $("cal-menu"); if (!box) return;
+    var timed = /^\d\d:\d\d$/.test(cfg.startTime || "") && /^\d\d:\d\d$/.test(cfg.endTime || "");
+    // Nov 9, 2026 is in standard time in California (UTC-8).
+    function utc(hm) { var h = +hm.slice(0, 2) + 8, m = hm.slice(3, 5); return "20261109T" + (h < 10 ? "0" : "") + h + m + "00Z"; }
+    var url = "https://gregor-posadas.github.io/lagmay-visit-hub/event/" + (FIL ? "fil/" : "");
+    var title = "When the Waters Rise: Dr. Mahar Lagmay at UC Berkeley";
+    var where = "Banatao Auditorium, Sutardja Dai Hall, UC Berkeley, Berkeley, CA";
+    var about = (FIL ? "Libreng pampublikong talakayan tungkol sa baha sa Pilipinas, kasama sina Dr. Mahar Lagmay, Dr. Lisandro Claudio at Dr. Diana Martinez." + (timed ? "" : " Hapon; iaanunsyo pa ang eksaktong oras.")
+                     : "A free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Dr. Lisandro Claudio and Dr. Diana Martinez." + (timed ? "" : " Afternoon; exact time to be announced.")) + "\n\n" + url;
+    var dates = timed ? utc(cfg.startTime) + "/" + utc(cfg.endTime) : "20261109/20261110";
+    var google = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title) + "&dates=" + dates + "&details=" + encodeURIComponent(about) + "&location=" + encodeURIComponent(where);
+    var outlook = "https://outlook.live.com/calendar/0/action/compose?subject=" + encodeURIComponent(title) + "&location=" + encodeURIComponent(where) + "&body=" + encodeURIComponent(about) +
+      (timed ? "&startdt=2026-11-09T" + cfg.startTime + ":00-08:00&enddt=2026-11-09T" + cfg.endTime + ":00-08:00" : "&startdt=2026-11-09&enddt=2026-11-10&allday=true");
+    function icsText(v) { return v.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/[,;]/g, function (c) { return "\\" + c; }); }
+    var now = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+    var ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//When the Waters Rise//EN", "CALSCALE:GREGORIAN", "BEGIN:VEVENT",
+      "UID:when-the-waters-rise-2026-11-09@gregor-posadas.github.io", "DTSTAMP:" + now,
+      timed ? "DTSTART:" + utc(cfg.startTime) : "DTSTART;VALUE=DATE:20261109", timed ? "DTEND:" + utc(cfg.endTime) : "DTEND;VALUE=DATE:20261110",
+      "SUMMARY:" + icsText(title), "LOCATION:" + icsText(where), "DESCRIPTION:" + icsText(about), "URL:" + url, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    var icsUrl = "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
+    var nt = FIL ? " (magbubukas sa bagong tab)" : " (opens in a new tab)";
+    box.innerHTML =
+      '<a class="btn" href="' + esc(google) + '" target="_blank" rel="noopener">Google Calendar<span class="sr">' + nt + '</span></a>' +
+      '<a class="btn" href="' + esc(outlook) + '" target="_blank" rel="noopener">Outlook.com<span class="sr">' + nt + '</span></a>' +
+      '<a class="btn" href="' + esc(icsUrl) + '" download="when-the-waters-rise.ics">' + (FIL ? "Apple, Outlook o iba pa (.ics)" : "Apple, Outlook or other (.ics)") + '</a>' +
+      (timed ? "" : '<p class="ev-cal__note">' + (FIL ? "Buong araw muna sa Nob 9 hangga't hindi pa naitatakda ang oras." : "Saved as all day on Nov 9 until the time is set.") + "</p>");
+  })();
+
   /* theme, sounds and term notes live in site.js, loaded first */
   function theme() { return window.EV_SITE ? window.EV_SITE.theme() : "light"; }
 
