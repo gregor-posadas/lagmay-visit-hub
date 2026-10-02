@@ -520,8 +520,8 @@
     // Nov 9, 2026 in California is UTC-8.
     var start = new Date("2026-11-09T" + (timed ? cfg.startTime : "00:00") + ":00-08:00"), end = new Date("2026-11-09T" + (timed ? cfg.endTime : "23:59") + ":00-08:00");
     var opened = new Date("2026-09-02T00:00:00-07:00");
-    var L = FIL ? { h: "Magsisimula sa", units: ["araw", "oras", "minuto", "segundo"], when: "Lunes, Nob 9, " + (timed ? "3 ng hapon" : "hapon"), now: "Nagaganap na ngayon", nowSub: "Banatao Auditorium, o panoorin ang livestream.", after: "Salamat sa pagdalo", afterSub: "Malapit nang ilabas ang recording.", cap: "Gaya ng panukat ng baha sa ilog, tumataas ang tubig araw-araw hanggang sa pagtitipon.", top: "Nob 9", bottom: "Set 2", today: "Ngayon" }
-            : { h: "Starts in", units: ["days", "hours", "minutes", "seconds"], when: "Monday, Nov 9, " + (timed ? "3 PM Pacific" : "afternoon"), now: "Happening now", nowSub: "Banatao Auditorium, or watch the livestream.", after: "Thank you for coming", afterSub: "The recording is coming soon.", cap: "Like a river gauge, the water rises every day until the event begins.", top: "Nov 9", bottom: "Sep 2", today: "Today" };
+    var L = FIL ? { h: "Magsisimula sa", units: ["araw", "oras", "minuto", "segundo"], when: "Lunes, Nob 9, " + (timed ? "4 ng hapon" : "hapon"), now: "Nagaganap na ngayon", nowSub: "Banatao Auditorium, o panoorin ang livestream.", after: "Salamat sa pagdalo", afterSub: "Malapit nang ilabas ang recording.", cap: "Gaya ng panukat ng baha sa ilog, tumataas ang tubig araw-araw hanggang sa pagtitipon.", top: "Nob 9", bottom: "Set 2", today: "Ngayon" }
+            : { h: "Starts in", units: ["days", "hours", "minutes", "seconds"], when: "Monday, Nov 9, " + (timed ? "4 PM Pacific" : "afternoon"), now: "Happening now", nowSub: "Banatao Auditorium, or watch the livestream.", after: "Thank you for coming", afterSub: "The recording is coming soon.", cap: "Like a river gauge, the water rises every day until the event begins.", top: "Nov 9", bottom: "Sep 2", today: "Today" };
     // Tick marks every week up the gauge
     var weeks = Math.floor((start - opened) / (7 * 864e5)), ticks = "";
     for (var w = 1; w <= weeks; w++) ticks += '<i style="bottom:' + (w * 7 * 864e5 / (start - opened) * 100).toFixed(2) + '%"></i>';
@@ -564,7 +564,8 @@
     var box = $("cal-menu"); if (!box) return;
     var timed = /^\d\d:\d\d$/.test(cfg.startTime || "") && /^\d\d:\d\d$/.test(cfg.endTime || "");
     // Nov 9, 2026 is in standard time in California (UTC-8).
-    function utc(hm) { var h = +hm.slice(0, 2) + 8, m = hm.slice(3, 5); return "20261109T" + (h < 10 ? "0" : "") + h + m + "00Z"; }
+    // Let Date do the conversion, so a start at 4 PM or later rolls over to Nov 10 in UTC.
+    function utc(hm) { return new Date("2026-11-09T" + hm + ":00-08:00").toISOString().replace(/[-:]/g, "").replace(/\.\d+/, ""); }
     var url = "https://gregor-posadas.github.io/lagmay-visit-hub/event/" + (FIL ? "fil/" : "");
     var title = "When the Waters Rise: Dr. Mahar Lagmay at UC Berkeley";
     var where = "Banatao Auditorium, Sutardja Dai Hall, UC Berkeley, Berkeley, CA";
