@@ -4,16 +4,19 @@
   --arc: #CF5921; --glow: #b58f00; --focus-edge: #800000;
   /* Flood depth: blues that get stronger with depth (darker on light paper, brighter on black); checked with tools/cvd_check.py */
   --hz1: #9EB8DB; --hz2: #5A7FB5; --hz3: #233F78;
+  --bld: #D8D0C0; --bld-edge: #2A2622; --road: #fff; --road-edge: #B9B09F;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --land: #262626; --land-home: #3b3b3b; --land-edge: #000;
   --arc: #e8743f; --glow: #E7B800; --focus-edge: #E7B800;
   --hz1: #2A4F86; --hz2: #4677B8; --hz3: #8DB2E3;
+  --bld: #3A3A3A; --bld-edge: #E6DFD2; --road: #707070; --road-edge: #141414;
 } }
 :root[data-theme="dark"] {
   --land: #262626; --land-home: #3b3b3b; --land-edge: #000;
   --arc: #e8743f; --glow: #E7B800; --focus-edge: #E7B800;
   --hz1: #2A4F86; --hz2: #4677B8; --hz3: #8DB2E3;
+  --bld: #3A3A3A; --bld-edge: #E6DFD2; --road: #707070; --road-edge: #141414;
 }
 
 /* Hero */
@@ -66,9 +69,9 @@
 .k-scale { display: flex; flex-wrap: wrap; gap: 6px 16px; flex-basis: 100%; }
 .sw { display: inline-block; width: 18px; height: 14px; border: 1px solid var(--ink-2); }
 .sw--hz1 { background: var(--hz1); } .sw--hz2 { background: var(--hz2); } .sw--hz3 { background: var(--hz3); }
-.sw--lhz1 { background: #9EB8DB; } .sw--lhz2 { background: #5A7FB5; } .sw--lhz3 { background: #233F78; }
-.sw--bld { background: #D8D0C0; border: 2px solid #2A2622; }
-.sw--road { background: #fff; border: 2px solid #B9B09F; height: 10px; }
+/* Buildings and streets as drawn in the town closeups (tools/flood_maps/render_closeups.py, light and THEME=dark) */
+.sw--bld { background: var(--bld); border: 2px solid var(--bld-edge); }
+.sw--road { background: var(--road); border: 2px solid var(--road-edge); height: 10px; }
 
 /* Presentation: one step at a time, on a dark screen */
 body.is-presenting > .band, body.is-presenting > main, body.is-presenting > .foot, body.is-presenting > .notice { display: none; }

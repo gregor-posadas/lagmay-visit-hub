@@ -47,7 +47,7 @@ def build(src):
     nav = "\n".join(links)
     nav = nav.replace(f'href="{R}"', f'href="{R or "./"}"')
     scripts = "".join(f'<script src="{R}{s.strip()}?v=0"></script>\n' for s in meta.get("scripts", "").split(",") if s.strip())
-    present = '<script>try { var t = localStorage.getItem("lv.theme"); if (t) document.documentElement.setAttribute("data-theme", t); if (/[?&#]present/.test(location.href)) document.documentElement.setAttribute("data-theme", /[?&#]dark/.test(location.href) ? "dark" : "light"); } catch (e) {}</script>'
+    present = '<script>try { var t = localStorage.getItem("lv.theme"); if (t) document.documentElement.setAttribute("data-theme", t); if (/[?&#]present/.test(location.href)) document.documentElement.setAttribute("data-theme", /[?&#]light/.test(location.href) ? "light" : "dark"); } catch (e) {}</script>'
     page = f"""<!doctype html>
 <html lang="{lang}">
 <head>

@@ -102,11 +102,26 @@
   }
   // UP NOAH flood hazard images (tools/flood_maps): placed on the map by their lon/lat bounds.
   function imgTag(cls, name, proj, attrs, lazy) {
-    var m = geo.maps && geo.maps.images[name]; if (!m) return "";
+    // A "-dark" image shares its light twin's bounds, so the manifest lists only the light name.
+    var m = geo.maps && (geo.maps.images[name] || geo.maps.images[name.replace(/-dark(\.\w+)$/, "$1")]); if (!m) return "";
     var bb = m.bounds, p0 = proj([bb[0], bb[3]]), p1 = proj([bb[2], bb[1]]);
     return '<image class="' + cls + '" ' + (lazy ? "data-href" : "href") + '="' + BASE + 'data/maps/' + name + '" x="' + p0[0].toFixed(2) + '" y="' + p0[1].toFixed(2) + '" width="' + (p1[0] - p0[0]).toFixed(2) + '" height="' + (p1[1] - p0[1]).toFixed(2) + '" preserveAspectRatio="none"' + (attrs || "") + "/>";
   }
   function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+  function themed(n) { return theme() === "dark" ? n.replace(/(\.\w+)$/, "-dark$1") : n; }
+  // Switch the province and town images to the other theme's set without redrawing the map.
+  function rethemeMaps() {
+    var dark = theme() === "dark";
+    Array.prototype.forEach.call(document.querySelectorAll("image.m-hazp, image.m-town"), function (im) {
+      ["href", "data-href"].forEach(function (a) {
+        var v = im.getAttribute(a); if (!v) return;
+        var light = v.replace(/-dark(\.\w+)(\?.*)?$/, "$1$2");
+        im.setAttribute(a, dark ? light.replace(/(\.\w+)(\?.*)?$/, "-dark$1$2") : light);
+      });
+    });
+  }
+  if ($("theme-toggle")) $("theme-toggle").addEventListener("click", function () { setTimeout(rethemeMaps, 0); });
+  try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () { setTimeout(rethemeMaps, 0); }); } catch (e) {}
   function townOf(p) { var m = geo.maps && geo.maps.images["town-" + slug(p) + ".webp"]; return m && m.in_hazard > 0 ? m : null; }
   function stormSet() { var s = {}; geo.storms.forEach(function (st) { st.provinces.forEach(function (p) { s[p] = true; }); }); return s; }
 
@@ -142,11 +157,11 @@
       // clip each province's sharper map to the province itself, so it doesn't show as a rectangle
       var f = geo.ph.features.filter(function (x) { return x.name === m.province; })[0];
       if (f) s += '<clipPath id="clip-' + slug(m.province) + '"><path d="' + pathOf(f, pp) + '"/></clipPath>';
-      s += imgTag("m-hazp", n, pp, ' data-prov="' + esc(m.province) + '"' + (f ? ' clip-path="url(#clip-' + slug(m.province) + ')"' : ""), true);
+      s += imgTag("m-hazp", themed(n), pp, ' data-prov="' + esc(m.province) + '"' + (f ? ' clip-path="url(#clip-' + slug(m.province) + ')"' : ""), true);
     });
     if (opts.present && geo.maps) Object.keys(geo.maps.images).forEach(function (n) {
       var m = geo.maps.images[n];
-      if (/^town-/.test(n) && m.in_hazard > 0) s += imgTag("m-town", n, pp, ' data-prov="' + esc(m.province) + '"', true);
+      if (/^town-/.test(n) && !/-dark\./.test(n) && m.in_hazard > 0) s += imgTag("m-town", themed(n), pp, ' data-prov="' + esc(m.province) + '"', true);
     });
     s += "</g>";
     // Lines across the ocean
@@ -209,8 +224,8 @@
   }
   // Legends: each swatch has a word, and the blues get stronger with depth (checked with tools/cvd_check.py).
   function hazardKey(town) {
-    // Town closeups are drawn in the light colours whatever the theme, so their legend uses those fixed swatches.
-    var p = town ? "sw--l" : "sw--", items = [[p + "hz1", W.hz1], [p + "hz2", W.hz2], [p + "hz3", W.hz3]];
+    // Town closeups are drawn in a light and a dark set that match the theme, so one set of swatches serves both.
+    var items = [["sw--hz1", W.hz1], ["sw--hz2", W.hz2], ["sw--hz3", W.hz3]];
     if (town) items.push(["sw--bld", W.bld], ["sw--road", W.road]);
     return '<span class="k-title">' + (town ? W.townTitle : W.hzTitle) + '</span><span class="k-scale" role="list">' +
       items.map(function (x) { return '<span class="k" role="listitem"><i class="sw ' + x[0] + '" aria-hidden="true"></i>' + x[1] + "</span>"; }).join("") + "</span>";
@@ -296,7 +311,7 @@
       if (!tp) return;
       var t = townOf(tp);
       steps.push(firstTown
-        ? { caption: "This is part of " + t.town + ", up close.", sub: "Every outlined shape is a building: homes, schools, churches, shops. Where it stands in blue, a 100-year flood would reach it. The darker the blue, the deeper the water.", show: all, legend: "town", zoom: { kind: "town", prov: tp }, place: t.town + ", " + tp }
+        ? { caption: "This is part of " + t.town + ", up close.", sub: "Every outlined shape is a building: homes, schools, churches, shops. Where it stands in blue, a 100-year flood would reach it. The " + (theme() === "dark" ? "brighter" : "darker") + " the blue, the deeper the water.", show: all, legend: "town", zoom: { kind: "town", prov: tp }, place: t.town + ", " + tp }
         : { caption: "Part of " + t.town + ", up close.", sub: "Every building standing in blue is one a 100-year flood would reach.", show: all, legend: "town", zoom: { kind: "town", prov: tp }, place: t.town + ", " + tp });
       firstTown = false;
     });

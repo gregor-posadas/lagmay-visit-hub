@@ -660,7 +660,8 @@
   }
 
   /* ---------- PM view ---------- */
-  function viewPM() {
+  function viewPM(sub) {
+    var timeline = sub !== "list";
     var f = { who: store.get("f.who") || "", proj: store.get("f.proj") || "", st: store.get("f.st") || "" };
     var all = state.data.assignments, c = counts(all);
     var list = all.filter(function (a) {
@@ -697,7 +698,10 @@
       '<p style="margin-top:12px;max-width:var(--read)">The hub never emails the team. Only you get an email: a summary at 8 AM on days with something in it (funding changes and deadlines, overdue work, follow-ups past their date, what\'s due this week). Every assignment, workstream and funding deadline is on your Lagmay visit deadlines calendar. Nobody is invited to those events.</p>' +
       '<div class="actions"><button type="button" class="btn" data-act="send-reminders"' + (state.demo ? " disabled" : "") + ">Email me the summary now</button>" +
       (store.get("pmCode") ? '<button type="button" class="btn btn--quiet" data-act="forget-pm">Forget the project manager code on this device</button>' : "") + "</div></section>";
-    return '<div class="wrap"><div class="head"><h1 tabindex="-1">Project view</h1><p>Everything the team owes, by workstream. Anyone can look. Adding or changing assignments and workstreams needs the project manager code.</p></div>' +
+    var tabs = '<nav class="seg" aria-label="Project view as"><a href="#/pm"' + (timeline ? ' aria-current="page"' : "") + '>Timeline</a><a href="#/pm/list"' + (timeline ? "" : ' aria-current="page"') + ">List</a></nav>";
+    var headHtml = '<div class="wrap"><div class="head"><h1 tabindex="-1">Project view</h1><p>Everything the team owes, by workstream, and what waits on what. Anyone can look. Adding or changing assignments, workstreams and links needs the project manager code.</p>' + tabs + "</div>";
+    if (timeline) return headHtml + viewTimeline() + projects + reminders + "</div>";
+    return headHtml +
       '<div class="stats stats--5">' +
       '<div class="stat"><b>' + c.late + "</b><span>" + shape("late") + "Overdue</span></div>" +
       '<div class="stat"><b>' + c.week + "</b><span>" + shape("todo") + "Due in 7 days</span></div>" +
@@ -705,6 +709,261 @@
       '<div class="stat"><b><a href="#/contacts">' + needUs + "</a></b><span>" + shape("move") + "Contacts waiting on us</span></div>" +
       '<div class="stat"><b>' + c.done + " of " + all.length + "</b><span>" + shape("done") + "Done</span></div></div>" +
       toolbar + (tables || '<p class="empty">No assignments match these filters.</p>') + projects + reminders + "</div>";
+  }
+
+  /* ---------- timeline: a Gantt chart of what waits on what, and the critical path ----------
+     Each assignment (copies given to several people show as one row) runs from when it starts (its start date, or
+     when it was assigned) to its due date. Milestones are diamonds. An arrow means "waits on". Dates are deadlines,
+     so the maths is deadline maths: an item's buffer is how long after its due date it could finish before something
+     that waits on it would miss its own date (or start date). Negative buffer is a conflict to fix. The critical path
+     is the chain of open work, ending at a milestone, whose tightest step has the least buffer: if any step on it
+     slips, the milestone slips. */
+  var TL = { sel: "" };
+  function depList(s) { return String(s || "").split(/[,\s]+/).filter(Boolean); }
+  function tlModel() {
+    var now = new Date(), nodes = [], byKey = {}, alias = {};
+    state.data.assignments.forEach(function (a) {
+      var key = (a.projectId || "") + "|" + a.title + "|" + (a.due || "");
+      var n = byKey[key];
+      if (!n) {
+        n = byKey[key] = { id: a.id, kind: "a", ids: [], raw: [], members: [], dep: [], title: a.title, projectId: a.projectId || "", due: due(a),
+          start: a.start ? new Date(a.start) : a.assignedAt ? new Date(a.assignedAt) : null, explicitStart: a.start ? new Date(a.start) : null };
+        nodes.push(n);
+      }
+      n.ids.push(a.id); n.raw.push(a);
+      if (n.members.indexOf(a.memberId) < 0) n.members.push(a.memberId);
+      depList(a.dependsOn).forEach(function (d) { if (n.dep.indexOf(d) < 0) n.dep.push(d); });
+      alias[a.id] = n;
+    });
+    nodes.forEach(function (n) {
+      var ks = n.raw.map(statusKey);
+      n.status = ks.every(function (k) { return k === "done"; }) ? "done" : ks.indexOf("late") > -1 ? "late" : ks.indexOf("doing") > -1 ? "doing" : "todo";
+      n.done = n.status === "done";
+    });
+    state.data.milestones.forEach(function (m) {
+      var d = m.date ? new Date(m.date) : null, past = !!(d && d < now);
+      var n = { id: m.id, kind: "m", ids: [m.id], raw: [m], members: [], dep: depList(m.dependsOn), title: m.label, projectId: m.projectId || "", due: d, start: d, done: past, status: past ? "done" : "todo" };
+      nodes.push(n); alias[m.id] = n;
+    });
+    nodes.forEach(function (n) { n.preds = []; n.succs = []; });
+    nodes.forEach(function (n) {
+      n.dep.forEach(function (id) { var p = alias[id]; if (p && p !== n && n.preds.indexOf(p) < 0) { n.preds.push(p); p.succs.push(n); } });
+    });
+    // topological order; anything caught in a loop is left out of the maths and flagged
+    var indeg = {}, order = [], queue = [];
+    nodes.forEach(function (n) { indeg[n.id] = n.preds.length; if (!n.preds.length) queue.push(n); });
+    while (queue.length) { var x = queue.shift(); order.push(x); x.succs.forEach(function (s) { if (--indeg[s.id] === 0) queue.push(s); }); }
+    nodes.forEach(function (n) { n.loop = order.indexOf(n) < 0; });
+    // required finish, latest first
+    for (var i = order.length - 1; i >= 0; i--) {
+      var n = order[i], rf = n.due ? n.due.getTime() : Infinity, by = null;
+      n.succs.forEach(function (s) {
+        if (s.loop) return;
+        var need = s.explicitStart ? Math.min(s.explicitStart.getTime(), s.rf) : s.rf;
+        if (need < rf) { rf = need; by = s; }
+      });
+      n.rf = rf; n.needBy = by;
+      n.buffer = n.due && isFinite(rf) ? (rf - n.due.getTime()) / DAY : null;
+      n.conflict = !n.done && n.buffer !== null && n.buffer < -0.01;
+    }
+    // the critical path: for each open item, the chain to a milestone whose tightest step is tightest
+    order.slice().reverse().forEach(function (n) {
+      n.best = null;
+      if (n.done) return;
+      var own = n.buffer === null ? Infinity : n.buffer;
+      if (n.kind === "m" && !n.succs.length) { n.best = { buf: own, path: [n] }; return; }
+      n.succs.forEach(function (s) {
+        if (!s.best) return;
+        var c = { buf: Math.min(own, s.best.buf), path: [n].concat(s.best.path) };
+        if (!n.best || c.buf < n.best.buf - 1e-6 || (Math.abs(c.buf - n.best.buf) < 1e-6 && c.path.length > n.best.path.length)) n.best = c;
+      });
+    });
+    var crit = null;
+    nodes.forEach(function (n) {
+      if (!n.best || n.best.path.length < 2 || n.preds.some(function (p) { return !p.done; })) return;
+      if (!crit || n.best.buf < crit.buf - 1e-6 || (Math.abs(n.best.buf - crit.buf) < 1e-6 && n.best.path.length > crit.path.length)) crit = n.best;
+    });
+    nodes.forEach(function (n) { n.crit = !!(crit && crit.path.indexOf(n) > -1); });
+    return { nodes: nodes, alias: alias, crit: crit ? crit.path : [], critBuf: crit ? crit.buf : null };
+  }
+  function tlWho(n) { return n.members.map(function (id) { return first(member(id).name); }).join(" and "); }
+  function tlBuf(b) {
+    if (b === null || !isFinite(b)) return "";
+    var d = Math.round(b);
+    if (b < -0.01) return (d === 0 ? "Less than a day" : -d + (d === -1 ? " day" : " days")) + " late for what waits on it";
+    if (d === 0) return "No buffer";
+    return d + (d === 1 ? " day" : " days") + " of buffer";
+  }
+  function tlRelatives(n, dir, seen) {
+    seen = seen || [];
+    (dir === "up" ? n.preds : n.succs).forEach(function (x) { if (seen.indexOf(x) < 0) { seen.push(x); tlRelatives(x, dir, seen); } });
+    return seen;
+  }
+  function tlStatusWord(n) { return n.kind === "m" ? (n.done ? "Passed" : "Milestone") : LABEL[n.status]; }
+
+  function viewTimeline() {
+    var M = tlModel(), showDone = store.get("tl.done") === "1", onlyCrit = store.get("tl.crit") === "1", allLinks = store.get("tl.links") === "1";
+    var now = new Date(), today = dayNumber(now);
+    var visible = M.nodes.filter(function (n) {
+      if (!n.due) return false;
+      if (onlyCrit) return n.crit;
+      return showDone || !n.done || n.crit || (n.kind === "m" && dayNumber(n.due) >= today - 3);
+    });
+    var undated = M.nodes.filter(function (n) { return !n.due && !n.done; });
+    // the date range: a few days before today (or the earliest open start) to just after the last date
+    var day0 = today - 4, last = today + 14;
+    visible.forEach(function (n) {
+      var s = n.start ? dayNumber(n.start) : dayNumber(n.due), e = dayNumber(n.due);
+      if (!n.done) day0 = Math.min(day0, s);
+      last = Math.max(last, e + 2);
+    });
+    if (showDone) visible.forEach(function (n) { day0 = Math.min(day0, n.start ? dayNumber(n.start) : dayNumber(n.due)); });
+    var days = last - day0 + 1, DW = 26, RH = 48, GH = 40, AH = 52;
+    function x(date) { var p = parts(date); return (dayNumber(date) - day0 + (+p.hour + p.minute / 60) / 24) * DW; }
+    // rows grouped by workstream, in workstream order, each sorted by due date
+    var groups = state.data.projects.map(function (p) { return { p: p, rows: visible.filter(function (n) { return n.projectId === p.id; }) }; });
+    var loose = visible.filter(function (n) { return !byId(state.data.projects, n.projectId); });
+    if (loose.length) groups.push({ p: { id: "", name: "No workstream" }, rows: loose });
+    groups = groups.filter(function (g) { return g.rows.length; });
+    groups.forEach(function (g) { g.rows.sort(function (a, b) { return a.due - b.due || (a.kind === "m" ? 1 : -1); }); });
+    var y = 0, pos = {}, rowsHtml = "";
+    groups.forEach(function (g) {
+      rowsHtml += '<div class="tl__group" style="height:' + GH + 'px"><div class="tl__label tl__label--group">' + (g.p.id ? '<a href="#/p/' + esc(g.p.id) + '">' + esc(g.p.name) + "</a>" : esc(g.p.name)) + "</div></div>";
+      y += GH;
+      g.rows.forEach(function (n) {
+        var e = x(n.due), s = n.kind === "m" ? e : Math.min(e - DW * 0.6, x(n.start || n.due));
+        var waitEnd = 0; n.preds.forEach(function (p) { if (p.due) waitEnd = Math.max(waitEnd, x(p.due)); });
+        if (n.kind === "a" && waitEnd > s && waitEnd < e - DW * 0.6) s = waitEnd;   // work starts once what it waits on is done
+        s = Math.max(0, s);
+        pos[n.id] = { s: s, e: e, y: y + RH / 2 };
+        var cls = "tl__bar tl__bar--" + (n.kind === "m" ? "ms" : n.status) + (n.crit ? " is-crit" : "") + (n.conflict ? " is-conflict" : "");
+        var label = n.title + (n.members.length ? ", " + tlWho(n) : "") + ". " + tlStatusWord(n) + ", due " + fmtDay(n.due) + "." + (n.crit ? " On the critical path." : "") + (n.conflict ? " Conflict." : "") +
+          (n.preds.length ? " Waits on " + n.preds.length + "." : "");
+        var inner = n.kind === "m" ? "" : n.members.map(function (id) { return bullet(member(id), "xs"); }).join("");
+        rowsHtml += '<div class="tl__row' + (n.done ? " is-done" : "") + '" data-node="' + esc(n.id) + '" style="height:' + RH + 'px">' +
+          '<div class="tl__label"><button type="button" class="tl__name" data-act="tl-pick" data-id="' + esc(n.id) + '">' +
+          (n.kind === "m" ? '<i class="tl__dia" aria-hidden="true"></i>' : shape(n.status)) + '<span>' + esc(n.title) + "</span></button>" +
+          '<small>' + (n.kind === "m" ? fmtDay(n.due) : esc(tlWho(n)) + ", due " + fmtDay(n.due)) + (n.conflict ? ' · <b class="tl__warn">conflict</b>' : n.crit ? " · <b>critical</b>" : "") + "</small></div>" +
+          '<div class="tl__track"><button type="button" class="' + cls + '" data-act="tl-pick" data-id="' + esc(n.id) + '" style="left:' + s.toFixed(1) + "px;width:" + Math.max(n.kind === "m" ? 0 : DW * 0.6, e - s).toFixed(1) + 'px" aria-label="' + esc(label) + '" title="' + esc(label) + '">' + inner + "</button></div></div>";
+        y += RH;
+      });
+    });
+    var H = y;
+    // the axis: a tick each day, a label each Monday (and the day0 day)
+    var axis = "";
+    for (var d = 0; d < days; d++) {
+      var date = new Date((day0 + d) * DAY + 12 * 3600000), dow = date.getUTCDay();
+      var lab = (dow === 1 || d === 0) ? '<span class="tl__mon">' + esc(new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short", day: "numeric" }).format(date)) + "</span>" : "";
+      axis += '<div class="tl__day' + (dow === 0 || dow === 6 ? " is-wkend" : "") + (dow === 1 ? " is-mon" : "") + '" style="left:' + (d * DW) + "px;width:" + DW + 'px">' + lab + '<span class="tl__dnum">' + date.getUTCDate() + "</span></div>";
+    }
+    // arrows: from the end of what it waits on to the start of the item
+    var links = "";
+    visible.forEach(function (n) {
+      n.preds.forEach(function (p) {
+        var a = pos[p.id], b = pos[n.id]; if (!a || !b) return;
+        var crit = n.crit && p.crit, bad = p.conflict && p.needBy === n || (p.due && n.due && p.due > (n.explicitStart || n.due));
+        var x1 = a.e + (p.kind === "m" ? 8 : 2), y1 = a.y, x2 = b.s - (n.kind === "m" ? 10 : 3), y2 = b.y, mid;
+        var d;
+        if (x2 - x1 > 14) { mid = x1 + 8; d = "M" + x1 + " " + y1 + "H" + mid + "V" + y2 + "H" + x2; }
+        else { var yy = y2 > y1 ? y2 - RH / 2 + 2 : y2 + RH / 2 - 2; d = "M" + x1 + " " + y1 + "H" + (x1 + 8) + "V" + yy + "H" + (x2 - 8) + "V" + y2 + "H" + x2; }
+        links += '<path class="tl__link' + (crit ? " is-crit" : "") + (bad ? " is-bad" : "") + '" data-from="' + esc(p.id) + '" data-to="' + esc(n.id) + '" d="' + d + '" marker-end="url(#tl-arrow' + (bad ? "-bad" : crit ? "-crit" : "") + ')"/>';
+      });
+    });
+    var W = days * DW;
+    var todayX = x(now), evX = cfg.eventDate ? x(new Date(cfg.eventDate + "T12:00:00-08:00")) : null;
+    var svg = '<svg class="tl__links" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + " " + H + '" aria-hidden="true" focusable="false"><defs>' +
+      ["", "-crit", "-bad"].map(function (k) { return '<marker id="tl-arrow' + k + '" class="tl__arrow' + k + '" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8Z"/></marker>'; }).join("") +
+      "</defs>" + links + "</svg>";
+    var lines = '<div class="tl__now" style="left:' + todayX.toFixed(1) + 'px"><span>Today</span></div>' +
+      (evX !== null && evX < W ? '<div class="tl__event" style="left:' + evX.toFixed(1) + 'px"><span>Nov 9</span></div>' : "");
+    var chart = '<div class="tl__scroll" id="tl-scroll" tabindex="0" aria-label="Timeline chart, scrolls sideways"><div class="tl__grid" style="--dw:' + DW + "px;width:calc(var(--tl-label) + " + W + 'px)">' +
+      '<div class="tl__head" style="height:' + AH + 'px"><div class="tl__label tl__label--corner">Workstream and step</div><div class="tl__axis" style="width:' + W + 'px">' + axis + "</div></div>" +
+      '<div class="tl__body"><div class="tl__lanes" style="width:' + W + "px;height:" + H + 'px">' + svg + lines + "</div>" + rowsHtml + "</div></div></div>";
+
+    // the critical path, spelled out
+    var critHtml = M.crit.length ? '<section class="tl-crit" aria-labelledby="tl-crit-h"><h2 id="tl-crit-h">Critical path</h2><p class="section__note">' +
+      (M.critBuf < -0.01 ? "This chain is already behind: at least one step is due after the next step needs it. Fix that day0." : "The chain of open work with the least room to slip. If any step slips more than its buffer, " + esc(M.crit[M.crit.length - 1].title) + " slips with it.") +
+      '</p><ol class="tl-crit__steps">' + M.crit.map(function (n) {
+        return '<li class="' + (n.conflict ? "is-conflict" : "") + '"><button type="button" data-act="tl-pick" data-id="' + esc(n.id) + '"><span class="tl-crit__t">' + (n.kind === "m" ? '<i class="tl__dia" aria-hidden="true"></i>' : shape(n.status)) + esc(n.title) + "</span>" +
+          '<span class="tl-crit__m">' + (n.members.length ? esc(tlWho(n)) + ", " : "") + esc(fmtDay(n.due)) + (n.kind === "a" ? " · " + esc(tlBuf(n.buffer)) : "") + "</span></button></li>";
+      }).join("") + "</ol></section>" : '<section class="tl-crit"><h2>Critical path</h2><p class="section__note">No chain yet. Link steps to what they wait on (pick a step, then Change what it waits on) and the critical path appears here.</p></section>';
+    var conflicts = M.nodes.filter(function (n) { return n.conflict; });
+    var fixHtml = conflicts.length ? '<section class="tl-fix" aria-labelledby="tl-fix-h"><h2 id="tl-fix-h">' + st("late", "Needs a fix") + "</h2><ul>" + conflicts.map(function (n) {
+      return "<li><b>" + esc(n.title) + "</b> is due " + esc(fmtDay(n.due)) + ", but <b>" + esc(n.needBy.title) + "</b> waits on it and is " + (n.needBy.explicitStart ? "set to start " + esc(fmtDay(n.needBy.explicitStart)) : "due " + esc(fmtDay(n.needBy.due))) +
+        '. <button type="button" class="btn btn--quiet btn--sm" data-act="tl-pick" data-id="' + esc(n.id) + '">Show it</button></li>';
+    }).join("") + '</ul><p class="section__note">Move a due date, or change what waits on what.</p></section>' : "";
+    var picked = TL.sel && byIdNode(M, TL.sel);
+    var detail = '<div class="tl-detail" id="tl-detail" aria-live="polite">' + (picked ? tlDetail(M, picked) : '<p class="section__note">Pick any step to see what it waits on and what waits on it.</p>') + "</div>";
+    var tools = '<div class="tl-tools"><label class="check"><input type="checkbox" id="tl-done"' + (showDone ? " checked" : "") + "> Show finished work</label>" +
+      '<label class="check"><input type="checkbox" id="tl-only"' + (onlyCrit ? " checked" : "") + "> Only the critical path</label>" +
+      '<label class="check"><input type="checkbox" id="tl-links"' + (allLinks ? " checked" : "") + "> Show every arrow</label></div>";
+    var legend = '<ul class="tl-key" aria-label="What the chart shows">' +
+      '<li><i class="tl-key__bar"></i>To do</li><li><i class="tl-key__bar tl-key__bar--doing"></i>In progress</li><li><i class="tl-key__bar tl-key__bar--done"></i>Done</li>' +
+      '<li><i class="tl-key__bar tl-key__bar--late"></i>Overdue</li><li><i class="tl-key__bar tl-key__bar--crit"></i>Critical path (thick outline)</li>' +
+      '<li><i class="tl__dia" aria-hidden="true"></i>Milestone</li><li><svg width="34" height="12" aria-hidden="true"><path d="M1 6H26" class="tl__link"/><path d="M26 2L33 6L26 10Z" class="tl__arrowhead"/></svg>Waits on (arrow points to the step that waits)</li>' +
+      '<li><svg width="34" height="12" aria-hidden="true"><path d="M1 6H26" class="tl__link is-bad"/><path d="M26 2L33 6L26 10Z" class="tl__arrowhead is-bad"/></svg>Conflict (dashed)</li><li><i class="tl-key__now"></i>Today</li></ul>';
+    var listRows = M.nodes.filter(function (n) { return n.due || !n.done; }).sort(function (a, b) { return (a.due || Infinity) - (b.due || Infinity); }).map(function (n) {
+      return "<tr><td>" + esc(n.title) + (n.crit ? " <b>(critical)</b>" : "") + "</td><td>" + esc(n.kind === "m" ? "Milestone" : tlWho(n)) + "</td><td>" + esc(project(n.projectId).name) + "</td><td>" + (n.due ? esc(fmtDay(n.due)) : "No date") + "</td><td>" + esc(tlStatusWord(n)) +
+        "</td><td>" + (n.preds.length ? n.preds.map(function (p) { return esc(p.title); }).join("; ") : "Nothing") + "</td><td>" + esc(n.done ? "" : tlBuf(n.buffer)) + "</td></tr>";
+    }).join("");
+    var list = '<details class="done-list"><summary>The timeline as a list</summary><div class="table-scroll"><table class="pm-table"><thead><tr><th scope="col">Step</th><th scope="col">Who</th><th scope="col">Workstream</th><th scope="col">Due</th><th scope="col">Status</th><th scope="col">Waits on</th><th scope="col">Buffer</th></tr></thead><tbody>' + listRows + "</tbody></table></div></details>";
+    var undatedHtml = undated.length ? '<p class="section__note">Not on the chart because they have no due date: ' + undated.map(function (n) { return '<a href="#/a/' + esc(n.id) + '">' + esc(n.title) + "</a>"; }).join(", ") + ".</p>" : "";
+    return critHtml + fixHtml + tools + '<p class="section__note tl-hint">Arrows show the critical path and conflicts. Pick a step to see everything it waits on and everything waiting on it.</p><div class="tl' + (allLinks ? " show-all" : "") + '" id="tl">' + chart + "</div>" + legend + detail + undatedHtml + list;
+  }
+  function byIdNode(M, id) { return M.alias[id] || null; }
+  function tlDetail(M, n) {
+    function names(list) { return list.length ? list.map(function (x) { return '<button type="button" class="tl-chip" data-act="tl-pick" data-id="' + esc(x.id) + '">' + (x.kind === "m" ? '<i class="tl__dia" aria-hidden="true"></i>' : shape(x.status)) + esc(x.title) + (x.members.length ? " (" + esc(tlWho(x)) + ")" : "") + "</button>"; }).join("") : "<span>Nothing</span>"; }
+    var link = n.kind === "a" ? '<a class="btn" href="#/a/' + esc(n.id) + '">Open the assignment</a>' : (n.projectId ? '<a class="btn" href="#/p/' + esc(n.projectId) + '">Open the workstream</a>' : "");
+    return '<h2 class="tl-detail__h">' + (n.kind === "m" ? '<i class="tl__dia" aria-hidden="true"></i>' : shape(n.status)) + esc(n.title) + "</h2>" +
+      '<p class="tl-detail__m">' + (n.members.length ? esc(tlWho(n)) + " · " : "") + (n.kind === "a" && n.start ? "Starts " + esc(fmtDay(n.start)) + " · " : "") + "Due " + esc(fmtDay(n.due)) +
+      (n.done ? "" : " · " + esc(tlBuf(n.buffer) || "Nothing waits on it")) + (n.crit ? " · <b>On the critical path</b>" : "") + "</p>" +
+      (n.conflict ? '<p class="tl-detail__warn">' + st("late", "Conflict") + " " + esc(n.needBy.title) + " waits on this but is due " + esc(fmtDay(n.needBy.explicitStart || n.needBy.due)) + ".</p>" : "") +
+      '<dl class="tl-detail__dl"><div><dt>Waits on</dt><dd>' + names(n.preds) + "</dd></div><div><dt>Then these can go ahead</dt><dd>" + names(n.succs) + "</dd></div></dl>" +
+      '<div class="actions">' + link + '<button type="button" class="btn" data-act="tl-links" data-id="' + esc(n.id) + '">Change what it waits on</button><button type="button" class="btn btn--quiet" data-act="tl-clear">Clear</button></div>';
+  }
+  function tlHighlight() {
+    var root = document.getElementById("tl"); if (!root) return;
+    var M = tlModel(), n = TL.sel && M.alias[TL.sel], keep = {};
+    if (n) { keep[n.id] = 1; tlRelatives(n, "up").concat(tlRelatives(n, "down")).forEach(function (x) { keep[x.id] = 1; }); }
+    root.classList.toggle("has-sel", !!n);
+    root.querySelectorAll(".tl__row").forEach(function (r) { var id = r.getAttribute("data-node"); r.classList.toggle("is-on", !!keep[id]); r.classList.toggle("is-sel", !!(n && id === n.id)); });
+    root.querySelectorAll(".tl__link").forEach(function (l) { l.classList.toggle("is-on", !!(keep[l.getAttribute("data-from")] && keep[l.getAttribute("data-to")])); });
+    var det = document.getElementById("tl-detail");
+    if (det) det.innerHTML = n ? tlDetail(M, n) : '<p class="section__note">Pick any step to see what it waits on and what waits on it.</p>';
+  }
+  function tlScrollToday() {
+    var sc = document.getElementById("tl-scroll"), now = document.querySelector(".tl__now"); if (!sc || !now) return;
+    sc.scrollLeft = Math.max(0, parseFloat(now.style.left) - 3 * 26);
+  }
+  /* Project manager: what an item waits on (and, for an assignment, when it starts) */
+  function tlLinksForm(M, n) {
+    var below = tlRelatives(n, "down"), cur = n.preds.map(function (p) { return p.id; });
+    var groups = state.data.projects.map(function (p) { return { p: p, items: M.nodes.filter(function (x) { return x.projectId === p.id; }) }; });
+    var loose = M.nodes.filter(function (x) { return !byId(state.data.projects, x.projectId); });
+    if (loose.length) groups.push({ p: { name: "No workstream" }, items: loose });
+    var checks = groups.map(function (g) {
+      var items = g.items.filter(function (x) { return x !== n; }).sort(function (a, b) { return (a.due || Infinity) - (b.due || Infinity); });
+      if (!items.length) return "";
+      return '<fieldset class="checks tl-checks"><legend>' + esc(g.p.name) + "</legend>" + items.map(function (x) {
+        var blocked = below.indexOf(x) > -1;
+        return '<label class="check' + (blocked ? " is-off" : "") + '"><input type="checkbox" name="dep" value="' + esc(x.id) + '"' + (cur.indexOf(x.id) > -1 ? " checked" : "") + (blocked ? " disabled" : "") + "> " +
+          (x.kind === "m" ? '<i class="tl__dia" aria-hidden="true"></i>' : shape(x.status)) + " " + esc(x.title) + ' <small>' + (x.members.length ? esc(tlWho(x)) + ", " : "") + (x.due ? esc(fmtDay(x.due)) : "no date") + (blocked ? ", waits on this already" : "") + "</small></label>";
+      }).join("") + "</fieldset>";
+    }).join("");
+    var startF = n.kind === "a" ? textField("tl-start", "start", "Starts (optional)", n.explicitStart ? localParts(n.explicitStart.toISOString()).date : "", { type: "date", note: "Leave empty to count from when it was assigned. A start date means everything it waits on must be done by then." }) : "";
+    return dlgShell("What does this wait on?", '<p><b>' + esc(n.title) + "</b>" + (n.members.length ? " (" + esc(tlWho(n)) + ")" : "") + "</p>" + startF +
+      '<p class="section__note">Tick every step that has to be done first. Steps that already wait on this one are greyed out, so there are no loops.</p>' + checks + pmCodeField("Needed once per device to change the timeline."),
+      '<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn btn--solid">Save</button>');
+  }
+  function tlSaveLinks(n, v) {
+    var deps = [].concat(v.dep || []), start = n.kind === "a" ? (v.start ? zonedIso(v.start, "09:00") : "") : undefined;
+    return apiPost({ action: "setLinks", kind: n.kind, ids: n.ids, dependsOn: deps, start: start }).then(function (r) {
+      n.ids.forEach(function (id) {
+        var row = byId(n.kind === "m" ? state.data.milestones : state.data.assignments, id); if (!row) return;
+        row.dependsOn = deps.join(","); if (start !== undefined) row.start = start;
+      });
+      route(); toast("Saved" + demoNote(r));
+    });
   }
 
   /* ---------- files ---------- */
@@ -912,7 +1171,7 @@
     else if (view === "p") { x = byId(state.data.projects, h[1]); html = viewProject(h[1]); if (x) title = x.name; }
     else if (view === "f") { x = byId(state.data.funding, h[1]); html = viewFundingSource(h[1]); if (x) title = x.source; }
     else if (view === "c") { x = byId(state.data.contacts, h[1]); html = viewContact(h[1]); if (x) title = x.name; }
-    else if (view === "pm") { html = viewPM(); title = "Project view"; }
+    else if (view === "pm") { html = viewPM(h[1]); title = h[1] === "list" ? "Project view" : "Timeline"; }
     else if (view === "funding") { html = viewFunding(); title = "Funding"; }
     else if (view === "contacts") { html = viewContacts(); title = "Contacts"; }
     else if (view === "files") { html = viewFiles(); title = "Team files"; }
@@ -927,6 +1186,7 @@
     if (route._moved && h1) h1.focus({ preventScroll: true });
     route._moved = true;
     window.scrollTo(0, 0);
+    if (view === "pm" && h[1] !== "list") { tlScrollToday(); if (TL.sel) tlHighlight(); }
     if (view === "meetings" && h[1]) { var sec = document.getElementById(h[1]); if (sec) { sec.scrollIntoView(); var hd = sec.querySelector("h2"); if (hd) { hd.setAttribute("tabindex", "-1"); hd.focus({ preventScroll: true }); } } }
   }
 
@@ -1231,6 +1491,7 @@
 
   /* ---------- events ---------- */
   document.addEventListener("change", function (ev) {
+    if (ev.target.id === "tl-done" || ev.target.id === "tl-only" || ev.target.id === "tl-links") { store.set({ "tl-done": "tl.done", "tl-only": "tl.crit", "tl-links": "tl.links" }[ev.target.id], ev.target.checked ? "1" : "0"); var wy = window.scrollY; route(); window.scrollTo(0, wy); return; }
     var t = ev.target;
     if (t.hasAttribute && t.hasAttribute("data-approve")) setApproval(t.getAttribute("data-approve"), t.getAttribute("data-field"), t.checked);
     if (t.name === "status" && t.closest("[data-status-for]")) setStatus(t.closest("[data-status-for]").getAttribute("data-status-for"), t.value);
@@ -1265,6 +1526,9 @@
     var b = ev.target.closest("[data-act]"); if (!b) return;
     var act = b.getAttribute("data-act"), id = b.getAttribute("data-id"), x;
     if (DELETES[act]) { ev.preventDefault(); var d = b.closest("dialog"); if (d) d.close(); confirmDelete(act, id); return; }
+    if (act === "tl-pick") { TL.sel = TL.sel === id && !b.closest(".tl-detail") ? "" : id; tlHighlight(); var row = document.querySelector('.tl__row[data-node="' + id + '"]'); if (row && TL.sel && b.closest(".tl-crit, .tl-fix, .tl-detail")) row.scrollIntoView({ block: "nearest" }); return; }
+    if (act === "tl-clear") { TL.sel = ""; tlHighlight(); return; }
+    if (act === "tl-links") { x = tlModel(); var nn = x.alias[id]; if (nn) openDialog(tlLinksForm(x, nn), function (v) { return tlSaveLinks(nn, v); }); return; }
     if (act === "new-assignment") openDialog(assignmentForm(null, b.getAttribute("data-project")), function (v) { return saveAssignment(null, v); });
     if (act === "edit-assignment") { x = byId(state.data.assignments, id); openDialog(assignmentForm(x), function (v) { return saveAssignment(x, v); }); }
     if (act === "project-status") setProjectStatus(id);
@@ -1388,7 +1652,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261002100809";
+  var BUILD = "20261002102126";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp

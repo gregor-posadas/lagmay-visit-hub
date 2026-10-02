@@ -34,10 +34,19 @@ TOWNS = {
     'Camarines Norte': ('Daet', 122.955, 14.113), 'Catanduanes': ('Virac', 124.232, 13.582), 'Sorsogon': ('Sorsogon City', 124.005, 12.972),
     'Masbate': ('Masbate City', 123.620, 12.370), 'Cebu': ('Talisay', 123.850, 10.245),
 }
-HZ = {1: (0x9E, 0xB8, 0xDB), 2: (0x5A, 0x7F, 0xB5), 3: (0x23, 0x3F, 0x78)}   # light theme: darker = deeper
-SEA, LAND = (0xD6, 0xDD, 0xDE), (0xF6, 0xF2, 0xE9)
-BLD, BLD_EDGE = (0xD8, 0xD0, 0xC0), (0x2A, 0x26, 0x22)
-ROAD, ROAD_EDGE = (0xFF, 0xFF, 0xFF), (0xB9, 0xB0, 0x9F)
+# THEME=dark (an environment variable) draws the dark set for the presentation: brighter blue = deeper, dark buildings
+# with a light outline. The default light set is for ?present&light. Files get a -dark suffix.
+THEME = os.environ.get('THEME', 'light'); SFX = '-dark' if THEME == 'dark' else ''
+if THEME == 'dark':
+    HZ = {1: (0x2A, 0x4F, 0x86), 2: (0x46, 0x77, 0xB8), 3: (0x8D, 0xB2, 0xE3)}
+    SEA, LAND = (0x00, 0x00, 0x00), (0x26, 0x26, 0x26)
+    BLD, BLD_EDGE = (0x3A, 0x3A, 0x3A), (0xE6, 0xDF, 0xD2)
+    ROAD, ROAD_EDGE = (0x70, 0x70, 0x70), (0x14, 0x14, 0x14)
+else:   # light: darker = deeper
+    HZ = {1: (0x9E, 0xB8, 0xDB), 2: (0x5A, 0x7F, 0xB5), 3: (0x23, 0x3F, 0x78)}
+    SEA, LAND = (0xD6, 0xDD, 0xDE), (0xF6, 0xF2, 0xE9)
+    BLD, BLD_EDGE = (0xD8, 0xD0, 0xC0), (0x2A, 0x26, 0x22)
+    ROAD, ROAD_EDGE = (0xFF, 0xFF, 0xFF), (0xB9, 0xB0, 0x9F)
 ROAD_M = {'motorway': 14, 'trunk': 12, 'primary': 11, 'secondary': 10, 'tertiary': 8, 'unclassified': 6, 'residential': 6,
           'living_street': 5, 'pedestrian': 5, 'service': 4}   # metres wide, roughly
 
@@ -63,14 +72,14 @@ def smooth_levels(lv, scale, sigma):
         out[np.asarray(m) >= 128] = v
     return out
 
-man_f = os.path.join(OUT, 'manifest2.json')
+man_f = os.path.join(OUT, 'manifest2%s.json' % SFX)
 man = json.load(open(man_f)) if os.path.exists(man_f) else {}
 def note(name, b, extra=None):
     man[name] = dict({'bounds': [round(float(x), 6) for x in b]}, **(extra or {})); json.dump(man, open(man_f, 'w'), indent=1)
 
 # ---- province maps, smoothed and antialiased ----
 for P in TOWNS:
-    n = 'prov2-%s.png' % slug(P)
+    n = 'prov2-%s%s.png' % (slug(P), SFX)
     if n in man: continue
     if time.time() - T0 > BUDGET: print('PAUSE', flush=True); sys.exit(0)
     lv = np.load(os.path.join(WORK, 'prov-' + slug(P) + '.npy'))
@@ -92,7 +101,7 @@ def old_area(lon, lat):
     sb = (tb[0] - mx, tb[1] - my, tb[2] + mx, tb[3] + my)
     return sb, round((sb[2] - sb[0]) / px), round((sb[3] - sb[1]) / py)
 for P, (town, lon, lat) in TOWNS.items():
-    n = 'town2-%s.webp' % slug(P)
+    n = 'town2-%s%s.webp' % (slug(P), SFX)
     if n in man: continue
     if time.time() - T0 > BUDGET: print('PAUSE', flush=True); sys.exit(0)
     t = time.time()
