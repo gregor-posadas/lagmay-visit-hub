@@ -2,3 +2,7 @@ tools/noah_exposure/*.npy
 tools/noah_exposure/part-*
 node_modules/
 *.png
+
+# images that belong to the site
+!event/data/maps/*.png
+!event/img/*.png
