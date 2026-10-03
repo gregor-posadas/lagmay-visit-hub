@@ -846,6 +846,10 @@ var TIES = {
   'No connection, just interested (everyone is welcome)': 'none'
 };
 var NOT_SURE = 'Not sure', NO_SAY = 'Prefer not to say', OUTSIDE = 'Outside the Bay Area';
+/* Banatao Auditorium holds 149. In-person seats go in the order people RSVP; after that, "In person" answers go on the waitlist. */
+var SEATS = 149;
+var IN_PERSON = 'In person at Banatao Auditorium', ONLINE = 'Online, on the livestream';
+var WAITLIST = 'Waitlist for an in-person seat (we will email you if one opens; you can watch online meanwhile)';
 var CONSENT_YES = 'Yes, you may share it without my name';
 
 /**
@@ -879,8 +883,7 @@ function createRsvpForm() {
   form.addMultipleChoiceItem().setTitle(Q.role).setRequired(false).setChoiceValues([
     'UC Berkeley student', 'UC Berkeley faculty or staff', 'Stanford student, faculty or staff', 'Student at another school',
     'Community member', NO_SAY]).showOtherOption(true);
-  form.addMultipleChoiceItem().setTitle(Q.attend).setRequired(true).setChoiceValues([
-    'In person at Banatao Auditorium', 'Online, on the livestream', NOT_SURE + ' yet']);
+  form.addMultipleChoiceItem().setTitle(Q.attend).setRequired(true).setChoiceValues([IN_PERSON, ONLINE, NOT_SURE + ' yet']);
   form.addListItem().setTitle(Q.county).setHelpText('Only the county is used, on the Bay Area side of the map.')
     .setRequired(true).setChoiceValues(BAY_COUNTIES.concat([OUTSIDE, NO_SAY]));
 
@@ -941,14 +944,61 @@ function readRsvps() {
 
 function provinceOk(p) { return PROVINCES.indexOf(p) > -1; }
 
+/**
+ * Who holds an in-person seat. The first SEATS people who answered "In person" (in the order they RSVPed) have seats;
+ * anyone after that, and anyone who picked the waitlist, is on the waitlist in order. Returns { id: 'seat' | 'waitlist' }
+ * plus the counts. "Not sure yet" holds no seat.
+ */
+function seatPlan(rows) {
+  var plan = { status: {}, place: {}, taken: 0, waitlist: 0 };
+  rows.forEach(function (r) {
+    var wantsSeat = /^In person/.test(r.attend), waiting = /^Waitlist/.test(r.attend);
+    if (wantsSeat && plan.taken < SEATS) { plan.taken++; plan.status[r.id] = 'seat'; }
+    else if (wantsSeat || waiting) { plan.waitlist++; plan.status[r.id] = 'waitlist'; plan.place[r.id] = plan.waitlist; }
+  });
+  plan.left = Math.max(0, SEATS - plan.taken);
+  return plan;
+}
+
+/**
+ * Runs on every RSVP (an installable "on form submit" trigger made by setupSeatLimit). When the seats are gone, the form's
+ * "How will you join us?" question swaps "In person" for the waitlist; if seats open up again (a row deleted by hand),
+ * it swaps back. It emails no one.
+ */
+function onRsvpSubmit() {
+  CacheService.getScriptCache().remove('map');
+  updateSeatChoices();
+}
+function updateSeatChoices() {
+  var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
+  if (!formId) return 'No RSVP form yet.';
+  var plan = seatPlan(readRsvps()), full = plan.left === 0;
+  var item = FormApp.openById(formId).getItems(FormApp.ItemType.MULTIPLE_CHOICE).filter(function (it) { return it.getTitle() === Q.attend; })[0];
+  if (!item) return 'Could not find the "' + Q.attend + '" question.';
+  item.asMultipleChoiceItem().setChoiceValues(full ? [WAITLIST, ONLINE, NOT_SURE + ' yet'] : [IN_PERSON, ONLINE, NOT_SURE + ' yet'])
+    .setHelpText(full ? 'All ' + SEATS + ' in-person seats are taken. Join the waitlist or watch the livestream.'
+                      : 'Banatao Auditorium holds ' + SEATS + '. In-person seats go in the order people RSVP.');
+  return full ? 'Full: the form now offers the waitlist (' + plan.waitlist + ' waiting).' : plan.left + ' of ' + SEATS + ' seats left.';
+}
+
+/** Run once from the editor: makes the trigger that keeps the form in step with the seats, and sets the form right now. */
+function setupSeatLimit() {
+  var has = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'onRsvpSubmit'; });
+  if (!has) ScriptApp.newTrigger('onRsvpSubmit').forSpreadsheet(spreadsheet()).onFormSubmit().create();
+  Logger.log((has ? 'The seat trigger was already there. ' : 'Seat trigger made. ') + updateSeatChoices());
+}
+
 /** Public, no code: anonymous counts for the map, and the stories a teammate approved that the person agreed to share. */
 function publicMap() {
   var cache = CacheService.getScriptCache(), hit = cache.get('map');
   if (hit) return JSON.parse(hit);
-  var rows = readRsvps(), approvals = indexBy(readTable('Approvals'));
-  var out = { total: rows.length, attend: { inPerson: 0, online: 0, unsure: 0 }, bay: {}, ph: {}, links: {}, sets: {}, ties: {}, stories: [], updated: cell(new Date()) };
+  var rows = readRsvps(), approvals = indexBy(readTable('Approvals')), plan = seatPlan(rows);
+  var out = { total: rows.length, attend: { inPerson: 0, online: 0, unsure: 0, waitlist: 0 }, seats: { capacity: SEATS, taken: plan.taken, left: plan.left },
+    bay: {}, ph: {}, links: {}, sets: {}, ties: {}, stories: [], updated: cell(new Date()) };
   rows.forEach(function (r) {
-    if (/^In person/.test(r.attend)) out.attend.inPerson++; else if (/^Online/.test(r.attend)) out.attend.online++; else out.attend.unsure++;
+    var seat = plan.status[r.id];
+    if (seat === 'seat') out.attend.inPerson++; else if (seat === 'waitlist') out.attend.waitlist++;
+    else if (/^Online/.test(r.attend)) out.attend.online++; else out.attend.unsure++;
     var county = BAY_COUNTIES.indexOf(r.county) > -1 ? r.county : r.county === OUTSIDE ? 'outside' : 'unsaid';
     out.bay[county] = (out.bay[county] || 0) + 1;
     var tie = TIES[r.tie] || 'unsaid';
@@ -971,10 +1021,10 @@ function publicMap() {
 
 /** For the team hub (team code): every RSVP with the approval marks. Emails stay in the Sheet. */
 function rsvpList() {
-  var approvals = indexBy(readTable('Approvals'));
-  return readRsvps().map(function (r) {
+  var approvals = indexBy(readTable('Approvals')), rows = readRsvps(), plan = seatPlan(rows);
+  return rows.map(function (r) {
     var a = approvals[r.id] || {};
-    return { id: r.id, at: r.at, name: r.name, role: r.role, attend: r.attend, county: r.county, tie: TIES[r.tie] || '',
+    return { id: r.id, at: r.at, name: r.name, role: r.role, attend: r.attend, seat: plan.status[r.id] || '', waitPlace: plan.place[r.id] || 0, county: r.county, tie: TIES[r.tie] || '',
       prov1: r.prov1, prov2: r.prov2, story: r.story, consent: r.consent === CONSENT_YES, question: r.question, access: r.access,
       storyOk: a.story === 'yes', questionOk: a.question === 'yes' };
   });

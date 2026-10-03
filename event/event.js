@@ -255,12 +255,12 @@
     var f = facts(d);
     if (!d.total) return W.none;
     if (FIL) {
-      var t = n2w(d.total) + " na ang nag-RSVP: " + d.attend.inPerson + " nang personal at " + d.attend.online + " online" + (d.attend.unsure ? ", " + d.attend.unsure + " ang hindi pa sigurado" : "") + ". ";
+      var t = n2w(d.total) + " na ang nag-RSVP: " + d.attend.inPerson + " nang personal at " + d.attend.online + " online" + (d.attend.waitlist ? ", " + d.attend.waitlist + " sa waitlist" : "") + (d.attend.unsure ? ", " + d.attend.unsure + " ang hindi pa sigurado" : "") + ". ";
       if (f.withTies) t += f.withTies + " sa kanila ang may ugnayan sa " + f.provs.length + " lalawigan sa Pilipinas, pinakamadalas ang " + list(f.provs.slice(0, 3)) + ".";
       if (f.noTies) t += " " + f.noTies + " ang darating nang walang ugnayan sa Pilipinas, at malugod din silang tinatanggap.";
       return t;
     }
-    var s = n2w(d.total) + (d.total === 1 ? " has" : " have") + " RSVPed: " + d.attend.inPerson + " in person and " + d.attend.online + " online" + (d.attend.unsure ? ", " + d.attend.unsure + " not sure yet" : "") + ". ";
+    var s = n2w(d.total) + (d.total === 1 ? " has" : " have") + " RSVPed: " + d.attend.inPerson + " in person and " + d.attend.online + " online" + (d.attend.waitlist ? ", " + d.attend.waitlist + " on the waitlist" : "") + (d.attend.unsure ? ", " + d.attend.unsure + " not sure yet" : "") + ". ";
     if (f.withTies) s += f.withTies + " of them have ties to " + f.provs.length + (f.provs.length === 1 ? " province" : " provinces") + " in the Philippines, most often " + list(f.provs.slice(0, 3)) + ".";
     if (f.noTies) s += " " + f.noTies + (f.noTies === 1 ? " is" : " are") + " coming with no ties to the Philippines at all, and are just as welcome.";
     return s;
@@ -298,6 +298,7 @@
     $("map-table").innerHTML = table(data);
     $("map-key").innerHTML = key(data);
     $("sample-note").hidden = !data.sample;
+    if (window.EV_SITE && window.EV_SITE.seats) window.EV_SITE.seats(data);
   }
   window.addEventListener("resize", function () { var h = $("map-svg"); if (h && data && layoutFor(h.clientWidth).vertical !== lastWidthMode && !PRESENT) renderPage(); });
 

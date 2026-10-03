@@ -31,7 +31,8 @@ mkSheet('Approvals', [['id', 'story', 'question', 'updatedAt', 'updatedBy']]);
 mkSheet('Log', [['timestamp', 'who', 'action', 'detail']]);
 let m = JSON.parse(JSON.stringify(vm.runInContext('publicMap()', ctx)));
 assert.strictEqual(m.total, 4);
-assert.deepStrictEqual(m.attend, { inPerson: 2, online: 1, unsure: 1 });
+assert.deepStrictEqual(m.attend, { inPerson: 2, online: 1, unsure: 1, waitlist: 0 });
+assert.deepStrictEqual(m.seats, { capacity: 149, taken: 2, left: 147 });
 assert.deepStrictEqual(m.bay, { Alameda: 2, outside: 1, unsaid: 1 });
 assert.deepStrictEqual(m.ph, { Pampanga: 2, 'Metro Manila': 1 });
 assert.deepStrictEqual(m.sets, { 'Metro Manila|Pampanga': 1, Pampanga: 1 }, 'each person counted once, duplicates dropped');
@@ -46,4 +47,24 @@ assert.deepStrictEqual(links, ['Alameda>Metro Manila:1', 'Alameda>Pampanga:2']);
 const list = JSON.parse(JSON.stringify(vm.runInContext('rsvpList()', ctx)));
 assert.strictEqual(list.length, 4); assert.strictEqual(list[0].storyOk, true); assert.strictEqual(list[0].tie, 'parents');
 assert.throws(() => vm.runInContext("setApproval('x','story',true,'g')", ctx));
+
+// Seat limit: the first SEATS "In person" answers get seats, in RSVP order; later ones and waitlist picks wait in order.
+vm.runInContext('SEATS = 1', ctx);
+sheets['RSVP responses'].rows.push([new Date(), 'Eve', 'e@x.org', '', vm.runInContext('WAITLIST', ctx), 'Marin', '', '', '', '', '', '', '']);
+delete cache.map;
+m = JSON.parse(JSON.stringify(vm.runInContext('publicMap()', ctx)));
+assert.deepStrictEqual(m.attend, { inPerson: 1, online: 1, unsure: 1, waitlist: 2 }, 'Di is past the last seat, Eve picked the waitlist');
+assert.deepStrictEqual(m.seats, { capacity: 1, taken: 1, left: 0 });
+const l2 = JSON.parse(JSON.stringify(vm.runInContext('rsvpList()', ctx)));
+assert.deepStrictEqual(l2.map(r => r.name + ':' + r.seat + (r.waitPlace ? '#' + r.waitPlace : '')), ['Ana:seat', 'Ben:', 'Cy:', 'Di:waitlist#1', 'Eve:waitlist#2']);
+// The form swaps "In person" for the waitlist when full, and back when a seat opens.
+let choices = null, help = '';
+const item = { getTitle: () => Q.attend, asMultipleChoiceItem: () => ({ setChoiceValues(v) { choices = v; return this; }, setHelpText(h) { help = h; return this; } }) };
+ctx.FormApp = { ItemType: { MULTIPLE_CHOICE: 'mc' }, openById: () => ({ getItems: () => [item] }) };
+ctx.PropertiesService = { getScriptProperties: () => ({ getProperty: k => k === 'RSVP_FORM_ID' ? 'F1' : null, setProperty() {} }) };
+let said = vm.runInContext('updateSeatChoices()', ctx);
+assert.ok(/^Waitlist/.test(choices[0]) && choices.length === 3 && /taken/.test(help), said);
+vm.runInContext('SEATS = 149', ctx);
+said = vm.runInContext('updateSeatChoices()', ctx);
+assert.strictEqual(choices[0], 'In person at Banatao Auditorium'); assert.ok(/147 of 149/.test(said), said);
 console.log('RSVP backend tests passed');

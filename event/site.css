@@ -183,3 +183,18 @@
 @media (max-width: 600px) { .rv-frame iframe { height: 1800px; } }
 .rv-form { margin-top: 36px; }
 .rv-ask li + li { margin-top: 6px; }
+
+/* In-person seats: a quiet line until seats run low, then bold; when full, a heavier bar and the word "Full" */
+.ev-seats { margin-top: 12px; max-width: 38rem; padding-left: 12px; border-left: 4px solid var(--rule-strong); font-size: var(--f1); color: var(--ink-2); }
+.ev-seats.is-few { color: var(--ink); }
+.ev-seats.is-full { color: var(--ink); border-left-width: 8px; }
+
+/* Directions: photos of Banatao Auditorium */
+.ev-room__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 12px; }
+@media (max-width: 760px) { .ev-room__grid { grid-template-columns: 1fr; } }
+.ev-room__fig { margin: 0; }
+.ev-room__fig a { display: block; border: 2px solid var(--rule-strong); background: var(--sunk); aspect-ratio: 3 / 2; overflow: hidden; }
+.ev-room__fig img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ev-room__fig figcaption { font-size: var(--f1); color: var(--ink-2); margin-top: 6px; }
+.ev-room { margin-top: 40px; }
+.ev-logos__sq img { max-height: 84px; }

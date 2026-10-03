@@ -12,6 +12,11 @@
     return;
   }
   links.forEach(function (a) { a.href = url; a.target = "_blank"; a.rel = "noopener"; });
+  // Seats left, from the same anonymous counts the map uses.
+  if (cfg.apiUrl && window.EV_SITE && window.EV_SITE.seats) {
+    fetch(cfg.apiUrl + (cfg.apiUrl.indexOf("?") > -1 ? "&" : "?") + "action=map", { redirect: "follow" })
+      .then(function (r) { return r.json(); }).then(function (j) { if (j && j.ok) window.EV_SITE.seats(j.data); }).catch(function () {});
+  }
   if (frame) {
     frame.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "embedded=true";
     frame.hidden = false;

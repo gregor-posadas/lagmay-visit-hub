@@ -311,5 +311,17 @@
     });
   })();
 
-  window.EV_SITE = { theme: theme, tick: tick, tipsInit: tipsInit, icon: icon };
+  /* In-person seats, from the map data: say when few are left or when they're gone. Until then the page's own sentence stands. */
+  function seats(d) {
+    var el = document.getElementById("ev-seats"); if (!el || !d || !d.seats) return;
+    var fil = document.documentElement.lang === "fil", s = d.seats, cap = s.capacity, t = el.querySelector(".ev-seats__t");
+    var full = s.left <= 0, few = !full && s.left <= 50;
+    el.classList.toggle("is-full", full); el.classList.toggle("is-few", few);
+    if (full) t.innerHTML = fil ? "<b>Puno na.</b> Kinuha na ang lahat ng " + cap + " na upuan sa Banatao Auditorium. Mag-RSVP pa rin para sa waitlist, o para makuha ang link ng livestream."
+                                : "<b>Full.</b> All " + cap + " in-person seats in Banatao Auditorium are taken. RSVP anyway to join the waitlist, or to get the livestream link.";
+    else if (few) t.innerHTML = fil ? "<b>" + s.left + " na upuan na lang</b> ang natitira sa " + cap + ". Ayon sa pagkakasunod ng RSVP ang mga upuan."
+                                    : "<b>Only " + s.left + " of " + cap + " seats left</b> in Banatao Auditorium. Seats go in the order people RSVP.";
+  }
+
+  window.EV_SITE = { theme: theme, tick: tick, tipsInit: tipsInit, icon: icon, seats: seats };
 })();
