@@ -311,16 +311,28 @@
     });
   })();
 
-  /* In-person seats, from the map data: say when few are left or when they're gone. Until then the page's own sentence stands. */
+  /* In-person seats, from the map data: a bar of seats taken (solid) against seats still open (empty paper), the same
+     encoding as the funding gauge, with the numbers in words beside it. The sentence turns bold when few are left or none. */
   function seats(d) {
     var el = document.getElementById("ev-seats"); if (!el || !d || !d.seats) return;
     var fil = document.documentElement.lang === "fil", s = d.seats, cap = s.capacity, t = el.querySelector(".ev-seats__t");
-    var full = s.left <= 0, few = !full && s.left <= 50;
+    var taken = Math.min(cap, s.taken), left = Math.max(0, s.left), wait = (d.attend && d.attend.waitlist) || 0;
+    var full = left <= 0, few = !full && left <= 50, pct = (taken / cap * 100).toFixed(2);
     el.classList.toggle("is-full", full); el.classList.toggle("is-few", few);
     if (full) t.innerHTML = fil ? "<b>Puno na.</b> Kinuha na ang lahat ng " + cap + " na upuan sa Banatao Auditorium. Mag-RSVP pa rin para sa waitlist, o para makuha ang link ng livestream."
                                 : "<b>Full.</b> All " + cap + " in-person seats in Banatao Auditorium are taken. RSVP anyway to join the waitlist, or to get the livestream link.";
-    else if (few) t.innerHTML = fil ? "<b>" + s.left + " na upuan na lang</b> ang natitira sa " + cap + ". Ayon sa pagkakasunod ng RSVP ang mga upuan."
-                                    : "<b>Only " + s.left + " of " + cap + " seats left</b> in Banatao Auditorium. Seats go in the order people RSVP.";
+    else if (few) t.innerHTML = fil ? "<b>" + left + " na upuan na lang</b> ang natitira sa " + cap + ". Ayon sa pagkakasunod ng RSVP ang mga upuan."
+                                    : "<b>Only " + left + " of " + cap + " seats left</b> in Banatao Auditorium. Seats go in the order people RSVP.";
+    var L = fil ? { left: left === 1 ? "upuang bakante" : "upuang bakante", taken: "nakuha na", of: "sa " + cap + " na upuan", wait: "sa waitlist", kTaken: "Nakuha na", kOpen: "Bakante pa",
+                    aria: taken + " sa " + cap + " na upuan ang nakuha na; " + left + " pa ang bakante" + (wait ? "; " + wait + " sa waitlist" : "") + "." }
+                  : { left: left === 1 ? "seat left" : "seats left", taken: "taken", of: "of " + cap + " seats", wait: "on the waitlist", kTaken: "Taken", kOpen: "Still open",
+                    aria: taken + " of " + cap + " seats taken; " + left + " still open" + (wait ? "; " + wait + " on the waitlist" : "") + "." };
+    var g = el.querySelector(".ev-seats__g");
+    if (!g) { g = document.createElement("div"); g.className = "gauge ev-seats__g"; el.appendChild(g); }
+    g.innerHTML = '<div class="gauge__nums"><span><b>' + left + "</b> " + L.left + "</span><span><b>" + taken + "</b> " + L.taken + "</span><span>" + L.of + "</span>" +
+      (wait ? "<span><b>" + wait + "</b> " + L.wait + "</span>" : "") + "</div>" +
+      '<div class="gauge__bar" role="img" aria-label="' + L.aria + '"><span class="gauge__seg gauge__seg--secured" style="width:' + pct + '%"></span></div>' +
+      '<ul class="gauge__key" aria-hidden="true"><li><i class="k-secured"></i>' + L.kTaken + '</li><li><i class="k-gap"></i>' + L.kOpen + "</li></ul>";
   }
 
   window.EV_SITE = { theme: theme, tick: tick, tipsInit: tipsInit, icon: icon, seats: seats };

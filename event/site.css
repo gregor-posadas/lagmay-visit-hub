@@ -198,3 +198,10 @@
 .ev-room__fig figcaption { font-size: var(--f1); color: var(--ink-2); margin-top: 6px; }
 .ev-room { margin-top: 40px; }
 .ev-logos__sq img { max-height: 84px; }
+/* The seats bar: a compact version of the funding gauge */
+.ev-seats__g { margin: 10px 0 0; }
+.ev-seats__g .gauge__nums { gap: 2px 20px; margin-bottom: 6px; color: var(--ink); }
+.ev-seats__g .gauge__nums b { font-size: var(--f3); }
+.ev-seats__g .gauge__bar { height: 20px; }
+.ev-seats__g .gauge__key { margin-top: 6px; color: var(--ink-2); }
+.ev-seats__g .gauge__key i { width: 14px; height: 14px; }
