@@ -521,15 +521,15 @@
     // Nov 9, 2026 in California is UTC-8.
     var start = new Date("2026-11-09T" + (timed ? cfg.startTime : "00:00") + ":00-08:00"), end = new Date("2026-11-09T" + (timed ? cfg.endTime : "23:59") + ":00-08:00");
     var opened = new Date("2026-09-02T00:00:00-07:00");
-    var L = FIL ? { h: "Magsisimula sa", units: ["araw", "oras", "minuto", "segundo"], when: "Lunes, Nob 9, " + (timed ? "4 ng hapon" : "hapon"), now: "Nagaganap na ngayon", nowSub: "Banatao Auditorium, o panoorin ang livestream.", after: "Salamat sa pagdalo", afterSub: "Malapit nang ilabas ang recording.", cap: "Gaya ng panukat ng baha sa ilog, tumataas ang tubig araw-araw hanggang sa pagtitipon.", top: "Nob 9", bottom: "Set 2", today: "Ngayon" }
-            : { h: "Starts in", units: ["days", "hours", "minutes", "seconds"], when: "Monday, Nov 9, " + (timed ? "4 PM Pacific" : "afternoon"), now: "Happening now", nowSub: "Banatao Auditorium, or watch the livestream.", after: "Thank you for coming", afterSub: "The recording is coming soon.", cap: "Like a river gauge, the water rises every day until the event begins.", top: "Nov 9", bottom: "Sep 2", today: "Today" };
+    var L = FIL ? { h: "Magsisimula sa", units: ["araw", "oras", "minuto", "segundo"], when: "Lunes, Nob 9, " + (timed ? "4 ng hapon" : "hapon"), now: "Nagaganap na ngayon", nowSub: "Banatao Auditorium, o panoorin ang livestream.", after: "Salamat sa pagdalo", afterSub: "Malapit nang ilabas ang recording.", top: "Nob 9", bottom: "Set 2", today: "Ngayon" }
+            : { h: "Starts in", units: ["days", "hours", "minutes", "seconds"], when: "Monday, Nov 9, " + (timed ? "4 PM Pacific" : "afternoon"), now: "Happening now", nowSub: "Banatao Auditorium, or watch the livestream.", after: "Thank you for coming", afterSub: "The recording is coming soon.", top: "Nov 9", bottom: "Sep 2", today: "Today" };
     // Tick marks every week up the gauge
     var weeks = Math.floor((start - opened) / (7 * 864e5)), ticks = "";
     for (var w = 1; w <= weeks; w++) ticks += '<i style="bottom:' + (w * 7 * 864e5 / (start - opened) * 100).toFixed(2) + '%"></i>';
     el.innerHTML =
       '<div class="ev-gauge__water" aria-hidden="true"><svg class="ev-gauge__wave" viewBox="0 0 240 16" preserveAspectRatio="none"><path d="M0 8 Q 30 0 60 8 T 120 8 T 180 8 T 240 8 V16 H0Z"/></svg></div>' +
       '<div class="ev-gauge__scale" aria-hidden="true">' + ticks + '<span class="ev-gauge__top">' + L.top + '</span><span class="ev-gauge__bottom">' + L.bottom + '</span><span class="ev-gauge__today">' + L.today + "</span></div>" +
-      '<div class="ev-gauge__panel"><p class="ev-gauge__h" id="cd-h"></p><div class="ev-gauge__tiles" id="cd-tiles"></div><p class="ev-gauge__when" id="cd-when"></p><p class="ev-gauge__cap">' + L.cap + "</p></div>";
+      '<div class="ev-gauge__panel"><p class="ev-gauge__h" id="cd-h"></p><div class="ev-gauge__tiles" id="cd-tiles"></div><p class="ev-gauge__when" id="cd-when"></p></div>';
     var water = el.querySelector(".ev-gauge__water"), today = el.querySelector(".ev-gauge__today"), tiles = $("cd-tiles"), cells = null;
     function level() {
       var pct = Math.max(0, Math.min(100, (Date.now() - opened) / (start - opened) * 100));
