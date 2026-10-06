@@ -852,21 +852,23 @@ var NOT_SURE = 'Not sure', NO_SAY = 'Prefer not to say', OUTSIDE = 'Outside the 
 /* Banatao Auditorium holds 149. In-person seats go in the order people RSVP; after that, "In person" answers go on the waitlist. */
 var SEATS = 149;
 /* "How will you join us?" is single choice. Only the panel in Banatao Auditorium has the 149-seat limit. */
-var LECTURE = 'In-person guest lecture, morning of Nov 9 (Dr. Mahar Lagmay, UC Berkeley)';
-var PANEL = 'In-person panel discussion, Nov 9, 4 to 5 PM (Drs. Mahar Lagmay, Lisandro Claudio and Diana Martinez, UC Berkeley)';
-var STANFORD = 'In-person guest lecture, Nov 10 (Dr. Mahar Lagmay, Stanford)';
-var ONLINE = 'Online, on the livestream';
-var WAITLIST = 'Waitlist for the Nov 9 panel discussion (we will email you if a seat opens; you can watch online meanwhile)';
+/* The campus goes before the speaker so no one reads it as Dr. Lagmay's own university; he is visiting from UPRI. */
+var LECTURE = 'Guest lecture by Dr. Mahar Lagmay, in person on the UC Berkeley campus, Nov 9, 11 AM to 12 PM';
+var PANEL = 'Panel with Drs. Mahar Lagmay, Lisandro Claudio and Diana Martinez, in person in Banatao Auditorium on the UC Berkeley campus, Nov 9, 4 to 5 PM';
+var STANFORD = 'Guest lecture by Dr. Mahar Lagmay, in person on the Stanford campus, Nov 10';
+var ONLINE = 'Online, on the livestream of the Nov 9 panel';
+var WAITLIST = 'Waitlist for the Nov 9 panel at UC Berkeley (we will email you if a seat opens; you can watch online meanwhile)';
 var IN_PERSON = PANEL;   // the seat-limited choice
 function joinChoices(full) { return [LECTURE, full ? WAITLIST : PANEL, STANFORD, ONLINE, NOT_SURE + ' yet']; }
-/* Which event an answer is for. The first form said "In person at Banatao Auditorium"; that was the panel. */
+/* Which event an answer is for. Earlier wordings still count: "In person at Banatao Auditorium" (the first form) and
+   "In-person panel discussion" / "In-person guest lecture, morning" (Oct 5) were the panel and the morning lecture. */
 function joinKind(a) {
   a = String(a || '');
   if (/^Waitlist/.test(a)) return 'waitlist';
-  if (/^In-person panel/.test(a) || /^In person at Banatao/.test(a)) return 'panel';
-  if (/^In-person guest lecture, morning/.test(a)) return 'lecture';
-  if (/Stanford\)?$/.test(a) && /^In-person/.test(a)) return 'stanford';
   if (/^Online/.test(a)) return 'online';
+  if (/^(Panel|In-person panel|In person at Banatao)/.test(a)) return 'panel';
+  if (/lecture/i.test(a) && /Stanford/.test(a)) return 'stanford';
+  if (/lecture/i.test(a)) return 'lecture';
   return 'unsure';
 }
 var CONSENT_YES = 'Yes, you may share it without my name';
@@ -996,12 +998,12 @@ function updateSeatChoices() {
   var item = FormApp.openById(formId).getItems(FormApp.ItemType.MULTIPLE_CHOICE).filter(function (it) { return it.getTitle() === Q.attend; })[0];
   if (!item) return 'Could not find the "' + Q.attend + '" question.';
   item.asMultipleChoiceItem().setChoiceValues(joinChoices(full))
-    .setHelpText(full ? 'Pick one. All ' + SEATS + ' seats for the Nov 9 panel in Banatao Auditorium are taken; you can join its waitlist or watch the livestream.'
+    .setHelpText(full ? 'Pick one. Dr. Lagmay is visiting from the University of the Philippines Resilience Institute. All ' + SEATS + ' seats for the Nov 9 panel in Banatao Auditorium are taken; you can join its waitlist or watch the livestream.'
                       : joinHelp());
   return full ? 'Full: the form now offers the waitlist (' + plan.waitlist + ' waiting).' : plan.left + ' of ' + SEATS + ' seats left.';
 }
 
-function joinHelp() { return 'Pick one. The Nov 9 panel is in Banatao Auditorium, which holds ' + SEATS + '; seats go in the order people RSVP.'; }
+function joinHelp() { return 'Pick one. Dr. Lagmay is visiting from the University of the Philippines Resilience Institute. The Nov 9 panel is in Banatao Auditorium, which holds ' + SEATS + '; seats go in the order people RSVP.'; }
 var COUNTY_HELP = 'If you live outside the Bay Area, pick "Outside the Bay Area".';
 var DIET_HELP = 'For the refreshments after the panel. Optional, and only the organizers see this.';
 

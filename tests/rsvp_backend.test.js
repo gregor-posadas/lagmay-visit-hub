@@ -67,9 +67,15 @@ const item = { getTitle: () => Q.attend, asMultipleChoiceItem: () => ({ setChoic
 ctx.FormApp = { ItemType: { MULTIPLE_CHOICE: 'mc' }, openById: () => ({ getItems: () => [item] }) };
 ctx.PropertiesService = { getScriptProperties: () => ({ getProperty: k => k === 'RSVP_FORM_ID' ? 'F1' : null, setProperty() {} }) };
 let said = vm.runInContext('updateSeatChoices()', ctx);
-assert.ok(/^In-person guest lecture, morning/.test(choices[0]) && /^Waitlist/.test(choices[1]) && choices.length === 5 && /taken/.test(help), said);
+assert.ok(/UC Berkeley campus, Nov 9, 11 AM/.test(choices[0]) && /^Waitlist/.test(choices[1]) && choices.length === 5 && /taken/.test(help), said);
 vm.runInContext('SEATS = 149', ctx);
 said = vm.runInContext('updateSeatChoices()', ctx);
 assert.strictEqual(JSON.stringify(choices.map(c => vm.runInContext('joinKind', ctx)(c))), JSON.stringify(['lecture', 'panel', 'stanford', 'online', 'unsure']));
 assert.ok(/147 of 149/.test(said) && /149/.test(help), said);
+// Answers given under earlier wordings keep counting for the right event.
+const kind = vm.runInContext('joinKind', ctx);
+assert.strictEqual(JSON.stringify(['In person at Banatao Auditorium', 'In-person panel discussion, Nov 9, 4 to 5 PM (Drs. Mahar Lagmay, Lisandro Claudio and Diana Martinez, UC Berkeley)',
+  'In-person guest lecture, morning of Nov 9 (Dr. Mahar Lagmay, UC Berkeley)', 'In-person guest lecture, Nov 10 (Dr. Mahar Lagmay, Stanford)', 'Online, on the livestream', 'Not sure yet'].map(kind)),
+  JSON.stringify(['panel', 'panel', 'lecture', 'stanford', 'online', 'unsure']));
+assert.ok(choices.every(c => /campus|Online|Not sure/.test(c)), 'every in-person choice names the campus');
 console.log('RSVP backend tests passed');
