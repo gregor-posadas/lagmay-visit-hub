@@ -828,15 +828,18 @@ var Q = {
   email: 'Your email',
   role: 'Which best describes you?',
   attend: 'How will you join us?',
-  county: 'Where do you live now?',
+  county: 'Which Bay Area county do you live in?',
   tie: 'What is your connection to the Philippines?',
   prov1: 'Which province is that connection to?',
   prov2: 'Another province (optional)',
   story: 'Is there a flood your family still talks about?',
   consent: 'May we share your answer at the event, without your name?',
   question: 'What would you like to ask the speakers?',
-  access: 'Is there anything you need to take part fully?'
+  access: 'Is there anything you need to take part fully?',
+  diet: 'Any food allergies or dietary restrictions?'
 };
+/* Earlier titles of renamed questions, so answers given before the rename are still found. */
+var Q_OLD = { county: ['Where do you live now?'] };
 var TIES = {
   'I was born there': 'born',
   'My parents are from there': 'parents',
@@ -848,8 +851,24 @@ var TIES = {
 var NOT_SURE = 'Not sure', NO_SAY = 'Prefer not to say', OUTSIDE = 'Outside the Bay Area';
 /* Banatao Auditorium holds 149. In-person seats go in the order people RSVP; after that, "In person" answers go on the waitlist. */
 var SEATS = 149;
-var IN_PERSON = 'In person at Banatao Auditorium', ONLINE = 'Online, on the livestream';
-var WAITLIST = 'Waitlist for an in-person seat (we will email you if one opens; you can watch online meanwhile)';
+/* "How will you join us?" is single choice. Only the panel in Banatao Auditorium has the 149-seat limit. */
+var LECTURE = 'In-person guest lecture, morning of Nov 9 (Dr. Mahar Lagmay, UC Berkeley)';
+var PANEL = 'In-person panel discussion, Nov 9, 4 to 5 PM (Drs. Mahar Lagmay, Lisandro Claudio and Diana Martinez, UC Berkeley)';
+var STANFORD = 'In-person guest lecture, Nov 10 (Dr. Mahar Lagmay, Stanford)';
+var ONLINE = 'Online, on the livestream';
+var WAITLIST = 'Waitlist for the Nov 9 panel discussion (we will email you if a seat opens; you can watch online meanwhile)';
+var IN_PERSON = PANEL;   // the seat-limited choice
+function joinChoices(full) { return [LECTURE, full ? WAITLIST : PANEL, STANFORD, ONLINE, NOT_SURE + ' yet']; }
+/* Which event an answer is for. The first form said "In person at Banatao Auditorium"; that was the panel. */
+function joinKind(a) {
+  a = String(a || '');
+  if (/^Waitlist/.test(a)) return 'waitlist';
+  if (/^In-person panel/.test(a) || /^In person at Banatao/.test(a)) return 'panel';
+  if (/^In-person guest lecture, morning/.test(a)) return 'lecture';
+  if (/Stanford\)?$/.test(a) && /^In-person/.test(a)) return 'stanford';
+  if (/^Online/.test(a)) return 'online';
+  return 'unsure';
+}
 var CONSENT_YES = 'Yes, you may share it without my name';
 
 /**
@@ -883,8 +902,8 @@ function createRsvpForm() {
   form.addMultipleChoiceItem().setTitle(Q.role).setRequired(false).setChoiceValues([
     'UC Berkeley student', 'UC Berkeley faculty or staff', 'Stanford student, faculty or staff', 'Student at another school',
     'Community member', NO_SAY]).showOtherOption(true);
-  form.addMultipleChoiceItem().setTitle(Q.attend).setRequired(true).setChoiceValues([IN_PERSON, ONLINE, NOT_SURE + ' yet']);
-  form.addListItem().setTitle(Q.county).setHelpText('Only the county is used, on the Bay Area side of the map.')
+  form.addMultipleChoiceItem().setTitle(Q.attend).setHelpText(joinHelp()).setRequired(true).setChoiceValues(joinChoices(false));
+  form.addListItem().setTitle(Q.county).setHelpText(COUNTY_HELP)
     .setRequired(true).setChoiceValues(BAY_COUNTIES.concat([OUTSIDE, NO_SAY]));
 
   // Page 2: the connection. "No connection" skips the province questions.
@@ -908,6 +927,7 @@ function createRsvpForm() {
     .setHelpText('The moderator will pick from these. Questions are not shown with names.');
   form.addParagraphTextItem().setTitle(Q.access).setRequired(false)
     .setHelpText('For example live captions, wheelchair seating, or a seat near an exit. Only the organizers see this.');
+  form.addParagraphTextItem().setTitle(Q.diet).setRequired(false).setHelpText(DIET_HELP);
 
   // Answers go to this Sheet, in a tab we rename so the code can find it.
   var ss = spreadsheet();
@@ -933,7 +953,7 @@ function readRsvps() {
   var values = sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues();
   var head = values.shift().map(function (h) { return String(h).trim(); });
   var col = {};
-  Object.keys(Q).forEach(function (k) { col[k] = head.indexOf(Q[k]); });
+  Object.keys(Q).forEach(function (k) { col[k] = head.indexOf(Q[k]); (Q_OLD[k] || []).forEach(function (t) { if (col[k] < 0) col[k] = head.indexOf(t); }); });
   var tsCol = head.indexOf('Timestamp');
   return values.map(function (r, i) {
     var o = { id: 'r' + (i + 2), at: tsCol > -1 ? cell(r[tsCol]) : '' };
@@ -952,7 +972,7 @@ function provinceOk(p) { return PROVINCES.indexOf(p) > -1; }
 function seatPlan(rows) {
   var plan = { status: {}, place: {}, taken: 0, waitlist: 0 };
   rows.forEach(function (r) {
-    var wantsSeat = /^In person/.test(r.attend), waiting = /^Waitlist/.test(r.attend);
+    var kind = joinKind(r.attend), wantsSeat = kind === 'panel', waiting = kind === 'waitlist';
     if (wantsSeat && plan.taken < SEATS) { plan.taken++; plan.status[r.id] = 'seat'; }
     else if (wantsSeat || waiting) { plan.waitlist++; plan.status[r.id] = 'waitlist'; plan.place[r.id] = plan.waitlist; }
   });
@@ -975,10 +995,37 @@ function updateSeatChoices() {
   var plan = seatPlan(readRsvps()), full = plan.left === 0;
   var item = FormApp.openById(formId).getItems(FormApp.ItemType.MULTIPLE_CHOICE).filter(function (it) { return it.getTitle() === Q.attend; })[0];
   if (!item) return 'Could not find the "' + Q.attend + '" question.';
-  item.asMultipleChoiceItem().setChoiceValues(full ? [WAITLIST, ONLINE, NOT_SURE + ' yet'] : [IN_PERSON, ONLINE, NOT_SURE + ' yet'])
-    .setHelpText(full ? 'All ' + SEATS + ' in-person seats are taken. Join the waitlist or watch the livestream.'
-                      : 'Banatao Auditorium holds ' + SEATS + '. In-person seats go in the order people RSVP.');
+  item.asMultipleChoiceItem().setChoiceValues(joinChoices(full))
+    .setHelpText(full ? 'Pick one. All ' + SEATS + ' seats for the Nov 9 panel in Banatao Auditorium are taken; you can join its waitlist or watch the livestream.'
+                      : joinHelp());
   return full ? 'Full: the form now offers the waitlist (' + plan.waitlist + ' waiting).' : plan.left + ' of ' + SEATS + ' seats left.';
+}
+
+function joinHelp() { return 'Pick one. The Nov 9 panel is in Banatao Auditorium, which holds ' + SEATS + '; seats go in the order people RSVP.'; }
+var COUNTY_HELP = 'If you live outside the Bay Area, pick "Outside the Bay Area".';
+var DIET_HELP = 'For the refreshments after the panel. Optional, and only the organizers see this.';
+
+/**
+ * Run once from the editor (Oct 2026 changes): renames the county question, makes "How will you join us?" a single choice
+ * across the morning lecture, the panel, the Stanford lecture and the livestream, and adds the food question before the
+ * last page ends. Safe to run again: it only changes what still needs changing. Existing answers keep their columns.
+ */
+function reviseRsvpForm() {
+  var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
+  if (!formId) { Logger.log('No RSVP form yet.'); return; }
+  var form = FormApp.openById(formId), items = form.getItems(), done = [];
+  var county = items.filter(function (it) { return it.getTitle() === Q.county || (Q_OLD.county || []).indexOf(it.getTitle()) > -1; })[0];
+  if (county) { county.setTitle(Q.county).setHelpText(COUNTY_HELP); done.push('county question renamed'); }
+  done.push(updateSeatChoices());
+  var hasDiet = items.some(function (it) { return it.getTitle() === Q.diet; });
+  if (!hasDiet) {
+    var access = items.filter(function (it) { return it.getTitle() === Q.access; })[0];
+    var diet = form.addParagraphTextItem().setTitle(Q.diet).setRequired(false).setHelpText(DIET_HELP);
+    if (access) form.moveItem(diet.getIndex(), access.getIndex() + 1);
+    done.push('food question added');
+  }
+  CacheService.getScriptCache().remove('map');
+  Logger.log(done.join('; '));
 }
 
 /** Run once from the editor: makes the trigger that keeps the form in step with the seats, and sets the form right now. */
@@ -993,12 +1040,13 @@ function publicMap() {
   var cache = CacheService.getScriptCache(), hit = cache.get('map');
   if (hit) return JSON.parse(hit);
   var rows = readRsvps(), approvals = indexBy(readTable('Approvals')), plan = seatPlan(rows);
-  var out = { total: rows.length, attend: { inPerson: 0, online: 0, unsure: 0, waitlist: 0 }, seats: { capacity: SEATS, taken: plan.taken, left: plan.left },
+  var out = { total: rows.length, attend: { inPerson: 0, lecture: 0, stanford: 0, online: 0, unsure: 0, waitlist: 0 }, seats: { capacity: SEATS, taken: plan.taken, left: plan.left },
     bay: {}, ph: {}, links: {}, sets: {}, ties: {}, stories: [], updated: cell(new Date()) };
   rows.forEach(function (r) {
     var seat = plan.status[r.id];
+    var kind = joinKind(r.attend);
     if (seat === 'seat') out.attend.inPerson++; else if (seat === 'waitlist') out.attend.waitlist++;
-    else if (/^Online/.test(r.attend)) out.attend.online++; else out.attend.unsure++;
+    else if (kind === 'lecture' || kind === 'stanford' || kind === 'online') out.attend[kind]++; else out.attend.unsure++;
     var county = BAY_COUNTIES.indexOf(r.county) > -1 ? r.county : r.county === OUTSIDE ? 'outside' : 'unsaid';
     out.bay[county] = (out.bay[county] || 0) + 1;
     var tie = TIES[r.tie] || 'unsaid';
@@ -1025,7 +1073,7 @@ function rsvpList() {
   return rows.map(function (r) {
     var a = approvals[r.id] || {};
     return { id: r.id, at: r.at, name: r.name, role: r.role, attend: r.attend, seat: plan.status[r.id] || '', waitPlace: plan.place[r.id] || 0, county: r.county, tie: TIES[r.tie] || '',
-      prov1: r.prov1, prov2: r.prov2, story: r.story, consent: r.consent === CONSENT_YES, question: r.question, access: r.access,
+      prov1: r.prov1, prov2: r.prov2, story: r.story, consent: r.consent === CONSENT_YES, question: r.question, access: r.access, diet: r.diet,
       storyOk: a.story === 'yes', questionOk: a.question === 'yes' };
   });
 }

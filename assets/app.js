@@ -1081,10 +1081,10 @@
     var list = state.data.rsvps.slice().sort(function (a, b) { return a.at < b.at ? 1 : -1; });
     var form = safeUrl(state.data.rsvpFormUrl);
     // Seats go in RSVP order (the backend works this out); Banatao holds 149.
-    var inPerson = list.filter(function (r) { return r.seat ? r.seat === "seat" : /^In person/.test(r.attend); }).length;
+    var inPerson = list.filter(function (r) { return r.seat ? r.seat === "seat" : /^In.person (at Banatao|panel)/.test(r.attend); }).length;
     var waiting = list.filter(function (r) { return r.seat === "waitlist"; }).length;
     var joinCell = function (r) { return r.seat === "waitlist" ? "<b>Waitlist #" + esc(String(r.waitPlace || "")) + "</b><br><small>" + esc(r.attend.replace(/ \(.*$/, "")) + "</small>" : esc(r.attend); };
-    var stories = list.filter(function (r) { return r.story; }), questions = list.filter(function (r) { return r.question; }), needs = list.filter(function (r) { return r.access; });
+    var stories = list.filter(function (r) { return r.story; }), questions = list.filter(function (r) { return r.question; }), needs = list.filter(function (r) { return r.access; }), food = list.filter(function (r) { return r.diet; });
     var shownStories = stories.filter(function (r) { return r.storyOk; }).length, picked = questions.filter(function (r) { return r.questionOk; }).length;
     var place = function (r) { return [r.prov1, r.prov2].filter(function (p) { return p && p !== "Not sure" && p !== "Prefer not to say"; }).join(" and "); };
     var storyRows = stories.map(function (r) {
@@ -1097,7 +1097,7 @@
     var all = list.map(function (r) {
       return "<tr><td class=\"t\">" + esc(r.name) + "<br><small>" + esc(r.role || "") + "</small></td><td>" + joinCell(r) + "</td><td>" + esc(r.county) + "</td><td>" + esc(TIE_WORD[r.tie] || "") + (place(r) ? "<br><small>" + esc(place(r)) + "</small>" : "") + "</td></tr>";
     }).join("");
-    return '<div class="wrap"><div class="head"><h1 tabindex="-1">RSVPs</h1><p>' + (list.length ? list.length + (list.length === 1 ? " person has" : " people have") + " RSVPed, " + inPerson + " of 149 in-person seats taken" + (waiting ? ", " + waiting + " on the waitlist" : "") + ". " : "No RSVPs yet. ") +
+    return '<div class="wrap"><div class="head"><h1 tabindex="-1">RSVPs</h1><p>' + (list.length ? list.length + (list.length === 1 ? " person has" : " people have") + " RSVPed, " + inPerson + " of 149 panel seats taken" + (waiting ? ", " + waiting + " on the waitlist" : "") + ". " : "No RSVPs yet. ") +
       "Stories appear on the event page and in the opening only after someone here ticks them, and only if the person said yes to sharing.</p>" +
       '<div class="actions">' + (form ? extLink(form, "Open the RSVP form", "btn btn--solid") : "") +
       '<a class="btn" href="' + esc(eventUrl()) + '" target="_blank" rel="noopener">Event page<span class="sr"> (opens in a new tab)</span></a>' +
@@ -1109,6 +1109,8 @@
       '<section class="section" aria-labelledby="q-h"><h2 id="q-h">Questions for the speakers</h2><p class="section__note">Tick the ones the moderator should have. They are never shown publicly.</p>' + (questionRows ? '<ul class="rsvp-list">' + questionRows + "</ul>" : '<p class="empty">No questions yet.</p>') + "</section>" +
       '<section class="section" aria-labelledby="ac-h"><h2 id="ac-h">Access requests</h2><p class="section__note">Only the four of us see these. Captions need booking with CITRIS ahead of time.</p>' +
       (needs.length ? '<ul class="list">' + needs.map(function (r) { return "<li><b>" + esc(r.name) + ":</b> " + esc(r.access) + "</li>"; }).join("") + "</ul>" : '<p class="empty">None so far.</p>') + "</section>" +
+      '<section class="section" aria-labelledby="fd-h"><h2 id="fd-h">Food allergies and restrictions</h2><p class="section__note">For the caterer. Only the four of us see these; share counts with the caterer, not names.</p>' +
+      (food.length ? '<ul class="list">' + food.map(function (r) { return "<li><b>" + esc(r.name) + ":</b> " + esc(r.diet) + "</li>"; }).join("") + "</ul>" : '<p class="empty">None so far.</p>') + "</section>" +
       '<section class="section" aria-labelledby="all-h"><h2 id="all-h">Everyone</h2>' + (all ? '<div class="table-scroll"><table class="pm-table pm-table--rsvp"><thead><tr><th scope="col">Name</th><th scope="col">Joining</th><th scope="col">Lives in</th><th scope="col">Connection</th></tr></thead><tbody>' + all + "</tbody></table></div>" : '<p class="empty">No RSVPs yet.</p>') +
       '<p class="section__note">Emails are only in the Sheet\'s RSVP responses tab.</p></section></div>';
   }
@@ -1655,7 +1657,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261004054344";
+  var BUILD = "20261006055052";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp

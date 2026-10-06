@@ -251,16 +251,21 @@
     Object.keys(d.sets || {}).forEach(function (k) { if (k.split("|").some(function (p) { return storms[p]; })) inStorm += d.sets[k]; });
     return { provs: provs, counties: counties, withTies: withTies, inStorm: inStorm, noTies: (d.ties && d.ties.none) || 0 };
   }
+  /* "2 at the panel in person, 1 online and 1 not sure yet": panel and online always, the rest only when someone picked them. */
+  function joining(d, parts) {
+    var a = d.attend || {};
+    return list(parts.filter(function (p, i) { return i < 2 || a[p[0]]; }).map(function (p) { return (a[p[0]] || 0) + p[1]; }));
+  }
   function summary(d) {
     var f = facts(d);
     if (!d.total) return W.none;
     if (FIL) {
-      var t = n2w(d.total) + " na ang nag-RSVP: " + d.attend.inPerson + " nang personal at " + d.attend.online + " online" + (d.attend.waitlist ? ", " + d.attend.waitlist + " sa waitlist" : "") + (d.attend.unsure ? ", " + d.attend.unsure + " ang hindi pa sigurado" : "") + ". ";
+      var t = n2w(d.total) + " na ang nag-RSVP: " + joining(d, [["inPerson", " sa panel nang personal"], ["online", " online"], ["waitlist", " sa waitlist ng panel"], ["lecture", " sa lecture sa umaga"], ["stanford", " sa Stanford sa Nob 10"], ["unsure", " ang hindi pa sigurado"]]) + ". ";
       if (f.withTies) t += f.withTies + " sa kanila ang may ugnayan sa " + f.provs.length + " lalawigan sa Pilipinas, pinakamadalas ang " + list(f.provs.slice(0, 3)) + ".";
       if (f.noTies) t += " " + f.noTies + " ang darating nang walang ugnayan sa Pilipinas, at malugod din silang tinatanggap.";
       return t;
     }
-    var s = n2w(d.total) + (d.total === 1 ? " has" : " have") + " RSVPed: " + d.attend.inPerson + " in person and " + d.attend.online + " online" + (d.attend.waitlist ? ", " + d.attend.waitlist + " on the waitlist" : "") + (d.attend.unsure ? ", " + d.attend.unsure + " not sure yet" : "") + ". ";
+    var s = n2w(d.total) + (d.total === 1 ? " has" : " have") + " RSVPed: " + joining(d, [["inPerson", " at the panel in person"], ["online", " online"], ["waitlist", " on the panel waitlist"], ["lecture", " at the morning lecture"], ["stanford", " at Stanford on Nov 10"], ["unsure", " not sure yet"]]) + ". ";
     if (f.withTies) s += f.withTies + " of them have ties to " + f.provs.length + (f.provs.length === 1 ? " province" : " provinces") + " in the Philippines, most often " + list(f.provs.slice(0, 3)) + ".";
     if (f.noTies) s += " " + f.noTies + (f.noTies === 1 ? " is" : " are") + " coming with no ties to the Philippines at all, and are just as welcome.";
     return s;
