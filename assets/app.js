@@ -695,7 +695,7 @@
       state.data.projects.slice().sort(sortByDue).map(projectRowHtml).join("") + '</ul><div class="actions"><button type="button" class="btn" data-act="new-project">New workstream</button></div></section>';
     var needUs = contactsNeedingUs(state.data.contacts).length;
     var reminders = '<section class="section" aria-labelledby="rem-h"><h2 id="rem-h">Your summary and calendar</h2>' +
-      '<p style="margin-top:12px;max-width:var(--read)">The hub never emails the team. Only you get an email: a summary at 8 AM on days with something in it (funding changes and deadlines, overdue work, follow-ups past their date, what\'s due this week). Every assignment, workstream and funding deadline is on your Lagmay visit deadlines calendar. Nobody is invited to those events.</p>' +
+      '<p style="margin-top:12px;max-width:var(--read)">The hub never emails the team. Only you get an email: a summary at 8 AM on days with something in it (funding changes and deadlines, overdue work, follow-ups past their date, what\'s due this week). Every open assignment, workstream and funding deadline is on your Lagmay visit deadlines calendar, and it comes off the calendar once it\'s marked done. Nobody is invited to those events.</p>' +
       '<div class="actions"><button type="button" class="btn" data-act="send-reminders"' + (state.demo ? " disabled" : "") + ">Email me the summary now</button>" +
       (store.get("pmCode") ? '<button type="button" class="btn btn--quiet" data-act="forget-pm">Forget the project manager code on this device</button>' : "") + "</div></section>";
     var tabs = '<nav class="seg" aria-label="Project view as"><a href="#/pm"' + (timeline ? ' aria-current="page"' : "") + '>Timeline</a><a href="#/pm/list"' + (timeline ? "" : ' aria-current="page"') + ">List</a></nav>";
@@ -1657,7 +1657,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261006062317";
+  var BUILD = "20261006233439";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp

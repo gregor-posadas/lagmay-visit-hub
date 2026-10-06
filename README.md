@@ -62,7 +62,7 @@ Some university Google accounts only allow web apps for people signed in to that
 
 - **The team gets no email from the hub.** Nothing is added to anyone's personal calendar either. Teammates see their work by opening the hub.
 - **Gregor gets one summary email** at 8 AM Pacific, only on days with something in it: funding changes, funding deadlines this week, overdue work, follow-ups due by tomorrow, what's due in the next 7 days, and what finished. **Email me the summary now** in Project view sends it on demand.
-- **Every open deadline is on the "Lagmay visit deadlines" calendar** in Gregor's Google Calendar: assignments (titled with the person's name, for example "Due (Noam): ..."), workstreams, and funding deadlines. No one is invited. Each event has pop-up reminders a day and an hour before, which only Gregor sees. Turn the calendar's notifications off in Google Calendar if that's too much.
+- **Every open deadline is on the "Lagmay visit deadlines" calendar** in Gregor's Google Calendar: assignments (titled with the person's name, for example "Due (Noam): ..."), workstreams, and funding deadlines. No one is invited. When an assignment or workstream is marked done, its event is deleted; reopening it puts the event back. Each event has pop-up reminders a day and an hour before, which only Gregor sees. Turn the calendar's notifications off in Google Calendar if that's too much.
 - Anyone can still put a single deadline on their own calendar with **Add to Google Calendar** on its page.
 - To turn per-person reminder emails on later, add `TEAM_EMAILS` = `on` in **Script properties**. Each person's `emailPref` in the Members tab (`daily`, `weekly` or `off`) then decides how often they get one.
 
@@ -76,7 +76,7 @@ You can also edit the Sheet by hand. The columns are named in the first row of e
 - **Links between tabs** use ids: an assignment's `projectId` and `memberId`, a contact's `projectId` and `ownerId`, a funding source's `ownerId` and `contactId`, a budget line's `fundingId`, a milestone's `projectId`.
 - **Text** uses one line per step, starting with `- `. For a link, paste the address or write `[link text](https://...)`. A line starting with `### ` becomes a small heading.
 - **Rules** holds the ground rules shown at the bottom of the Funding page, one per row.
-- After editing dates by hand, run `syncAllCalendarEvents` again to update the calendar.
+- After editing dates or statuses by hand, run `syncAllCalendarEvents` again to update the calendar. It also deletes the events of anything already marked done.
 
 ## The event page and the RSVP map
 

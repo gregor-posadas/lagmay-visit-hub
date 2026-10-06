@@ -92,27 +92,30 @@ function setup() {
   Logger.log('Next: set APP_URL in Project Settings > Script properties to your GitHub Pages address, then deploy as a web app.');
 }
 
-/** Run after setup (and again after editing the Sheet by hand): puts every open deadline on the shared calendar. */
+/**
+ * Run after setup (and again after editing the Sheet by hand): puts every open deadline on the shared calendar,
+ * and takes finished ones off.
+ */
 function syncAllCalendarEvents() {
-  var n = 0;
+  var n = 0, removed = 0;
   readTable('Assignments').forEach(function (a) {
-    if (a.status === 'done' || !a.due) return;
+    if ((a.status === 'done' || !a.due) && !a.calendarEventId) return;
     var id = syncCalendar(a);
-    if (id !== a.calendarEventId) { a.calendarEventId = id; writeRow('Assignments', a); }
-    n++;
+    if (id !== a.calendarEventId) { if (!id) removed++; a.calendarEventId = id; writeRow('Assignments', a); }
+    if (id) n++;
   });
   readTable('Projects').forEach(function (p) {
-    if (p.status === 'done' || !p.due) return;
+    if ((p.status === 'done' || !p.due) && !p.calendarEventId) return;
     var id = syncProjectCalendar(p);
-    if (id !== p.calendarEventId) { p.calendarEventId = id; writeRow('Projects', p); }
-    n++;
+    if (id !== p.calendarEventId) { if (!id) removed++; p.calendarEventId = id; writeRow('Projects', p); }
+    if (id) n++;
   });
   readTable('Funding').forEach(function (f) {
     var id = syncFundingCalendar(f);
     if (id !== f.calendarEventId) { f.calendarEventId = id; writeRow('Funding', f); }
     if (id) n++;
   });
-  Logger.log('Deadlines calendar synced: ' + n + ' events. No one is invited to these events.');
+  Logger.log('Deadlines calendar synced: ' + n + ' open deadlines; ' + removed + ' finished ones removed. No one is invited to these events.');
 }
 
 function randomCode() {
@@ -517,15 +520,17 @@ function deadlineEvent(eventId, title, dueIso, description) {
 }
 function hubLink(path) { var u = setting('APP_URL'); return u ? '\n\n' + APP_NAME + ': ' + u + '#/' + path : ''; }
 
+/* Finished work comes off the calendar; reopening it puts it back. */
 function syncCalendar(a) {
-  if (!a.due) { removeEvent(a.calendarEventId); return ''; }
+  if (!a.due || a.status === 'done') { removeEvent(a.calendarEventId); return ''; }
   var member = indexBy(readTable('Members'))[a.memberId] || {};
   var who = member.name ? ' (' + member.name.split(' ')[0] + ')' : '';
-  return deadlineEvent(a.calendarEventId, (a.status === 'done' ? 'Done' : 'Due') + who + ': ' + a.title, a.due,
+  return deadlineEvent(a.calendarEventId, 'Due' + who + ': ' + a.title, a.due,
     (a.instructions || '') + (a.link ? '\n\nDocument: ' + a.link : '') + hubLink('a/' + a.id));
 }
 function syncProjectCalendar(p) {
-  return deadlineEvent(p.calendarEventId, (p.status === 'done' ? 'Done: ' : 'Workstream deadline: ') + p.name, p.due,
+  if (p.status === 'done') { removeEvent(p.calendarEventId); return ''; }
+  return deadlineEvent(p.calendarEventId, 'Workstream deadline: ' + p.name, p.due,
     (p.description || '') + (p.link ? '\n\nDocument: ' + p.link : '') + hubLink('p/' + p.id));
 }
 /** Funding deadlines only matter while we're still working on the application, or waiting on the decision. */
