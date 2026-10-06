@@ -877,6 +877,18 @@ var CONSENT_YES = 'Yes, you may share it without my name';
  * Run once from the editor. Makes the RSVP form, sends its answers to the "RSVP responses" tab of this Sheet, and logs
  * the link to share. Running it again only logs the links. It emails no one.
  */
+/* The text at the top of the RSVP form. reviseRsvpForm() puts it on the live form too. */
+function rsvpDescription() {
+  return 'A free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, visiting from the UP Resilience Institute ' +
+    'and Project NOAH, and UC Berkeley faculty Dr. Lisandro Claudio and Dr. Diana Martinez.\n' +
+    'Monday, November 9, 2026, 4 to 5 PM Pacific. Banatao Auditorium, Sutardja Dai Hall, UC Berkeley. Also livestreamed.\n' +
+    'This form also takes RSVPs for Dr. Lagmay\'s guest lecture on the UC Berkeley campus that morning and his talk on the Stanford campus on November 10.\n\n' +
+    'Everyone is welcome, whether or not you have ties to the Philippines. It takes about two minutes.\n\n' +
+    'Your name and email are only for the RSVP list and are never shown. The places you pick (a Bay Area county and a province) ' +
+    'appear as anonymous counts on a map at the event and on its web page. Only your name, your email, how you\'ll join and your county ' +
+    'are required, and the county question has "Prefer not to say".';
+}
+
 function createRsvpForm() {
   var props = PropertiesService.getScriptProperties();
   if (props.getProperty('RSVP_FORM_ID')) {
@@ -885,14 +897,7 @@ function createRsvpForm() {
   }
   var appUrl = setting('APP_URL'), eventUrl = appUrl ? appUrl.replace(/\/?$/, '/') + 'event/' : '';
   var form = FormApp.create('RSVP: When the Waters Rise, with Dr. Mahar Lagmay');
-  form.setDescription(
-    'A free public conversation on flooding in the Philippines, with Dr. Mahar Lagmay (UP Resilience Institute and Project NOAH), ' +
-    'Dr. Lisandro Claudio and Dr. Diana Martinez.\n' +
-    'Monday, November 9, 2026, 4 to 5 PM Pacific. Banatao Auditorium, Sutardja Dai Hall, UC Berkeley. Also livestreamed.\n\n' +
-    'Everyone is welcome, whether or not you have ties to the Philippines. It takes about two minutes.\n\n' +
-    'Your name and email are only for the RSVP list and are never shown. The places you pick (a Bay Area county and a province) ' +
-    'appear as anonymous counts on a map at the event and on its web page. Every question about you is optional except your name, ' +
-    'your email and where you live now, and you can pick "Prefer not to say".');
+  form.setDescription(rsvpDescription());
   form.setConfirmationMessage("Thank you, you're on the list. " + (eventUrl ? 'See who is coming: ' + eventUrl : 'See you on November 9.'));
   form.setShowLinkToRespondAgain(false);
   try { form.setRequireLogin(false); } catch (e) { /* not a Workspace setting on this account */ }
@@ -1016,6 +1021,7 @@ function reviseRsvpForm() {
   var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
   if (!formId) { Logger.log('No RSVP form yet.'); return; }
   var form = FormApp.openById(formId), items = form.getItems(), done = [];
+  if (form.getDescription() !== rsvpDescription()) { form.setDescription(rsvpDescription()); done.push('description updated'); }
   var county = items.filter(function (it) { return it.getTitle() === Q.county || (Q_OLD.county || []).indexOf(it.getTitle()) > -1; })[0];
   if (county) { county.setTitle(Q.county).setHelpText(COUNTY_HELP); done.push('county question renamed'); }
   done.push(updateSeatChoices());
