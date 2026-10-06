@@ -99,13 +99,13 @@ function setup() {
 function syncAllCalendarEvents() {
   var n = 0, removed = 0;
   readTable('Assignments').forEach(function (a) {
-    if ((a.status === 'done' || !a.due) && !a.calendarEventId) return;
+    if (!onCalendar(a, 'memberId') && !a.calendarEventId) return;
     var id = syncCalendar(a);
     if (id !== a.calendarEventId) { if (!id) removed++; a.calendarEventId = id; writeRow('Assignments', a); }
     if (id) n++;
   });
   readTable('Projects').forEach(function (p) {
-    if ((p.status === 'done' || !p.due) && !p.calendarEventId) return;
+    if (!onCalendar(p, 'leadId') && !p.calendarEventId) return;
     var id = syncProjectCalendar(p);
     if (id !== p.calendarEventId) { if (!id) removed++; p.calendarEventId = id; writeRow('Projects', p); }
     if (id) n++;
@@ -115,7 +115,7 @@ function syncAllCalendarEvents() {
     if (id !== f.calendarEventId) { f.calendarEventId = id; writeRow('Funding', f); }
     if (id) n++;
   });
-  Logger.log('Deadlines calendar synced: ' + n + ' open deadlines; ' + removed + ' finished ones removed. No one is invited to these events.');
+  Logger.log('Deadlines calendar synced: ' + n + ' open deadlines; ' + removed + ' removed (done, undated or someone else\'s). No one is invited to these events.');
 }
 
 function randomCode() {
@@ -520,22 +520,37 @@ function deadlineEvent(eventId, title, dueIso, description) {
 }
 function hubLink(path) { var u = setting('APP_URL'); return u ? '\n\n' + APP_NAME + ': ' + u + '#/' + path : ''; }
 
-/* Finished work comes off the calendar; reopening it puts it back. */
+/*
+ * The calendar is the project manager's own: it shows only their open work. Teammates' assignments stay in the hub.
+ * The PM is the team member whose email matches PM_EMAIL; set CALENDAR_MEMBER in Script properties to pick someone else.
+ */
+function calendarOwnerId() {
+  var props = PropertiesService.getScriptProperties(), id = props.getProperty('CALENDAR_MEMBER');
+  if (id) return id;
+  var email = String(props.getProperty('PM_EMAIL') || '').toLowerCase();
+  var me = readTable('Members').filter(function (m) { return email && String(m.email || '').toLowerCase() === email; })[0];
+  return me ? me.id : '';
+}
+/* Whether a row belongs on the calendar: open, dated, and the owner's (or nobody's, for workstreams and funding). */
+function onCalendar(row, ownerField) {
+  if (!row.due || row.status === 'done') return false;
+  var mine = calendarOwnerId(), owner = row[ownerField] || '';
+  return !mine || owner === mine || (ownerField !== 'memberId' && !owner);
+}
+/* Finished work and teammates' work come off the calendar; reopening or reassigning puts it back. */
 function syncCalendar(a) {
-  if (!a.due || a.status === 'done') { removeEvent(a.calendarEventId); return ''; }
-  var member = indexBy(readTable('Members'))[a.memberId] || {};
-  var who = member.name ? ' (' + member.name.split(' ')[0] + ')' : '';
-  return deadlineEvent(a.calendarEventId, 'Due' + who + ': ' + a.title, a.due,
+  if (!onCalendar(a, 'memberId')) { removeEvent(a.calendarEventId); return ''; }
+  return deadlineEvent(a.calendarEventId, 'Due: ' + a.title, a.due,
     (a.instructions || '') + (a.link ? '\n\nDocument: ' + a.link : '') + hubLink('a/' + a.id));
 }
 function syncProjectCalendar(p) {
-  if (p.status === 'done') { removeEvent(p.calendarEventId); return ''; }
+  if (!onCalendar(p, 'leadId')) { removeEvent(p.calendarEventId); return ''; }
   return deadlineEvent(p.calendarEventId, 'Workstream deadline: ' + p.name, p.due,
     (p.description || '') + (p.link ? '\n\nDocument: ' + p.link : '') + hubLink('p/' + p.id));
 }
 /** Funding deadlines only matter while we're still working on the application, or waiting on the decision. */
 function syncFundingCalendar(f) {
-  if (['working', 'lead', 'pending'].indexOf(f.status) < 0) { removeEvent(f.calendarEventId); return ''; }
+  if (['working', 'lead', 'pending'].indexOf(f.status) < 0 || !onCalendar({ due: f.due, ownerId: f.ownerId }, 'ownerId')) { removeEvent(f.calendarEventId); return ''; }
   return deadlineEvent(f.calendarEventId, (f.status === 'pending' ? 'Funding decision: ' : 'Funding deadline: ') + f.source, f.due,
     (f.nextStep ? 'Next step: ' + f.nextStep + '\n\n' : '') + (f.notes || '') + (f.link ? '\n\n' + f.link : '') + hubLink('f/' + f.id));
 }
