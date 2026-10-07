@@ -256,3 +256,8 @@ section[id], .ev-hero { scroll-margin-top: 16px; }
 .cm-key { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
 .cm-key li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; }
 .cm-key b { display: block; }
+.cm-side { display: grid; gap: 16px; align-content: start; }
+.cm-credit { font-size: var(--f1); color: var(--ink-2); margin: -8px 0 0; }
+.cm-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 20px; }
+@media (max-width: 760px) { .cm-photos { grid-template-columns: 1fr; } }
+.cm-side .ev-room__fig a, .cm-photos .ev-room__fig a { aspect-ratio: 57 / 28; }
