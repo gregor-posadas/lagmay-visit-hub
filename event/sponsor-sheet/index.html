@@ -52,6 +52,7 @@ p, li { font-size: 9.2pt; line-height: 1.42; }
 .logos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
 .logos span { background: #fff; border: 1.5px solid var(--ink); height: 0.42in; display: flex; align-items: center; justify-content: center; padding: 3px; }
 .logos img { max-width: 100%; max-height: 100%; }
+.logos .logo-text { font-weight: 700; font-size: 7.5pt; line-height: 1.15; text-align: center; }
 .contact { display: grid; grid-template-columns: 1fr 0.95in; gap: 10px; align-items: center; }
 .contact p { font-size: 9pt; line-height: 1.4; }
 .contact img { width: 0.95in; height: 0.95in; background: #fff; }
@@ -84,7 +85,7 @@ a { color: inherit; }
       <h2>The visit</h2>
       <ul class="visit">
         <li><b>Sat, Nov 7</b><span>Dr. Lagmay arrives from Manila</span></li>
-        <li><b>Mon, Nov 9</b><span>Morning guest lecture in Development Engineering 203</span></li>
+        <li><b>Mon, Nov 9</b><span>11 AM guest lecture in Development Engineering 203</span></li>
         <li><b>Mon, Nov 9</b><span>4 to 5 PM, the public conversation in Banatao Auditorium (149 seats), recorded and livestreamed</span></li>
         <li><b>Tue, Nov 10</b><span>A talk at Stanford (planned)</span></li>
       </ul>
@@ -96,15 +97,15 @@ a { color: inherit; }
     <aside class="side">
       <section class="box">
         <h2>What we need</h2>
-        <div class="gnums"><span><b>$500</b> secured</span><span><b>$4,000</b> still needed</span></div>
-        <div class="gbar" role="img" aria-label="$500 secured out of about $4,500"><i style="width:11.11%"></i></div>
-        <p class="gkey"><span><i class="k1"></i>Secured</span><span><i class="k2"></i>Still needed</span><span>of about $4,500</span></p>
+        <div class="gnums"><span><b>$1,571</b> secured</span><span><b>$2,500</b> still needed</span></div>
+        <div class="gbar" role="img" aria-label="$1,571 secured out of about $4,071"><i style="width:38.59%"></i></div>
+        <p class="gkey"><span><i class="k1"></i>Secured</span><span><i class="k2"></i>Still needed</span><span>of about $4,071</span></p>
         <ul class="need">
-          <li class="open"><span class="mk"></span><span><b>Flight from Manila, ~$1,500</b>Round trip; even one way makes the visit possible.</span></li>
           <li class="open"><span class="mk"></span><span><b>Speaker honoraria, $750</b>For all three speakers.</span></li>
           <li class="open"><span class="mk"></span><span><b>Banatao Auditorium, $745</b>Four hours, with AV.</span></li>
           <li class="open"><span class="mk"></span><span><b>Refreshments, ~$500</b>After the talk.</span></li>
           <li class="open"><span class="mk"></span><span><b>Local rides ~$360, printing ~$145</b></span></li>
+          <li class="done"><span class="mk"></span><span><b>Covered: flight from Manila, $1,071</b>Southeast Asia Program, Stanford APARC.</span></li>
           <li class="done"><span class="mk"></span><span><b>Covered: recording and livestream, $500</b>Townsend Center for the Humanities.</span></li>
         </ul>
       </section>
@@ -124,6 +125,7 @@ a { color: inherit; }
           <span><img src="../img/logos/logo-deveng.png" alt="Development Engineering at UC Berkeley"></span>
           <span><img src="../img/logos/logo-townsend.png" alt="Townsend Center for the Humanities"></span>
           <span><img src="../img/logos/logo-bcp.png" alt="Berkeley Club Philippines"></span>
+          <span class="logo-text">Southeast Asia Program, Stanford APARC</span>
         </div>
       </section>
       <section class="contact">
