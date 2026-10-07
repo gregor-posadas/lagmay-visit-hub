@@ -244,6 +244,7 @@ section[id], .ev-hero { scroll-margin-top: 16px; }
 .cm-map { position: relative; z-index: 0; isolation: isolate; height: 380px; background: var(--sunk); border: 2px solid var(--rule-strong); box-shadow: var(--lift, 4px) var(--lift, 4px) 0 0 var(--rule-strong); }
 @media (max-width: 600px) { .cm-map { height: 300px; } }
 .cm-map .leaflet-container, .cm-map.leaflet-container { font: inherit; }
+.cm-map.is-dark .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9); }
 .cm-map:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .cm-pin { display: inline-grid; place-items: center; width: 30px; height: 30px; font-weight: 700; font-size: 15px; line-height: 1; border: 2px solid #fff; box-shadow: 0 0 0 2px #1b1a17; }
 .cm-pin--circle { border-radius: 50%; }

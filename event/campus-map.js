@@ -1,6 +1,6 @@
 /*
  * A small street map of the two buildings: Banatao Auditorium (Sutardja Dai Hall) for the panel, and B100 Blum Hall
- * next door for the reception. Leaflet and the map tiles load only when the map scrolls into view.
+ * next door for the reception. Leaflet and the OpenStreetMap tiles load only when the map scrolls into view.
  * Building outlines are from OpenStreetMap (ways 24024350 and 24025049). Each place has a number, a shape and a word,
  * so color is never the only cue; the list under the map says the same thing for screen readers and if the map fails.
  */
@@ -25,7 +25,8 @@
     var t = document.documentElement.getAttribute("data-theme");
     return t ? t === "dark" : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
   }
-  function tileUrl() { return "https://{s}.basemaps.cartocdn.com/" + (dark() ? "dark_all" : "light_all") + "/{z}/{x}/{y}{r}.png"; }
+  // OpenStreetMap's own tiles (no key needed). In dark mode the tiles are inverted with CSS (.cm-map.is-dark).
+  function paintTheme(el) { el.classList.toggle("is-dark", dark()); }
 
   var loading = null;
   function loadLeaflet() {
@@ -41,8 +42,9 @@
   function draw(el) {
     var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var map = L.map(el, { scrollWheelZoom: false, zoomControl: true, attributionControl: true, zoomAnimation: !still, fadeAnimation: !still, markerZoomAnimation: !still });
-    var tiles = L.tileLayer(tileUrl(), { maxZoom: 20, subdomains: "abcd",
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' }).addTo(map);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
+    paintTheme(el);
     var bounds = L.latLngBounds([]);
     PLACES.forEach(function (p) {
       L.polygon(p.outline, { color: COLORS[p.cls], weight: 2, fillColor: COLORS[p.cls], fillOpacity: 0.22 }).addTo(map);
@@ -53,9 +55,9 @@
     });
     // The short walk between the two: dashed, from the auditorium to the reception.
     L.polyline([PLACES[0].at, PLACES[1].at], { color: dark() ? "#e8e3d8" : "#1b1a17", weight: 2, dashArray: "4 6", interactive: false }).addTo(map);
-    map.fitBounds(bounds.pad(1.2), { maxZoom: 18 });
+    map.fitBounds(bounds.pad(0.35), { maxZoom: 19 });
     // Follow the site's light and dark switch.
-    new MutationObserver(function () { tiles.setUrl(tileUrl()); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    new MutationObserver(function () { paintTheme(el); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     el.classList.add("is-ready");
   }
 
