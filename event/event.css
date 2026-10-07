@@ -137,6 +137,12 @@ html.is-title .ev-present__caption { font-size: clamp(2.4rem, 5vw, 4.6rem); }
 .ev-speaker h3 { font-size: var(--f3); margin: 16px 20px 4px; }
 .ev-speaker__photo { position: relative; aspect-ratio: 1 / 1; max-height: 340px; background: var(--sunk); border-bottom: 2px solid var(--rule-strong); overflow: hidden; }
 .ev-speaker__photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
+/* The photo links to the speaker's university profile. */
+.ev-speaker__photo > a { display: block; width: 100%; height: 100%; }
+.ev-speaker__photo > a:focus-visible { outline: 3px solid var(--focus, #385F96); outline-offset: -3px; }
+.ev-speaker__photo > a img { transition: transform .2s ease; }
+.ev-speaker__photo > a:hover img { transform: scale(1.03); }
+@media (prefers-reduced-motion: reduce) { .ev-speaker__photo > a img { transition: none; } .ev-speaker__photo > a:hover img { transform: none; } }
 .ev-speaker__photo.is-missing img { display: none; }
 .ev-speaker__photo.is-missing::after { content: attr(data-initials); position: absolute; inset: 0; display: grid; place-items: center; font-size: 3rem; font-weight: 700; color: var(--ink-2); }
 .ev-speaker__role { font-weight: 700; color: var(--ink-2); font-size: var(--f1); margin-bottom: 10px; }

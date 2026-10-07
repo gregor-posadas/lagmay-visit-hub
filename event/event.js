@@ -603,7 +603,7 @@
   /* ---------- start ---------- */
   // Speaker photos come from the speakers' university pages; if one won't load, show initials instead of a broken image.
   Array.prototype.forEach.call(document.querySelectorAll(".ev-speaker__photo img"), function (im) {
-    function miss() { im.parentNode.classList.add("is-missing"); }
+    function miss() { im.closest(".ev-speaker__photo").classList.add("is-missing"); }
     if (im.complete && !im.naturalWidth) miss(); else im.addEventListener("error", miss);
   });
   wireRsvp();
