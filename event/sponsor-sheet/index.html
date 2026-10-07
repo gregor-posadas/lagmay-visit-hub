@@ -49,10 +49,12 @@ p, li { font-size: 9.2pt; line-height: 1.42; }
 .done .mk { background: var(--blue); border: 2px solid var(--ink); }
 .thanks { margin-top: 6px; padding-left: 15px; }
 .thanks li { font-size: 9pt; line-height: 1.4; }
-.logos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+.logos { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; }
+.logos span { grid-column: span 3; }
+.logos span.sm { grid-column: span 2; }
+.logos span.xw { grid-column: span 4; padding: 3px 5px; }
 .logos span { background: #fff; border: 1.5px solid var(--ink); height: 0.42in; display: flex; align-items: center; justify-content: center; padding: 3px; }
 .logos img { max-width: 100%; max-height: 100%; }
-.logos .logo-text { font-weight: 700; font-size: 7.5pt; line-height: 1.15; text-align: center; }
 .contact { display: grid; grid-template-columns: 1fr 0.95in; gap: 10px; align-items: center; }
 .contact p { font-size: 9pt; line-height: 1.4; }
 .contact img { width: 0.95in; height: 0.95in; background: #fff; }
@@ -124,8 +126,8 @@ a { color: inherit; }
         <div class="logos">
           <span><img src="../img/logos/logo-deveng.png" alt="Development Engineering at UC Berkeley"></span>
           <span><img src="../img/logos/logo-townsend.png" alt="Townsend Center for the Humanities"></span>
-          <span><img src="../img/logos/logo-bcp.png" alt="Berkeley Club Philippines"></span>
-          <span class="logo-text">Southeast Asia Program, Stanford APARC</span>
+          <span class="sm"><img src="../img/logos/logo-bcp.png" alt="Berkeley Club Philippines"></span>
+          <span class="xw"><img src="../img/logos/logo-stanford-sea.png" alt="Stanford Southeast Asia Program, Shorenstein Asia-Pacific Research Center"></span>
         </div>
       </section>
       <section class="contact">
