@@ -65,6 +65,11 @@
 /* Very wide wordmarks (about 6:1) need a wider card, or the type ends up too small to read. */
 .ev-logos__xwide { flex: 1 1 440px; }
 .ev-logos__xwide img { max-height: 72px; }
+.ev-cohost[hidden] { display: none; }
+.ev-logos__label { margin: 20px 0 0; font-weight: 700; font-size: var(--f1); color: var(--ink-2); }
+.ev-logos__cohost { flex: 0 1 360px; }
+.ev-logos__cohost img { max-height: 96px; }
+.ev-cohost__note { margin: 4px 0 0; max-width: 40rem; }
 .ev-logos__text { font-weight: 700; font-size: var(--f2); text-align: center; max-width: 16rem; }
 @media (max-width: 600px) { .ev-logos { display: grid; grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .ev-logos a { transition: none; } .ev-logos a:hover, .ev-logos a:active { transform: none; } }

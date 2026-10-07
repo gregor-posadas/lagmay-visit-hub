@@ -13,6 +13,6 @@ window.EV_CONFIG = {
   timeTextFil: "4 hanggang 5 ng hapon (oras sa California)",
   refreshSeconds: 60,
   // Supporters shown on the page once they've said yes. Set torres to true when Senator Torres's office agrees to be listed,
-  // and phildev to true once PhilDev commits funding.
-  supporters: { torres: false, phildev: false }
+  // phildev is true: PhilDev committed Oct 7 (co-host; covers Banatao and the reception).
+  supporters: { torres: false, phildev: true }
 };
