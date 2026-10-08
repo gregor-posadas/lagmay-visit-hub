@@ -10,12 +10,12 @@
   var FIL = document.documentElement.lang === "fil";
   var LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/";
   var PLACES = [
-    { n: "1", shape: "circle", cls: "is-talk", label: FIL ? "Banatao Auditorium (talakayan, 4 hanggang 5 PM)" : "Banatao Auditorium (the talk, 4 to 5 PM)",
+    { n: "1", shape: "circle", cls: "is-talk", short: "Banatao Auditorium", label: FIL ? "Banatao Auditorium (talakayan, 4 hanggang 5 PM)" : "Banatao Auditorium (the talk, 4 to 5 PM)",
       at: [37.87487, -122.25834],
       outline: [[37.8748364, -122.2587663], [37.8745761, -122.2586695], [37.8747101, -122.2580606], [37.8747683, -122.2580336], [37.8749482, -122.2581003],
         [37.875157, -122.2581919], [37.8752189, -122.2582452], [37.8751803, -122.25835], [37.875155, -122.2584534], [37.8751298, -122.2585168],
         [37.8749088, -122.2584423], [37.8749007, -122.2584783]] },
-    { n: "2", shape: "square", cls: "is-reception", label: FIL ? "B100 Blum Hall (pagkatapos)" : "B100 Blum Hall (reception after)",
+    { n: "2", shape: "square", cls: "is-reception", short: "B100 Blum Hall", label: FIL ? "B100 Blum Hall (pagkatapos)" : "B100 Blum Hall (reception after)",
       at: [37.87503, -122.25883],
       outline: [[37.8750479, -122.2590597], [37.874938, -122.2590369], [37.8749937, -122.2586047], [37.8751036, -122.2586275]] }
   ];
@@ -49,8 +49,11 @@
     PLACES.forEach(function (p) {
       L.polygon(p.outline, { color: COLORS[p.cls], weight: 2, fillColor: COLORS[p.cls], fillOpacity: 0.22 }).addTo(map);
       var icon = L.divIcon({ className: "cm-pin cm-pin--" + p.shape + " " + p.cls, html: "<span>" + p.n + "</span>", iconSize: [30, 30], iconAnchor: [15, 15] });
+      // On a narrow map the long labels would run off the sides, so use the short name, above or below the pin.
+      var narrow = el.clientWidth < 560, one = p.n === "1";
+      var tip = narrow ? { direction: one ? "bottom" : "top", offset: [0, one ? 16 : -16] } : { direction: one ? "right" : "left", offset: [one ? 16 : -16, 0] };
       L.marker(p.at, { icon: icon, title: p.n + ". " + p.label, alt: p.n + ". " + p.label, keyboard: true })
-        .bindTooltip(p.label, { permanent: true, direction: p.n === "1" ? "right" : "left", offset: [p.n === "1" ? 16 : -16, 0], className: "cm-label" }).addTo(map);
+        .bindTooltip(narrow ? p.short : p.label, { permanent: true, direction: tip.direction, offset: tip.offset, className: "cm-label" }).addTo(map);
       p.outline.forEach(function (c) { bounds.extend(c); });
     });
     // The short walk between the two: dashed, from the auditorium to the reception.

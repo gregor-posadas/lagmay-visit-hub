@@ -250,13 +250,16 @@ section[id], .ev-hero { scroll-margin-top: 16px; }
 .cm-map .leaflet-container, .cm-map.leaflet-container { font: inherit; }
 .cm-map.is-dark .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9); }
 .cm-map:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-.cm-pin { display: inline-grid; place-items: center; width: 30px; height: 30px; font-weight: 700; font-size: 15px; line-height: 1; border: 2px solid #fff; box-shadow: 0 0 0 2px #1b1a17; }
+.cm-pin { display: inline-grid; place-items: center; box-sizing: border-box; width: 30px; height: 30px; font-weight: 700; font-size: 15px; line-height: 1; border: 2px solid #fff; box-shadow: 0 0 0 2px #1b1a17; }
 .cm-pin--circle { border-radius: 50%; }
 .cm-pin--square { border-radius: 3px; }
+/* Leaflet's own CSS loads later and sets markers to display: block, which would push the number into a corner */
+.cm-map .leaflet-marker-icon.cm-pin { display: grid; place-items: center; }
+.cm-pin > span { display: block; line-height: 1; }
 .cm-pin.is-talk { background: #385F96; color: #fff; }
 .cm-pin.is-reception { background: #CF5921; color: #1b1a17; }
-.cm-label { font: inherit; font-weight: 700; font-size: 13px; color: #1b1a17; background: #fff; border: 2px solid #1b1a17; border-radius: 0; box-shadow: none; padding: 3px 7px; }
-.cm-label::before { display: none; }
+.cm-label, .cm-map .leaflet-tooltip.cm-label { font: inherit; font-weight: 700; font-size: 13px; color: #1b1a17; background: #fff; border: 2px solid #1b1a17; border-radius: 0; box-shadow: none; padding: 3px 7px; }
+.cm-label::before, .cm-map .leaflet-tooltip.cm-label::before { display: none; }
 .cm-key { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
 .cm-key li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; }
 .cm-key b { display: block; }
