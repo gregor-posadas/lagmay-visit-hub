@@ -1,0 +1,30 @@
+<!-- out: fil/connect/index.html | title: Makipag-ugnayan: When the Waters Rise | lang: fil | nav: connect | desc: Mga taong may ginagawa, o gustong gawin, para sa Pilipinas. Magdagdag ng maikling card para mahanap ka ng ibang dadalo sa talakayan sa Nobyembre 9, nanonood online o nasa Pilipinas. | scripts: config.js, connect.js -->
+<main id="main" tabindex="-1">
+  <div class="wrap">
+    <header class="rd-head">
+      <p class="ev-kicker">When the Waters Rise</p>
+      <h1>Makipag-ugnayan sa mga proyekto sa Pilipinas</h1>
+      <p class="rd-lead">May ginagawa ka ba sa o para sa Pilipinas, o gusto mong magsimula? Magdagdag ng maikling card para mahanap ka ng mga dadalo, nanonood online o nasa Pilipinas. Bago ang Nobyembre 9, maaari ka rin naming i-email ng mga pagpapakilala sa mga taong kapareho mo ng interes.</p>
+      <div class="actions"><a class="btn btn--solid" id="cn-add" href="#cards">Idagdag ang card mo<span class="sr"> (magbubukas ng Google Form sa bagong tab, nasa Ingles)</span></a><a class="btn" href="{R}fil/rsvp/">Mag-RSVP sa talakayan</a></div>
+    </header>
+
+    <section class="section" aria-labelledby="how-h">
+      <h2 id="how-h">Paano ito gumagana</h2>
+      <ol class="list">
+        <li><b>Magdagdag ng card.</b> Itatanong ng maikling form kung ano ang ginagawa mo, ano ang hinahanap mo, at kung ipapakita ba ang card mo rito o gagamitin lang sa mga pagpapakilala. Mga tatlong minuto lang ito.</li>
+        <li><b>Babasahin ito ng isang organizer.</b> Binabasa ang bawat card bago ito lumabas. Hindi kailanman ipinapakita ang email mo sa pahinang ito.</li>
+        <li><b>Hanapin ang isa't isa.</b> Lalabas sa ibaba ang mga naaprubahang card. Kung humiling ka ng pagpapakilala, makatatanggap ka ng email bago ang Nobyembre 9 na may mga taong kapareho mo ng interes na humiling din ng pagpapakilala.</li>
+      </ol>
+      <p class="section__note">Bukas ito sa lahat, at hindi kailangang mag-RSVP sa talakayan para magdagdag ng card. Para baguhin o alisin ang card mo, mag-email sa <a href="mailto:gregorposadas@berkeley.edu">gregorposadas@berkeley.edu</a>.</p>
+    </section>
+
+    <section class="section" id="cards" aria-labelledby="cards-h">
+      <h2 id="cards-h">Ang mga card</h2>
+      <p class="cn-sample" id="cn-sample" hidden><b>Halimbawang card.</b> Gawa-gawa lang ang mga taong ito, para ipakita ang itsura ng mga card.</p>
+      <div class="cn-filter" id="cn-filter" role="group" aria-label="Ipakita ang mga card tungkol sa" hidden></div>
+      <p class="cn-count" id="cn-count" aria-live="polite"></p>
+      <ul class="cn-cards" id="cn-cards"></ul>
+      <div class="actions" id="cn-more-wrap" hidden><button type="button" class="btn" id="cn-more"></button></div>
+    </section>
+  </div>
+</main>

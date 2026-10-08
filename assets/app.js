@@ -1131,7 +1131,7 @@
         '<small class="rsvp-note">' + (c.show ? "Approved cards appear on the event page" + (c.intros ? " and join the intro emails." : ".") : c.intros ? "Approved, it joins the intro emails but stays off the page." : "Approved, it stays in the Sheet only.") + "</small></li>";
     }).join("");
     return '<section class="section" aria-labelledby="cn-h"><h2 id="cn-h">Connect cards</h2><p class="section__note">People working on Philippine projects add a card so others can find them. Read each one before ticking it. An approved card goes on the event page if they asked for that, and joins the intro emails if they asked for those. Emails are never shown.</p>' +
-      '<div class="actions" style="margin-top:0">' + (form ? extLink(form, "Open the Connect form", "btn") : "") + '<a class="btn" href="' + esc(eventUrl("#connect")) + '" target="_blank" rel="noopener">See the cards on the event page<span class="sr"> (opens in a new tab)</span></a>' +
+      '<div class="actions" style="margin-top:0">' + (form ? extLink(form, "Open the Connect form", "btn") : "") + '<a class="btn" href="' + esc(eventUrl("connect/")) + '" target="_blank" rel="noopener">See the Connect page<span class="sr"> (opens in a new tab)</span></a>' +
       '<button type="button" class="btn" data-act="connect-intros"' + (state.demo || !intros.length ? " disabled" : "") + ">Send intro emails</button></div>" +
       (form ? "" : '<p class="next-step"><b>The form isn\'t made yet.</b> In Apps Script, run <code>createConnectForm</code> once. It logs the link to share.</p>') +
       '<p class="section__note">' + cards.length + (cards.length === 1 ? " card" : " cards") + ", " + ok.length + " approved, " + shown + " on the page. " + intros.length + " approved " + (intros.length === 1 ? "person wants" : "people want") + " intro emails" + (sent ? ", " + sent + " already sent" : "") + ".</p>" +
@@ -1701,7 +1701,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261008055802";
+  var BUILD = "20261008061320";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp

@@ -17,14 +17,14 @@ GLOBE = ('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="fal
 MARK = ('<svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="15" fill="#385F96"/>'
         '<path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>')
 NAV = {
-    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("about", "about/", "About"), ("history", "history/", "Flood history"), ("faq", "faq/", "Questions"), ("directions", "directions/", "Directions"),
+    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("connect", "connect/", "Connect"), ("about", "about/", "About"), ("history", "history/", "Flood history"), ("faq", "faq/", "Questions"), ("directions", "directions/", "Directions"),
            ("support", "support/", "Support us"), ("access", "accessibility/", "Accessibility")],
-    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan"), ("faq", "faq/", "Mga tanong"), ("directions", "fil/directions/", "Direksyon"),
+    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("connect", "fil/connect/", "Makipag-ugnayan"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan"), ("faq", "faq/", "Mga tanong"), ("directions", "fil/directions/", "Direksyon"),
             ("support", "support/", "Suportahan"), ("access", "accessibility/", "Accessibility")],
 }
 # The language link goes to the same page in the other language where there is one, else to the other language's event page.
-OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "rsvp/": "fil/rsvp/",
-         "fil/": "", "fil/about/": "about/", "fil/directions/": "directions/", "fil/rsvp/": "rsvp/"}
+OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "rsvp/": "fil/rsvp/", "connect/": "fil/connect/",
+         "fil/": "", "fil/about/": "about/", "fil/directions/": "directions/", "fil/rsvp/": "rsvp/", "fil/connect/": "connect/"}
 SITE = "https://gregor-posadas.github.io/lagmay-visit-hub/event/"
 WORDS = {
     "en": dict(skip="Skip to content", sub="Flooding in the Philippines, a public conversation", sound="Sound on", theme="Dark mode", share="Share",
