@@ -114,4 +114,18 @@ assert.ok(/lecture is full/.test(choices[2]) && kind(choices[2]) === 'both', cho
 vm.runInContext('LECTURE_SEATS = 20', ctx);
 said = vm.runInContext('updateSeatChoices()', ctx);
 assert.strictEqual(choices[2], vm.runInContext('BOTH', ctx)); assert.ok(/Pick "Both"/.test(help));
+// The Connect question: "Yes" leads to the page with the link; "Not right now" and the page's linear default both submit.
+const made = [];
+const fakeForm = {
+  addMultipleChoiceItem: () => { const q = { kind: 'mc', setTitle(x) { q.title = x; return q; }, setHelpText(x) { q.help = x; return q; }, setRequired(x) { q.req = x; return q; },
+    createChoice: (v, to) => ({ v, to }), setChoices(c) { q.choices = c; return q; } }; made.push(q); return q; },
+  addPageBreakItem: () => { const p = { kind: 'page', setTitle(x) { p.title = x; return p; }, setHelpText(x) { p.help = x; return p; }, setGoToPage(x) { p.go = x; return p; } }; made.push(p); return p; }
+};
+ctx.FormApp.PageNavigationType = { SUBMIT: 'SUBMIT' };
+vm.runInContext('addConnectQuestion', ctx)(fakeForm);
+const [cq, cp] = made;
+assert.strictEqual(cq.title, Q.connect); assert.strictEqual(cq.req, false);
+assert.strictEqual(cq.choices[0].to, cp, 'Yes goes to the Connect page'); assert.strictEqual(cq.choices[1].to, 'SUBMIT');
+assert.strictEqual(cp.go, 'SUBMIT', 'skipping the question submits instead of showing the page');
+assert.ok(/forms\/d\/1Str71D7/.test(cp.help) && /event\/connect\//.test(cp.help) && /press Submit/.test(cp.help), cp.help);
 console.log('RSVP backend tests passed');

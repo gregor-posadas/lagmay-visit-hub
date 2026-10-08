@@ -866,7 +866,8 @@ var Q = {
   consent: 'May we share your answer at the event, without your name?',
   question: 'What would you like to ask the speakers?',
   access: 'Is there anything you need to take part fully?',
-  diet: 'Any food allergies or dietary restrictions?'
+  diet: 'Any food allergies or dietary restrictions?',
+  connect: 'Would you like to connect with others working on projects in or for the Philippines?'
 };
 /* Earlier titles of renamed questions, so answers given before the rename are still found. */
 var Q_OLD = { county: ['Where do you live now?'] };
@@ -915,6 +916,24 @@ function joinKind(a) {
   return 'unsure';
 }
 var CONSENT_YES = 'Yes, you may share it without my name';
+/* The last RSVP question: "Yes" opens a short page with the link to add a Connect card; "Not right now" (or no answer) submits. */
+var CONNECT_YES = 'Yes, show me how to add a card', CONNECT_NO = 'Not right now';
+var CONNECT_HELP = 'Optional. Connect is a board on the event page where people working on, or hoping to work on, projects in or for the Philippines can find each other. Anyone can join, with or without an RSVP.';
+var CONNECT_FORM_FALLBACK = 'https://docs.google.com/forms/d/1Str71D7TAyfwVl0y28jKZjIgZUtvz2aI7lxu96fg5UU/viewform';
+function connectPageText() {
+  return 'Add your card here. It takes about three minutes and opens in a new tab:\n' + (setting('CONNECT_FORM_URL') || CONNECT_FORM_FALLBACK) + '\n\n' +
+    'Your card says who you are, what you are working on and what you are looking for. Your email is never shown, and an organizer reads every card before it goes up. ' +
+    'If you ask for introductions, we will email you a few people with shared interests in early November.\n\n' +
+    'See the cards so far: ' + EVENT_URL + 'connect/\n\n' +
+    'Then come back to this tab and press Submit to finish your RSVP.';
+}
+/* Adds the Connect question at the end of the last page, and the page it leads to. Reaching that page any other way submits. */
+function addConnectQuestion(form) {
+  var q = form.addMultipleChoiceItem().setTitle(Q.connect).setHelpText(CONNECT_HELP).setRequired(false);
+  var page = form.addPageBreakItem().setTitle('Connect with others at the event').setHelpText(connectPageText());
+  page.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  q.setChoices([q.createChoice(CONNECT_YES, page), q.createChoice(CONNECT_NO, FormApp.PageNavigationType.SUBMIT)]);
+}
 
 /**
  * Run once from the editor. Makes the RSVP form, sends its answers to the "RSVP responses" tab of this Sheet, and logs
@@ -980,6 +999,7 @@ function createRsvpForm() {
   form.addParagraphTextItem().setTitle(Q.access).setRequired(false)
     .setHelpText('For example live captions, wheelchair seating, or a seat near an exit. Only the organizers see this.');
   form.addParagraphTextItem().setTitle(Q.diet).setRequired(false).setHelpText(DIET_HELP);
+  addConnectQuestion(form);
 
   // Answers go to this Sheet, in a tab we rename so the code can find it.
   var ss = spreadsheet();
@@ -1093,6 +1113,7 @@ function reviseRsvpForm() {
     if (access) form.moveItem(diet.getIndex(), access.getIndex() + 1);
     done.push('food question added');
   }
+  if (!items.some(function (it) { return it.getTitle() === Q.connect; })) { addConnectQuestion(form); done.push('Connect question and page added'); }
   CacheService.getScriptCache().remove('map');
   Logger.log(done.join('; '));
 }
@@ -1514,7 +1535,8 @@ function rsvpConfirmation(r, plan) {
   }
   var body = '<p>Thank you for your RSVP to <b>When the Waters Rise</b>, a free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Dr. Lisandro Claudio and Dr. Diana Martinez, co-hosted with PhilDev.</p>' +
     l.body + cal +
-    '<p>Working on something in or for the Philippines? Add a card on the <a href="' + EVENT_URL + 'connect/">Connect page</a> so others at the event can find you.</p>' +
+    (/^Yes/.test(r.connect || '') ? '<p><b>You said you would like to connect with others.</b> If you haven\'t added your card yet, you can do it any time from the <a href="' + EVENT_URL + 'connect/">Connect page</a>.</p>'
+      : '<p>Working on something in or for the Philippines? Add a card on the <a href="' + EVENT_URL + 'connect/">Connect page</a> so others at the event can find you.</p>') +
     '<p>Details, directions and the live map of who is coming: <a href="' + EVENT_URL + '">' + EVENT_URL.replace(/^https:\/\//, '') + '</a></p>';
   return { kind: kind, subject: l.subject, event: evs[0] || null, events: evs,
     html: emailShell('Hi ' + first + ',', body, 'Questions, or need to change your RSVP? Just reply to this email. Gregor, Noam and Veronica, UC Berkeley') };

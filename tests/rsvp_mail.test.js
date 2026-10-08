@@ -44,7 +44,9 @@ assert.ok(m.html.includes('Morning guest lecture:') && m.html.includes('seat is 
 assert.ok(run('icsFor')(m.events, 'X').split('BEGIN:VEVENT').length === 3, 'two events in one file');
 m = run('rsvpConfirmation')({ id: 'r10', name: 'Jo', email: 'j@x.org', attend: B }, { status: { r10: 'seat' }, place: {}, lecture: { status: { r10: 'waitlist' }, place: { r10: 1 } } });
 assert.strictEqual(m.events.length, 1); assert.strictEqual(m.events[0].uid, run('RSVP_EVENTS').panel.uid); assert.ok(m.html.includes('number 1') && /Your RSVP/.test(m.subject));
-m = conf('Not sure yet', 'r7'); assert.strictEqual(m.kind, 'unsure'); assert.ok(m.event);
+m = run('rsvpConfirmation')({ id: 'r11', name: 'Kai', email: 'k@x.org', attend: O, connect: run('CONNECT_YES') }, plan);
+assert.ok(m.html.includes('You said you would like to connect') && m.html.includes('connect/'));
+m = conf('Not sure yet', 'r7'); assert.ok(m.html.includes('Working on something in or for the Philippines')); assert.strictEqual(m.kind, 'unsure'); assert.ok(m.event);
 
 const ics = run('icsFor')(run('RSVP_EVENTS').panel, '20261008T060000Z');
 assert.ok(ics.startsWith('BEGIN:VCALENDAR') && ics.includes('\r\nDTSTART:20261110T000000Z\r\n') && ics.includes('DTEND:20261110T010000Z'));
