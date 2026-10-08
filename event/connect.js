@@ -15,7 +15,7 @@
     "Data, mapping and technology", "Policy, governance and history", "Health", "Education and youth", "Agriculture and food",
     "Business and social enterprise", "Arts, culture and media"];
   var T = FIL ? {
-    all: "Lahat", soon: "Malapit nang magbukas ang pag-sign up", looking: "Naghahanap ng", inPerson: "Darating sa Nob 9", online: "Manonood online",
+    all: "Lahat", allAreas: "Lahat ng larangan", filter: "Ipakita ang mga card tungkol sa", soon: "Malapit nang magbukas ang pag-sign up", looking: "Naghahanap ng", inPerson: "Darating sa Nob 9", online: "Manonood online",
     count: function (n) { return n + " card sa ngayon"; }, of: function (k, n, a) { return k + " sa " + n + " card ang tungkol sa " + a; },
     none: "Wala pang card. Maging isa sa mga unang magdagdag.", noneFor: "Wala pang card tungkol dito.", fail: "Hindi ma-load ang mga card ngayon. Subukan ulit mamaya.",
     more: function (n) { return "Ipakita lahat (" + n + ")"; }, newTab: " (magbubukas sa bagong tab)", sample: "Halimbawa",
@@ -26,7 +26,7 @@
       "Funding or funders": "pondo o funder", "Jobs or internships": "trabaho o internship", "Volunteers": "mga boluntaryo", "Just to meet people": "makakilala ng mga tao" },
     base: { "Bay Area": "Bay Area", "Elsewhere in the US": "Ibang bahagi ng US", "Philippines": "Pilipinas", "Somewhere else": "Ibang lugar" }
   } : {
-    all: "All", soon: "Sign-up opens soon", looking: "Looking for", inPerson: "At the event Nov 9", online: "Watching online",
+    all: "All", allAreas: "All areas", filter: "Show cards about", soon: "Sign-up opens soon", looking: "Looking for", inPerson: "At the event Nov 9", online: "Watching online",
     count: function (n) { return n === 1 ? "1 card so far" : n + " cards so far"; }, of: function (k, n, a) { return k + " of " + n + " cards are about " + a; },
     none: "No cards yet. Be one of the first to add yours.", noneFor: "No cards about this yet.", fail: "The cards couldn't load right now. Please try again later.",
     more: function (n) { return "Show all " + n; }, newTab: " (opens in a new tab)", sample: "Sample",
@@ -95,10 +95,10 @@
     var box = $("cn-filter"), areas = areasPresent();
     box.hidden = cards.length < 4 || areas.length < 2;
     if (box.hidden) return;
-    box.innerHTML = [{ key: "", n: cards.length }].concat(areas).map(function (a) {
-      var on = a.key === filter;
-      return '<button type="button" class="cn-chip" aria-pressed="' + on + '" data-area="' + esc(a.key) + '">' + esc(a.key ? tr(T.area, a.key) : T.all) + ' <span class="cn-chip__n">' + a.n + "</span></button>";
-    }).join("");
+    box.innerHTML = '<label for="cn-area">' + T.filter + '</label><select id="cn-area">' +
+      [{ key: "", n: cards.length }].concat(areas).map(function (a) {
+        return '<option value="' + esc(a.key) + '"' + (a.key === filter ? " selected" : "") + ">" + esc(a.key ? tr(T.area, a.key) : T.allAreas) + " (" + a.n + ")</option>";
+      }).join("") + "</select>";
   }
 
   function render() {
@@ -111,9 +111,10 @@
     if (!more.hidden) $("cn-more").textContent = T.more(shown.length);
   }
 
+  document.addEventListener("change", function (ev) {
+    if (ev.target.id === "cn-area") { filter = ev.target.value; showAll = false; render(); }
+  });
   document.addEventListener("click", function (ev) {
-    var chip = ev.target.closest && ev.target.closest(".cn-chip");
-    if (chip) { filter = chip.getAttribute("data-area") || ""; showAll = false; renderFilter(); render(); var again = document.querySelector('.cn-chip[data-area="' + (window.CSS && CSS.escape ? CSS.escape(filter) : filter) + '"]'); if (again) again.focus(); return; }
     if (ev.target.id === "cn-more") { showAll = true; render(); }
   });
 

@@ -2,29 +2,28 @@
 <main id="main" tabindex="-1">
   <div class="wrap">
     <header class="rd-head">
-      <p class="ev-kicker">When the Waters Rise</p>
       <h1>Connect around Philippine projects</h1>
-      <p class="rd-lead">Working on something in or for the Philippines, or hoping to? Add a short card so people at the event, watching online or in the Philippines can find you. Before November 9 we can also email you introductions to people with interests like yours.</p>
-      <div class="actions"><a class="btn btn--solid" id="cn-add" href="#cards">Add your card<span class="sr"> (opens a Google Form in a new tab)</span></a><a class="btn" href="{R}rsvp/">RSVP to the talk</a></div>
+      <p class="rd-lead">People working on projects in or for the Philippines, or hoping to. Add yours so others at the event, watching online or in the Philippines can find you.</p>
+      <div class="actions"><a class="btn btn--solid" id="cn-add" href="#cards">Add your card<span class="sr"> (opens a Google Form in a new tab)</span></a></div>
     </header>
+
+    <section class="section cn-first" id="cards" aria-labelledby="cards-h">
+      <h2 id="cards-h" class="sr">The cards</h2>
+      <p class="cn-sample" id="cn-sample" hidden><b>Sample cards.</b> These people are made up, to show how the cards will look.</p>
+      <div class="cn-filter" id="cn-filter" hidden></div>
+      <p class="cn-count" id="cn-count" aria-live="polite"></p>
+      <ul class="cn-cards" id="cn-cards"></ul>
+      <div class="actions" id="cn-more-wrap" hidden><button type="button" class="btn" id="cn-more"></button></div>
+    </section>
 
     <section class="section" aria-labelledby="how-h">
       <h2 id="how-h">How it works</h2>
       <ol class="list">
         <li><b>Add a card.</b> A short form asks what you work on, what you are looking for, and whether to show your card here or only use it for introductions. It takes about three minutes.</li>
         <li><b>An organizer reads it.</b> Every card is read before it appears. Your email is never shown on this page.</li>
-        <li><b>Find each other.</b> Approved cards appear below. If you asked for introductions, you will get an email before November 9 with people who share your interests and also asked to be introduced.</li>
+        <li><b>Find each other.</b> Approved cards appear at the top of this page. If you asked for introductions, you will get an email before November 9 with people who share your interests and also asked to be introduced.</li>
       </ol>
       <p class="section__note">Anyone is welcome, and you don't need to RSVP to the talk to add a card. To change or remove your card, email <a href="mailto:gregorposadas@berkeley.edu">gregorposadas@berkeley.edu</a>.</p>
-    </section>
-
-    <section class="section" id="cards" aria-labelledby="cards-h">
-      <h2 id="cards-h">The cards</h2>
-      <p class="cn-sample" id="cn-sample" hidden><b>Sample cards.</b> These people are made up, to show how the cards will look.</p>
-      <div class="cn-filter" id="cn-filter" role="group" aria-label="Show cards about" hidden></div>
-      <p class="cn-count" id="cn-count" aria-live="polite"></p>
-      <ul class="cn-cards" id="cn-cards"></ul>
-      <div class="actions" id="cn-more-wrap" hidden><button type="button" class="btn" id="cn-more"></button></div>
     </section>
   </div>
 </main>

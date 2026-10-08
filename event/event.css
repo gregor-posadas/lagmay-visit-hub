@@ -291,3 +291,9 @@ section[id], .ev-hero { scroll-margin-top: 16px; }
 .cn-card__foot a { color: var(--ink); }
 #cn-more-wrap[hidden], .cn-filter[hidden] { display: none; }
 .cn-chip { text-align: left; justify-content: flex-start; }
+.cn-first { margin-top: 8px; padding-top: 0; border-top: 0; }
+.cn-first .cn-filter { margin-top: 4px; }
+.cn-filter { align-items: center; gap: 8px 12px; font-weight: 700; }
+.cn-filter select { min-height: var(--tap, 48px); padding: 6px 12px; border: 2px solid var(--rule-strong); background: var(--surface); color: var(--ink); font: inherit; font-weight: 400; max-width: 100%; }
+.cn-filter select:focus-visible { outline: 3px solid #E7B800; outline-offset: 2px; }
+.cn-filter select { width: auto; }
