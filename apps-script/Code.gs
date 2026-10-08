@@ -889,16 +889,24 @@ var LECTURE_SEATS = 20;
 /* The campus goes before the speaker so no one reads it as Dr. Lagmay's own university; he is visiting from UPRI. */
 var LECTURE = 'Guest lecture by Dr. Mahar Lagmay, in person on the UC Berkeley campus, Nov 9, 11 AM to 12 PM (room for 20 guests)';
 var PANEL = 'Panel with Drs. Mahar Lagmay, Lisandro Claudio and Diana Martinez, in person in Banatao Auditorium on the UC Berkeley campus, Nov 9, 4 to 5 PM, then a reception (149 seats)';
+/* Both in-person sessions on Nov 9. Takes a lecture spot and a panel seat, each in RSVP order, so either can be a waitlist place. */
+var BOTH = 'Both in person on the UC Berkeley campus, Nov 9: the morning guest lecture (11 AM to 12 PM) and the panel with a reception (4 to 5 PM)';
 var LECTURE_WAITLIST = 'Waitlist for the Nov 9 morning guest lecture on the UC Berkeley campus (all 20 guest spots are taken; we will email you if one opens)';
 var STANFORD = 'Guest lecture by Dr. Mahar Lagmay, in person on the Stanford campus, Nov 10';
 var ONLINE = 'Online, on the livestream of the Nov 9 panel';
 var WAITLIST = 'Waitlist for the Nov 9 panel at UC Berkeley (we will email you if a seat opens; you can watch online meanwhile)';
 var IN_PERSON = PANEL;   // the seat-limited choice
-function joinChoices(full, lectureFull) { return [lectureFull ? LECTURE_WAITLIST : LECTURE, full ? WAITLIST : PANEL, STANFORD, ONLINE, NOT_SURE + ' yet']; }
+/* "Both" stays on the list when a session is full; its label says which part would be a waitlist place. */
+function bothChoice(full, lectureFull) {
+  return BOTH + (full && lectureFull ? ' (both are full, so you would be on both waitlists)' : lectureFull ? ' (the lecture is full, so you would be on its waitlist)' :
+    full ? ' (the panel is full, so you would be on its waitlist)' : '');
+}
+function joinChoices(full, lectureFull) { return [lectureFull ? LECTURE_WAITLIST : LECTURE, full ? WAITLIST : PANEL, bothChoice(full, lectureFull), STANFORD, ONLINE, NOT_SURE + ' yet']; }
 /* Which event an answer is for. Earlier wordings still count: "In person at Banatao Auditorium" (the first form) and
    "In-person panel discussion" / "In-person guest lecture, morning" (Oct 5) were the panel and the morning lecture. */
 function joinKind(a) {
   a = String(a || '');
+  if (/^Both/.test(a)) return 'both';
   if (/^Waitlist/.test(a)) return /lecture/i.test(a) ? 'lectureWaitlist' : 'waitlist';
   if (/^Online/.test(a)) return 'online';
   if (/^(Panel|In-person panel|In person at Banatao)/.test(a)) return 'panel';
@@ -919,7 +927,7 @@ function rsvpDescription() {
     'Monday, November 9, 2026, 4 to 5 PM Pacific. Banatao Auditorium, Sutardja Dai Hall, UC Berkeley. Also livestreamed.\n' +
     'This form also takes RSVPs for Dr. Lagmay\'s guest lecture on the UC Berkeley campus that morning and his talk on the Stanford campus on November 10.\n' +
     'Room for each: the morning guest lecture has 20 guest spots (it is a class, so these are on top of the students). The panel in Banatao Auditorium has 149 seats, ' +
-    'and the reception after it in Blum Hall is for the same 149. Spots go in the order people RSVP.\n\n' +
+    'and the reception after it in Blum Hall is for the same 149. Spots go in the order people RSVP. You can come to both the lecture and the panel.\n\n' +
     'Everyone is welcome, whether or not you have ties to the Philippines. It takes about two minutes.\n\n' +
     'Your name and email are only for the RSVP list and are never shown. The places you pick (a Bay Area county and a province) ' +
     'appear as anonymous counts on a map at the event and on its web page. Only your name, your email, how you\'ll join and your county ' +
@@ -1017,12 +1025,13 @@ function seatPlan(rows) {
   var plan = { status: {}, place: {}, taken: 0, waitlist: 0, lecture: { status: {}, place: {}, taken: 0, waitlist: 0 } };
   var lec = plan.lecture;
   rows.forEach(function (r) {
-    var kind = joinKind(r.attend), wantsSeat = kind === 'panel', waiting = kind === 'waitlist';
+    var kind = joinKind(r.attend), wantsSeat = kind === 'panel' || kind === 'both', waiting = kind === 'waitlist';
     if (wantsSeat && plan.taken < SEATS) { plan.taken++; plan.status[r.id] = 'seat'; }
     else if (wantsSeat || waiting) { plan.waitlist++; plan.status[r.id] = 'waitlist'; plan.place[r.id] = plan.waitlist; }
     // The morning lecture keeps its own count (plan.lecture), so the panel's check-in list never picks it up.
-    if (kind === 'lecture' && lec.taken < LECTURE_SEATS) { lec.taken++; lec.status[r.id] = 'seat'; }
-    else if (kind === 'lecture' || kind === 'lectureWaitlist') { lec.waitlist++; lec.status[r.id] = 'waitlist'; lec.place[r.id] = lec.waitlist; }
+    var wantsLecture = kind === 'lecture' || kind === 'both';
+    if (wantsLecture && lec.taken < LECTURE_SEATS) { lec.taken++; lec.status[r.id] = 'seat'; }
+    else if (wantsLecture || kind === 'lectureWaitlist') { lec.waitlist++; lec.status[r.id] = 'waitlist'; lec.place[r.id] = lec.waitlist; }
   });
   plan.left = Math.max(0, SEATS - plan.taken);
   lec.left = Math.max(0, LECTURE_SEATS - lec.taken);
@@ -1059,7 +1068,7 @@ function joinHelp(plan) {
   var panelPart = left === 0 ? 'All ' + SEATS + ' seats for the panel in Banatao Auditorium are taken; you can join its waitlist or watch the livestream.'
     : 'The panel in Banatao Auditorium has ' + SEATS + ' seats' + (plan ? ' (' + left + ' left)' : '') + '.';
   return 'Pick one. Dr. Lagmay is visiting from the University of the Philippines Resilience Institute. ' + lecPart + ' ' + panelPart +
-    ' The reception after the panel, in B100 Blum Hall and its lobby, is for the same ' + SEATS + '. Spots go in the order people RSVP.';
+    ' The reception after the panel, in B100 Blum Hall and its lobby, is for the same ' + SEATS + '. Spots go in the order people RSVP. Coming to both the lecture and the panel? Pick "Both".';
 }
 var COUNTY_HELP = 'If you live outside the Bay Area, pick "Outside the Bay Area".';
 var DIET_HELP = 'For the refreshments after the panel. Optional, and only the organizers see this.';
@@ -1106,9 +1115,11 @@ function publicMap() {
   rows.forEach(function (r) {
     var seat = plan.status[r.id];
     var kind = joinKind(r.attend);
+    // Someone coming to both sessions counts once in each, so the per-session numbers stay right; total counts people.
+    var lecSeat = plan.lecture.status[r.id];
     if (seat === 'seat') out.attend.inPerson++; else if (seat === 'waitlist') out.attend.waitlist++;
-    else if (kind === 'lecture' || kind === 'lectureWaitlist') out.attend[plan.lecture.status[r.id] === 'seat' ? 'lecture' : 'lectureWaitlist']++;
-    else if (kind === 'stanford' || kind === 'online') out.attend[kind]++; else out.attend.unsure++;
+    if (lecSeat) out.attend[lecSeat === 'seat' ? 'lecture' : 'lectureWaitlist']++;
+    if (!seat && !lecSeat) { if (kind === 'stanford' || kind === 'online') out.attend[kind]++; else out.attend.unsure++; }
     var county = BAY_COUNTIES.indexOf(r.county) > -1 ? r.county : r.county === OUTSIDE ? 'outside' : 'unsaid';
     out.bay[county] = (out.bay[county] || 0) + 1;
     var tie = TIES[r.tie] || 'unsaid';
@@ -1427,12 +1438,16 @@ var RSVP_EVENTS = {
     about: 'Dr. Mahar Lagmay, Executive Director of the UP Resilience Institute and Project NOAH, guest lecturing in Development Engineering 203. We will email the room before the day.' }
 };
 function icsEscape(v) { return String(v).replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/[,;]/g, function (c) { return '\\' + c; }); }
-function icsFor(ev, stamp) {
-  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//When the Waters Rise//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
-    'UID:' + ev.uid, 'DTSTAMP:' + stamp, 'DTSTART:' + ev.start, 'DTEND:' + ev.end,
-    'SUMMARY:' + icsEscape(ev.title), 'LOCATION:' + icsEscape(ev.where), 'DESCRIPTION:' + icsEscape(ev.about + '\n\n' + EVENT_URL), 'URL:' + EVENT_URL,
-    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEscape(ev.title), 'TRIGGER:-PT1H', 'END:VALARM',
-    'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+/* One calendar file holding one event, or several (someone coming to both the lecture and the panel). */
+function icsFor(evs, stamp) {
+  var lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//When the Waters Rise//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+  [].concat(evs).forEach(function (ev) {
+    lines.push('BEGIN:VEVENT', 'UID:' + ev.uid, 'DTSTAMP:' + stamp, 'DTSTART:' + ev.start, 'DTEND:' + ev.end,
+      'SUMMARY:' + icsEscape(ev.title), 'LOCATION:' + icsEscape(ev.where), 'DESCRIPTION:' + icsEscape(ev.about + '\n\n' + EVENT_URL), 'URL:' + EVENT_URL,
+      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEscape(ev.title), 'TRIGGER:-PT1H', 'END:VALARM', 'END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
 }
 function calLinks(ev) {
   var details = ev.about + '\n\n' + EVENT_URL;
@@ -1464,28 +1479,44 @@ function rsvpConfirmation(r, plan) {
       body: '<p>You are joining the livestream of the panel on <b>Monday, November 9, 4 to 5 PM Pacific</b>. We will email the link to this address before the event.</p>' },
     lecture: { subject: "You're on the list: Dr. Lagmay's guest lecture, Nov 9",
       body: '<p>You are on the list for Dr. Lagmay\'s guest lecture on the UC Berkeley campus, <b>Monday, November 9, 11 AM to 12 PM Pacific</b>. We will email you the room before the day.</p>' +
-        '<p>The public panel is the same afternoon, 4 to 5 PM in Banatao Auditorium, if you would like to come to that too. You can RSVP for it on the event page.</p>' },
+        '<p>The public panel is the same afternoon, 4 to 5 PM in Banatao Auditorium, if you would like to come to that too. To add it, fill in the RSVP form again and pick the panel.</p>' },
     lectureWaitlist: { subject: "You're on the waitlist: Dr. Lagmay's guest lecture, Nov 9",
       body: '<p>The guest lecture on the UC Berkeley campus, <b>Monday, November 9, 11 AM to 12 PM Pacific</b>, is a class session with room for ' + LECTURE_SEATS + ' guests, and those spots are taken. ' +
         'You are ' + (place ? '<b>number ' + place + '</b> ' : '') + 'on its waitlist, and we will email you if a spot opens.</p>' +
-        '<p>The public panel is the same afternoon, 4 to 5 PM in Banatao Auditorium, with ' + SEATS + ' seats and a reception after. You can RSVP for it on the event page.</p>' },
+        '<p>The public panel is the same afternoon, 4 to 5 PM in Banatao Auditorium, with ' + SEATS + ' seats and a reception after. To add it, fill in the RSVP form again and pick the panel.</p>' },
     stanford: { subject: "You're on the list: Dr. Lagmay at Stanford, Nov 10",
       body: '<p>You are on the list for Dr. Lagmay\'s talk on the Stanford campus on <b>Tuesday, November 10</b>. The time and room are still being set, and we will email them to you as soon as they are.</p>' },
     unsure: { subject: 'Thanks for your RSVP: When the Waters Rise, Nov 9',
       body: '<p>Thanks for letting us know you might come. The panel is ' + panelWhen + ', and it is also livestreamed. The calendar invite below saves the date. If your plans firm up, just reply to this email.</p>' }
   };
   var l = lines[kind] || lines.unsure;
-  var ev = kind === 'lecture' ? RSVP_EVENTS.lecture : kind === 'stanford' || kind === 'lectureWaitlist' ? null : RSVP_EVENTS.panel;
+  var evs = kind === 'lecture' ? [RSVP_EVENTS.lecture] : kind === 'stanford' || kind === 'lectureWaitlist' ? [] : [RSVP_EVENTS.panel];
+  if (kind === 'both') {
+    // Each half is a spot or a waitlist place on its own. The panel invite goes either way (anyone can watch online); the lecture's only with a spot.
+    var lecSeat = lec.status[r.id] || 'seat', panelSeat = seat || 'seat';
+    var lecPart = lecSeat === 'seat' ? '<p><b>Morning guest lecture:</b> your spot is saved for <b>Monday, November 9, 11 AM to 12 PM Pacific</b>, on the UC Berkeley campus. We will email you the room before the day.</p>'
+      : '<p><b>Morning guest lecture:</b> it is a class session with room for ' + LECTURE_SEATS + ' guests, and those spots are taken, so you are ' + (lec.place[r.id] ? '<b>number ' + lec.place[r.id] + '</b> ' : '') + 'on its waitlist. We will email you if a spot opens.</p>';
+    var panelPart = panelSeat === 'seat' ? '<p><b>Panel:</b> your seat is saved for ' + panelWhen + '. Please arrive a few minutes early, and stay after to meet the speakers at a reception in B100 Blum Hall and its lobby, next door.</p>'
+      : '<p><b>Panel:</b> all ' + SEATS + ' seats are taken, so you are ' + (plan.place[r.id] ? '<b>number ' + plan.place[r.id] + '</b> ' : '') + 'on its waitlist. We will email you if a seat opens, and you can watch the livestream either way. The panel is ' + panelWhen + '.</p>';
+    var allIn = lecSeat === 'seat' && panelSeat === 'seat';
+    l = { subject: allIn ? "You're on the list: Dr. Lagmay's lecture and the panel, Nov 9" : "Your RSVP for Dr. Lagmay's lecture and the panel, Nov 9",
+      body: '<p>You signed up for both of Dr. Lagmay\'s sessions at UC Berkeley on November 9.</p>' + lecPart + panelPart };
+    evs = lecSeat === 'seat' ? [RSVP_EVENTS.lecture, RSVP_EVENTS.panel] : [RSVP_EVENTS.panel];
+  }
   var cal = '';
-  if (ev) {
-    var links = calLinks(ev);
-    cal = '<p><b>Add it to your calendar:</b> open the attached invite.ics, or use <a href="' + esc(links.google) + '">Google Calendar</a> or <a href="' + esc(links.outlook) + '">Outlook.com</a>.</p>';
+  if (evs.length) {
+    cal = '<p><b>Add ' + (evs.length > 1 ? 'them' : 'it') + ' to your calendar:</b> open the attached invite.ics' + (evs.length > 1 ? ' (it has both)' : '') + ', or use ' +
+      evs.map(function (ev) {
+        var links = calLinks(ev);
+        return (evs.length > 1 ? (ev === RSVP_EVENTS.lecture ? 'for the lecture, ' : 'for the panel, ') : '') +
+          '<a href="' + esc(links.google) + '">Google Calendar</a> or <a href="' + esc(links.outlook) + '">Outlook.com</a>';
+      }).join('; ') + '.</p>';
   }
   var body = '<p>Thank you for your RSVP to <b>When the Waters Rise</b>, a free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Dr. Lisandro Claudio and Dr. Diana Martinez, co-hosted with PhilDev.</p>' +
     l.body + cal +
     '<p>Working on something in or for the Philippines? Add a card on the <a href="' + EVENT_URL + 'connect/">Connect page</a> so others at the event can find you.</p>' +
     '<p>Details, directions and the live map of who is coming: <a href="' + EVENT_URL + '">' + EVENT_URL.replace(/^https:\/\//, '') + '</a></p>';
-  return { kind: kind, subject: l.subject, event: ev,
+  return { kind: kind, subject: l.subject, event: evs[0] || null, events: evs,
     html: emailShell('Hi ' + first + ',', body, 'Questions, or need to change your RSVP? Just reply to this email. Gregor, Noam and Veronica, UC Berkeley') };
 }
 
@@ -1502,7 +1533,7 @@ function sendRsvpConfirmations() {
       if (MailApp.getRemainingDailyQuota() < 5) return;
       var m = rsvpConfirmation(r, plan);
       var msg = { to: r.email, subject: m.subject, htmlBody: m.html, body: stripHtml(m.html), name: 'When the Waters Rise', replyTo: replyTo };
-      if (m.event) msg.attachments = [Utilities.newBlob(icsFor(m.event, stamp), 'text/calendar', 'invite.ics')];
+      if (m.events.length) msg.attachments = [Utilities.newBlob(icsFor(m.events, stamp), 'text/calendar', 'invite.ics')];
       MailApp.sendEmail(msg);
       writeRow('RsvpMail', { id: r.id, sentAt: cell(new Date()), kind: m.kind });
       n++;

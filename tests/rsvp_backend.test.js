@@ -67,10 +67,10 @@ const item = { getTitle: () => Q.attend, asMultipleChoiceItem: () => ({ setChoic
 ctx.FormApp = { ItemType: { MULTIPLE_CHOICE: 'mc' }, openById: () => ({ getItems: () => [item] }) };
 ctx.PropertiesService = { getScriptProperties: () => ({ getProperty: k => k === 'RSVP_FORM_ID' ? 'F1' : null, setProperty() {} }) };
 let said = vm.runInContext('updateSeatChoices()', ctx);
-assert.ok(/UC Berkeley campus, Nov 9, 11 AM/.test(choices[0]) && /^Waitlist/.test(choices[1]) && choices.length === 5 && /taken/.test(help), said);
+assert.ok(/UC Berkeley campus, Nov 9, 11 AM/.test(choices[0]) && /^Waitlist/.test(choices[1]) && choices.length === 6 && /panel is full/.test(choices[2]) && /taken/.test(help), said);
 vm.runInContext('SEATS = 149', ctx);
 said = vm.runInContext('updateSeatChoices()', ctx);
-assert.strictEqual(JSON.stringify(choices.map(c => vm.runInContext('joinKind', ctx)(c))), JSON.stringify(['lecture', 'panel', 'stanford', 'online', 'unsure']));
+assert.strictEqual(JSON.stringify(choices.map(c => vm.runInContext('joinKind', ctx)(c))), JSON.stringify(['lecture', 'panel', 'both', 'stanford', 'online', 'unsure']));
 assert.ok(/147 of 149/.test(said) && /149/.test(help), said);
 // Answers given under earlier wordings keep counting for the right event.
 const kind = vm.runInContext('joinKind', ctx);
@@ -98,4 +98,20 @@ assert.ok(choices.every(c => /campus|Online|Not sure/.test(c)), 'the lecture wai
 const plan3 = vm.runInContext('seatPlan(readRsvps())', ctx);
 assert.ok(!Object.keys(plan3.status).some(id => plan3.lecture.status[id]), 'the panel check-in list never includes lecture RSVPs');
 vm.runInContext('LECTURE_SEATS = 20', ctx);
+
+// Both: one RSVP takes a lecture spot and a panel seat, each in RSVP order, and counts once in each session.
+sheets['RSVP responses'].rows.push([new Date(), 'Jo', 'j@x.org', '', vm.runInContext('BOTH', ctx), 'Marin', '', '', '', '', '', '', '', '']);
+delete cache.map;
+const plan4 = vm.runInContext('seatPlan(readRsvps())', ctx), jo = 'r' + sheets['RSVP responses'].rows.length;
+assert.strictEqual(plan4.status[jo], 'seat'); assert.strictEqual(plan4.lecture.status[jo], 'seat');
+m = JSON.parse(JSON.stringify(vm.runInContext('publicMap()', ctx)));
+assert.strictEqual(m.total, 10, 'people, not sessions'); assert.strictEqual(m.attend.inPerson, 3); assert.strictEqual(m.attend.lecture, 3, 'Fe, Hal and Jo; Ivy chose the waitlist');
+vm.runInContext('LECTURE_SEATS = 2', ctx);
+const plan5 = vm.runInContext('seatPlan(readRsvps())', ctx);
+assert.strictEqual(plan5.status[jo], 'seat'); assert.strictEqual(plan5.lecture.status[jo], 'waitlist', 'lecture full: Both keeps the panel seat and waits for the lecture');
+said = vm.runInContext('updateSeatChoices()', ctx);
+assert.ok(/lecture is full/.test(choices[2]) && kind(choices[2]) === 'both', choices[2]);
+vm.runInContext('LECTURE_SEATS = 20', ctx);
+said = vm.runInContext('updateSeatChoices()', ctx);
+assert.strictEqual(choices[2], vm.runInContext('BOTH', ctx)); assert.ok(/Pick "Both"/.test(help));
 console.log('RSVP backend tests passed');

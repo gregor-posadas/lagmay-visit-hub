@@ -1084,10 +1084,12 @@
     var inPerson = list.filter(function (r) { return r.seat ? r.seat === "seat" : /^In.person (at Banatao|panel)/.test(r.attend); }).length;
     var waiting = list.filter(function (r) { return r.seat === "waitlist"; }).length;
     var lecture = list.filter(function (r) { return r.lectureSeat === "seat"; }).length, lecWaiting = list.filter(function (r) { return r.lectureSeat === "waitlist"; }).length;
+    // Someone coming to both can be on one waitlist and not the other, so each gets its own line.
     var joinCell = function (r) {
-      if (r.seat === "waitlist") return "<b>Waitlist #" + esc(String(r.waitPlace || "")) + "</b><br><small>" + esc(r.attend.replace(/ \(.*$/, "")) + "</small>";
-      if (r.lectureSeat === "waitlist") return "<b>Lecture waitlist #" + esc(String(r.lectureWaitPlace || "")) + "</b><br><small>" + esc(r.attend.replace(/ \(.*$/, "")) + "</small>";
-      return esc(r.attend);
+      var marks = [];
+      if (r.seat === "waitlist") marks.push("<b>Panel waitlist #" + esc(String(r.waitPlace || "")) + "</b>");
+      if (r.lectureSeat === "waitlist") marks.push("<b>Lecture waitlist #" + esc(String(r.lectureWaitPlace || "")) + "</b>");
+      return marks.length ? marks.join("<br>") + "<br><small>" + esc(r.attend.replace(/ \(.*$/, "")) + "</small>" : esc(r.attend);
     };
     var stories = list.filter(function (r) { return r.story; }), questions = list.filter(function (r) { return r.question; }), needs = list.filter(function (r) { return r.access; }), food = list.filter(function (r) { return r.diet; });
     var shownStories = stories.filter(function (r) { return r.storyOk; }).length, picked = questions.filter(function (r) { return r.questionOk; }).length;
@@ -1706,7 +1708,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261008151315";
+  var BUILD = "20261008154235";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp
