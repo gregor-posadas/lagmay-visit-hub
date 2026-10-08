@@ -1083,7 +1083,12 @@
     // Seats go in RSVP order (the backend works this out); Banatao holds 149.
     var inPerson = list.filter(function (r) { return r.seat ? r.seat === "seat" : /^In.person (at Banatao|panel)/.test(r.attend); }).length;
     var waiting = list.filter(function (r) { return r.seat === "waitlist"; }).length;
-    var joinCell = function (r) { return r.seat === "waitlist" ? "<b>Waitlist #" + esc(String(r.waitPlace || "")) + "</b><br><small>" + esc(r.attend.replace(/ \(.*$/, "")) + "</small>" : esc(r.attend); };
+    var lecture = list.filter(function (r) { return r.lectureSeat === "seat"; }).length, lecWaiting = list.filter(function (r) { return r.lectureSeat === "waitlist"; }).length;
+    var joinCell = function (r) {
+      if (r.seat === "waitlist") return "<b>Waitlist #" + esc(String(r.waitPlace || "")) + "</b><br><small>" + esc(r.attend.replace(/ \(.*$/, "")) + "</small>";
+      if (r.lectureSeat === "waitlist") return "<b>Lecture waitlist #" + esc(String(r.lectureWaitPlace || "")) + "</b><br><small>" + esc(r.attend.replace(/ \(.*$/, "")) + "</small>";
+      return esc(r.attend);
+    };
     var stories = list.filter(function (r) { return r.story; }), questions = list.filter(function (r) { return r.question; }), needs = list.filter(function (r) { return r.access; }), food = list.filter(function (r) { return r.diet; });
     var shownStories = stories.filter(function (r) { return r.storyOk; }).length, picked = questions.filter(function (r) { return r.questionOk; }).length;
     var place = function (r) { return [r.prov1, r.prov2].filter(function (p) { return p && p !== "Not sure" && p !== "Prefer not to say"; }).join(" and "); };
@@ -1097,7 +1102,7 @@
     var all = list.map(function (r) {
       return "<tr><td class=\"t\">" + esc(r.name) + "<br><small>" + esc(r.role || "") + "</small></td><td>" + joinCell(r) + "</td><td>" + esc(r.county) + "</td><td>" + esc(TIE_WORD[r.tie] || "") + (place(r) ? "<br><small>" + esc(place(r)) + "</small>" : "") + "</td></tr>";
     }).join("");
-    return '<div class="wrap"><div class="head"><h1 tabindex="-1">RSVPs</h1><p>' + (list.length ? list.length + (list.length === 1 ? " person has" : " people have") + " RSVPed, " + inPerson + " of 149 panel seats taken" + (waiting ? ", " + waiting + " on the waitlist" : "") + ". " : "No RSVPs yet. ") +
+    return '<div class="wrap"><div class="head"><h1 tabindex="-1">RSVPs</h1><p>' + (list.length ? list.length + (list.length === 1 ? " person has" : " people have") + " RSVPed, " + inPerson + " of 149 panel seats taken" + (waiting ? ", " + waiting + " on the waitlist" : "") + ", " + lecture + " of 20 lecture guest spots taken" + (lecWaiting ? ", " + lecWaiting + " on the lecture waitlist" : "") + ". " : "No RSVPs yet. ") +
       "Stories appear on the event page and in the opening only after someone here ticks them, and only if the person said yes to sharing.</p>" +
       '<div class="actions">' + (form ? extLink(form, "Open the RSVP form", "btn btn--solid") : "") + (safeUrl(state.data.checkinUrl) ? extLink(safeUrl(state.data.checkinUrl), "Door check-in sheet", "btn") : "") +
       '<a class="btn" href="' + esc(eventUrl()) + '" target="_blank" rel="noopener">Event page<span class="sr"> (opens in a new tab)</span></a>' +
@@ -1701,7 +1706,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261008070322";
+  var BUILD = "20261008151315";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp

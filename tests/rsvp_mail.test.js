@@ -30,6 +30,13 @@ m = conf(O, 'r4'); assert.strictEqual(m.kind, 'online'); assert.ok(/livestream/.
 m = conf(L, 'r5'); assert.strictEqual(m.kind, 'lecture'); assert.strictEqual(m.event.start, '20261109T190000Z', '11 AM Pacific');
 m = conf(S, 'r6'); assert.strictEqual(m.kind, 'stanford'); assert.strictEqual(m.event, null, 'no invite until the Stanford time is set');
 assert.ok(!m.html.includes('invite.ics'));
+const lplan = { status: {}, place: {}, lecture: { status: { r5: 'seat', r8: 'waitlist' }, place: { r8: 2 } } };
+m = run('rsvpConfirmation')({ id: 'r8', name: 'Hal', email: 'h@x.org', attend: L }, lplan);
+assert.strictEqual(m.kind, 'lectureWaitlist', 'a lecture RSVP past the 20 guest spots is told it is on the lecture waitlist');
+assert.ok(/waitlist/i.test(m.subject) && m.html.includes('number 2') && m.html.includes('20 guests') && m.event === null, 'no invite for a spot they do not have');
+m = run('rsvpConfirmation')({ id: 'r5', name: 'Fe', email: 'f@x.org', attend: L }, lplan); assert.strictEqual(m.kind, 'lecture');
+m = run('rsvpConfirmation')({ id: 'r9', name: 'Ivy', email: 'i@x.org', attend: run('LECTURE_WAITLIST') }, { status: {}, place: {}, lecture: { status: { r9: 'waitlist' }, place: { r9: 3 } } });
+assert.strictEqual(m.kind, 'lectureWaitlist'); assert.ok(m.html.includes('number 3'));
 m = conf('Not sure yet', 'r7'); assert.strictEqual(m.kind, 'unsure'); assert.ok(m.event);
 
 const ics = run('icsFor')(run('RSVP_EVENTS').panel, '20261008T060000Z');

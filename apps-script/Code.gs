@@ -879,22 +879,27 @@ var TIES = {
   'No connection, just interested (everyone is welcome)': 'none'
 };
 var NOT_SURE = 'Not sure', NO_SAY = 'Prefer not to say', OUTSIDE = 'Outside the Bay Area';
-/* Banatao Auditorium holds 149. In-person seats go in the order people RSVP; after that, "In person" answers go on the waitlist. */
+/* Banatao Auditorium holds 149. In-person seats go in the order people RSVP; after that, "In person" answers go on the waitlist.
+   The reception after the panel (B100 Blum Hall and its lobby) is for the same 149, so it has no count of its own. */
 var SEATS = 149;
-/* "How will you join us?" is single choice. Only the panel in Banatao Auditorium has the 149-seat limit. */
+/* The morning guest lecture is a DevEng 203 class session: room for 20 guests on top of the enrolled students, a hard limit.
+   Spots go in RSVP order like the panel's; after that, lecture answers go on the lecture's own waitlist. */
+var LECTURE_SEATS = 20;
+/* "How will you join us?" is single choice. The panel and the morning lecture are seat-limited; Stanford and online aren't. */
 /* The campus goes before the speaker so no one reads it as Dr. Lagmay's own university; he is visiting from UPRI. */
-var LECTURE = 'Guest lecture by Dr. Mahar Lagmay, in person on the UC Berkeley campus, Nov 9, 11 AM to 12 PM';
-var PANEL = 'Panel with Drs. Mahar Lagmay, Lisandro Claudio and Diana Martinez, in person in Banatao Auditorium on the UC Berkeley campus, Nov 9, 4 to 5 PM';
+var LECTURE = 'Guest lecture by Dr. Mahar Lagmay, in person on the UC Berkeley campus, Nov 9, 11 AM to 12 PM (room for 20 guests)';
+var PANEL = 'Panel with Drs. Mahar Lagmay, Lisandro Claudio and Diana Martinez, in person in Banatao Auditorium on the UC Berkeley campus, Nov 9, 4 to 5 PM, then a reception (149 seats)';
+var LECTURE_WAITLIST = 'Waitlist for the Nov 9 morning guest lecture on the UC Berkeley campus (all 20 guest spots are taken; we will email you if one opens)';
 var STANFORD = 'Guest lecture by Dr. Mahar Lagmay, in person on the Stanford campus, Nov 10';
 var ONLINE = 'Online, on the livestream of the Nov 9 panel';
 var WAITLIST = 'Waitlist for the Nov 9 panel at UC Berkeley (we will email you if a seat opens; you can watch online meanwhile)';
 var IN_PERSON = PANEL;   // the seat-limited choice
-function joinChoices(full) { return [LECTURE, full ? WAITLIST : PANEL, STANFORD, ONLINE, NOT_SURE + ' yet']; }
+function joinChoices(full, lectureFull) { return [lectureFull ? LECTURE_WAITLIST : LECTURE, full ? WAITLIST : PANEL, STANFORD, ONLINE, NOT_SURE + ' yet']; }
 /* Which event an answer is for. Earlier wordings still count: "In person at Banatao Auditorium" (the first form) and
    "In-person panel discussion" / "In-person guest lecture, morning" (Oct 5) were the panel and the morning lecture. */
 function joinKind(a) {
   a = String(a || '');
-  if (/^Waitlist/.test(a)) return 'waitlist';
+  if (/^Waitlist/.test(a)) return /lecture/i.test(a) ? 'lectureWaitlist' : 'waitlist';
   if (/^Online/.test(a)) return 'online';
   if (/^(Panel|In-person panel|In person at Banatao)/.test(a)) return 'panel';
   if (/lecture/i.test(a) && /Stanford/.test(a)) return 'stanford';
@@ -912,7 +917,9 @@ function rsvpDescription() {
   return 'A free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, visiting from the UP Resilience Institute ' +
     'and Project NOAH, and UC Berkeley faculty Dr. Lisandro Claudio and Dr. Diana Martinez.\n' +
     'Monday, November 9, 2026, 4 to 5 PM Pacific. Banatao Auditorium, Sutardja Dai Hall, UC Berkeley. Also livestreamed.\n' +
-    'This form also takes RSVPs for Dr. Lagmay\'s guest lecture on the UC Berkeley campus that morning and his talk on the Stanford campus on November 10.\n\n' +
+    'This form also takes RSVPs for Dr. Lagmay\'s guest lecture on the UC Berkeley campus that morning and his talk on the Stanford campus on November 10.\n' +
+    'Room for each: the morning guest lecture has 20 guest spots (it is a class, so these are on top of the students). The panel in Banatao Auditorium has 149 seats, ' +
+    'and the reception after it in Blum Hall is for the same 149. Spots go in the order people RSVP.\n\n' +
     'Everyone is welcome, whether or not you have ties to the Philippines. It takes about two minutes.\n\n' +
     'Your name and email are only for the RSVP list and are never shown. The places you pick (a Bay Area county and a province) ' +
     'appear as anonymous counts on a map at the event and on its web page. Only your name, your email, how you\'ll join and your county ' +
@@ -1007,13 +1014,18 @@ function provinceOk(p) { return PROVINCES.indexOf(p) > -1; }
  * plus the counts. "Not sure yet" holds no seat.
  */
 function seatPlan(rows) {
-  var plan = { status: {}, place: {}, taken: 0, waitlist: 0 };
+  var plan = { status: {}, place: {}, taken: 0, waitlist: 0, lecture: { status: {}, place: {}, taken: 0, waitlist: 0 } };
+  var lec = plan.lecture;
   rows.forEach(function (r) {
     var kind = joinKind(r.attend), wantsSeat = kind === 'panel', waiting = kind === 'waitlist';
     if (wantsSeat && plan.taken < SEATS) { plan.taken++; plan.status[r.id] = 'seat'; }
     else if (wantsSeat || waiting) { plan.waitlist++; plan.status[r.id] = 'waitlist'; plan.place[r.id] = plan.waitlist; }
+    // The morning lecture keeps its own count (plan.lecture), so the panel's check-in list never picks it up.
+    if (kind === 'lecture' && lec.taken < LECTURE_SEATS) { lec.taken++; lec.status[r.id] = 'seat'; }
+    else if (kind === 'lecture' || kind === 'lectureWaitlist') { lec.waitlist++; lec.status[r.id] = 'waitlist'; lec.place[r.id] = lec.waitlist; }
   });
   plan.left = Math.max(0, SEATS - plan.taken);
+  lec.left = Math.max(0, LECTURE_SEATS - lec.taken);
   return plan;
 }
 
@@ -1031,16 +1043,24 @@ function onRsvpSubmit() {
 function updateSeatChoices() {
   var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
   if (!formId) return 'No RSVP form yet.';
-  var plan = seatPlan(readRsvps()), full = plan.left === 0;
+  var plan = seatPlan(readRsvps()), full = plan.left === 0, lecFull = plan.lecture.left === 0;
   var item = FormApp.openById(formId).getItems(FormApp.ItemType.MULTIPLE_CHOICE).filter(function (it) { return it.getTitle() === Q.attend; })[0];
   if (!item) return 'Could not find the "' + Q.attend + '" question.';
-  item.asMultipleChoiceItem().setChoiceValues(joinChoices(full))
-    .setHelpText(full ? 'Pick one. Dr. Lagmay is visiting from the University of the Philippines Resilience Institute. All ' + SEATS + ' seats for the Nov 9 panel in Banatao Auditorium are taken; you can join its waitlist or watch the livestream.'
-                      : joinHelp());
-  return full ? 'Full: the form now offers the waitlist (' + plan.waitlist + ' waiting).' : plan.left + ' of ' + SEATS + ' seats left.';
+  item.asMultipleChoiceItem().setChoiceValues(joinChoices(full, lecFull)).setHelpText(joinHelp(plan));
+  return (full ? 'Panel full: the form now offers its waitlist (' + plan.waitlist + ' waiting).' : plan.left + ' of ' + SEATS + ' panel seats left.') + ' ' +
+    (lecFull ? 'Lecture full: the form now offers its waitlist (' + plan.lecture.waitlist + ' waiting).' : plan.lecture.left + ' of ' + LECTURE_SEATS + ' lecture guest spots left.');
 }
 
-function joinHelp() { return 'Pick one. Dr. Lagmay is visiting from the University of the Philippines Resilience Institute. The Nov 9 panel is in Banatao Auditorium, which holds ' + SEATS + '; seats go in the order people RSVP.'; }
+/* The help text under "How will you join us?": the room for each session and how much is left, refreshed on every RSVP. */
+function joinHelp(plan) {
+  var lec = plan ? plan.lecture : { left: LECTURE_SEATS }, left = plan ? plan.left : SEATS;
+  var lecPart = lec.left === 0 ? 'All ' + LECTURE_SEATS + ' guest spots for the morning guest lecture are taken; you can join its waitlist.'
+    : 'The morning guest lecture is a class session with room for ' + LECTURE_SEATS + ' guests on top of the students' + (plan ? ' (' + lec.left + ' left)' : '') + '.';
+  var panelPart = left === 0 ? 'All ' + SEATS + ' seats for the panel in Banatao Auditorium are taken; you can join its waitlist or watch the livestream.'
+    : 'The panel in Banatao Auditorium has ' + SEATS + ' seats' + (plan ? ' (' + left + ' left)' : '') + '.';
+  return 'Pick one. Dr. Lagmay is visiting from the University of the Philippines Resilience Institute. ' + lecPart + ' ' + panelPart +
+    ' The reception after the panel, in B100 Blum Hall and its lobby, is for the same ' + SEATS + '. Spots go in the order people RSVP.';
+}
 var COUNTY_HELP = 'If you live outside the Bay Area, pick "Outside the Bay Area".';
 var DIET_HELP = 'For the refreshments after the panel. Optional, and only the organizers see this.';
 
@@ -1080,13 +1100,15 @@ function publicMap() {
   var cache = CacheService.getScriptCache(), hit = cache.get('map');
   if (hit) return JSON.parse(hit);
   var rows = readRsvps(), approvals = indexBy(readTable('Approvals')), plan = seatPlan(rows);
-  var out = { total: rows.length, attend: { inPerson: 0, lecture: 0, stanford: 0, online: 0, unsure: 0, waitlist: 0 }, seats: { capacity: SEATS, taken: plan.taken, left: plan.left },
+  var out = { total: rows.length, attend: { inPerson: 0, lecture: 0, stanford: 0, online: 0, unsure: 0, waitlist: 0, lectureWaitlist: 0 }, seats: { capacity: SEATS, taken: plan.taken, left: plan.left },
+    lectureSeats: { capacity: LECTURE_SEATS, taken: plan.lecture.taken, left: plan.lecture.left },
     bay: {}, ph: {}, links: {}, sets: {}, ties: {}, stories: [], updated: cell(new Date()) };
   rows.forEach(function (r) {
     var seat = plan.status[r.id];
     var kind = joinKind(r.attend);
     if (seat === 'seat') out.attend.inPerson++; else if (seat === 'waitlist') out.attend.waitlist++;
-    else if (kind === 'lecture' || kind === 'stanford' || kind === 'online') out.attend[kind]++; else out.attend.unsure++;
+    else if (kind === 'lecture' || kind === 'lectureWaitlist') out.attend[plan.lecture.status[r.id] === 'seat' ? 'lecture' : 'lectureWaitlist']++;
+    else if (kind === 'stanford' || kind === 'online') out.attend[kind]++; else out.attend.unsure++;
     var county = BAY_COUNTIES.indexOf(r.county) > -1 ? r.county : r.county === OUTSIDE ? 'outside' : 'unsaid';
     out.bay[county] = (out.bay[county] || 0) + 1;
     var tie = TIES[r.tie] || 'unsaid';
@@ -1112,7 +1134,8 @@ function rsvpList() {
   var approvals = indexBy(readTable('Approvals')), rows = readRsvps(), plan = seatPlan(rows);
   return rows.map(function (r) {
     var a = approvals[r.id] || {};
-    return { id: r.id, at: r.at, name: r.name, role: r.role, attend: r.attend, seat: plan.status[r.id] || '', waitPlace: plan.place[r.id] || 0, county: r.county, tie: TIES[r.tie] || '',
+    return { id: r.id, at: r.at, name: r.name, role: r.role, attend: r.attend, seat: plan.status[r.id] || '', waitPlace: plan.place[r.id] || 0,
+      lectureSeat: plan.lecture.status[r.id] || '', lectureWaitPlace: plan.lecture.place[r.id] || 0, county: r.county, tie: TIES[r.tie] || '',
       prov1: r.prov1, prov2: r.prov2, story: r.story, consent: r.consent === CONSENT_YES, question: r.question, access: r.access, diet: r.diet,
       storyOk: a.story === 'yes', questionOk: a.question === 'yes' };
   });
@@ -1397,7 +1420,7 @@ var RSVP_EVENTS = {
   panel: { uid: 'when-the-waters-rise-2026-11-09@gregor-posadas.github.io', title: 'When the Waters Rise: Dr. Mahar Lagmay at UC Berkeley',
     start: '20261110T000000Z', end: '20261110T010000Z', startIso: '2026-11-09T16:00:00-08:00', endIso: '2026-11-09T17:00:00-08:00',
     where: 'Banatao Auditorium (Room 310), Sutardja Dai Hall, 2594 Hearst Ave, UC Berkeley, Berkeley, CA',
-    about: 'A free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Dr. Lisandro Claudio and Dr. Diana Martinez, co-hosted with PhilDev. Stay after to meet the speakers at a reception in B100 Blum Hall, next door. Also livestreamed.' },
+    about: 'A free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Dr. Lisandro Claudio and Dr. Diana Martinez, co-hosted with PhilDev. Stay after to meet the speakers at a reception in B100 Blum Hall and its lobby, next door. Also livestreamed.' },
   lecture: { uid: 'lagmay-deveng-203-2026-11-09@gregor-posadas.github.io', title: 'Guest lecture by Dr. Mahar Lagmay (DevEng 203, UC Berkeley)',
     start: '20261109T190000Z', end: '20261109T200000Z', startIso: '2026-11-09T11:00:00-08:00', endIso: '2026-11-09T12:00:00-08:00',
     where: 'UC Berkeley campus (room to be confirmed)',
@@ -1427,11 +1450,13 @@ function rsvpConfirmation(r, plan) {
   var kind = joinKind(r.attend), seat = plan.status[r.id];
   if (kind === 'panel' && seat === 'waitlist') kind = 'waitlist';
   if (kind === 'waitlist' && !seat) seat = 'waitlist';
-  var place = plan.place[r.id] || 0;
+  var lec = plan.lecture || { status: {}, place: {} };
+  if ((kind === 'lecture' || kind === 'lectureWaitlist') && lec.status[r.id]) kind = lec.status[r.id] === 'seat' ? 'lecture' : 'lectureWaitlist';
+  var place = (kind === 'lectureWaitlist' ? lec.place[r.id] : plan.place[r.id]) || 0;
   var panelWhen = '<b>Monday, November 9, 4 to 5 PM Pacific</b>, in Banatao Auditorium (Room 310), Sutardja Dai Hall, UC Berkeley';
   var lines = {
     panel: { subject: 'Your seat is saved: When the Waters Rise, Nov 9',
-      body: '<p>Your seat is saved for ' + panelWhen + '. Please arrive a few minutes early. Stay after to meet the speakers at a reception in B100 Blum Hall, next door.</p>' },
+      body: '<p>Your seat is saved for ' + panelWhen + '. Please arrive a few minutes early. Stay after to meet the speakers at a reception in B100 Blum Hall and its lobby, next door.</p>' },
     waitlist: { subject: "You're on the waitlist: When the Waters Rise, Nov 9",
       body: '<p>All ' + SEATS + ' seats in Banatao Auditorium are taken, so you are ' + (place ? '<b>number ' + place + '</b> ' : '') + 'on the waitlist. We will email you if a seat opens. ' +
         'Either way, you can watch the livestream, and the link comes to this address before the event.</p><p>The panel is ' + panelWhen + '.</p>' },
@@ -1440,13 +1465,17 @@ function rsvpConfirmation(r, plan) {
     lecture: { subject: "You're on the list: Dr. Lagmay's guest lecture, Nov 9",
       body: '<p>You are on the list for Dr. Lagmay\'s guest lecture on the UC Berkeley campus, <b>Monday, November 9, 11 AM to 12 PM Pacific</b>. We will email you the room before the day.</p>' +
         '<p>The public panel is the same afternoon, 4 to 5 PM in Banatao Auditorium, if you would like to come to that too. You can RSVP for it on the event page.</p>' },
+    lectureWaitlist: { subject: "You're on the waitlist: Dr. Lagmay's guest lecture, Nov 9",
+      body: '<p>The guest lecture on the UC Berkeley campus, <b>Monday, November 9, 11 AM to 12 PM Pacific</b>, is a class session with room for ' + LECTURE_SEATS + ' guests, and those spots are taken. ' +
+        'You are ' + (place ? '<b>number ' + place + '</b> ' : '') + 'on its waitlist, and we will email you if a spot opens.</p>' +
+        '<p>The public panel is the same afternoon, 4 to 5 PM in Banatao Auditorium, with ' + SEATS + ' seats and a reception after. You can RSVP for it on the event page.</p>' },
     stanford: { subject: "You're on the list: Dr. Lagmay at Stanford, Nov 10",
       body: '<p>You are on the list for Dr. Lagmay\'s talk on the Stanford campus on <b>Tuesday, November 10</b>. The time and room are still being set, and we will email them to you as soon as they are.</p>' },
     unsure: { subject: 'Thanks for your RSVP: When the Waters Rise, Nov 9',
       body: '<p>Thanks for letting us know you might come. The panel is ' + panelWhen + ', and it is also livestreamed. The calendar invite below saves the date. If your plans firm up, just reply to this email.</p>' }
   };
   var l = lines[kind] || lines.unsure;
-  var ev = kind === 'lecture' ? RSVP_EVENTS.lecture : kind === 'stanford' ? null : RSVP_EVENTS.panel;
+  var ev = kind === 'lecture' ? RSVP_EVENTS.lecture : kind === 'stanford' || kind === 'lectureWaitlist' ? null : RSVP_EVENTS.panel;
   var cal = '';
   if (ev) {
     var links = calLinks(ev);

@@ -35,7 +35,7 @@ mkSheet('Approvals', [['id', 'story', 'question', 'updatedAt', 'updatedBy']]);
 mkSheet('Log', [['timestamp', 'who', 'action', 'detail']]);
 let m = JSON.parse(JSON.stringify(vm.runInContext('publicMap()', ctx)));
 assert.strictEqual(m.total, 6);
-assert.deepStrictEqual(m.attend, { inPerson: 2, lecture: 1, stanford: 1, online: 1, unsure: 1, waitlist: 0 }, 'old and new panel wording both count as panel seats');
+assert.deepStrictEqual(m.attend, { inPerson: 2, lecture: 1, stanford: 1, online: 1, unsure: 1, waitlist: 0, lectureWaitlist: 0 }, 'old and new panel wording both count as panel seats');
 assert.deepStrictEqual(m.seats, { capacity: 149, taken: 2, left: 147 });
 assert.deepStrictEqual(m.bay, { Alameda: 3, outside: 1, unsaid: 1, 'Santa Clara': 1 }, 'county found under its old title');
 assert.deepStrictEqual(m.ph, { Pampanga: 2, 'Metro Manila': 1 });
@@ -57,7 +57,7 @@ vm.runInContext('SEATS = 1', ctx);
 sheets['RSVP responses'].rows.push([new Date(), 'Eve', 'e@x.org', '', vm.runInContext('WAITLIST', ctx), 'Marin', '', '', '', '', '', '', '', '']);
 delete cache.map;
 m = JSON.parse(JSON.stringify(vm.runInContext('publicMap()', ctx)));
-assert.deepStrictEqual(m.attend, { inPerson: 1, lecture: 1, stanford: 1, online: 1, unsure: 1, waitlist: 2 }, 'Di is past the last seat, Eve picked the waitlist; lecture and Stanford are not seat-limited');
+assert.deepStrictEqual(m.attend, { inPerson: 1, lecture: 1, stanford: 1, online: 1, unsure: 1, waitlist: 2, lectureWaitlist: 0 }, 'Di is past the last seat, Eve picked the waitlist; lecture and Stanford are not seat-limited');
 assert.deepStrictEqual(m.seats, { capacity: 1, taken: 1, left: 0 });
 const l2 = JSON.parse(JSON.stringify(vm.runInContext('rsvpList()', ctx)));
 assert.deepStrictEqual(l2.map(r => r.name + ':' + r.seat + (r.waitPlace ? '#' + r.waitPlace : '')), ['Ana:seat', 'Ben:', 'Cy:', 'Di:waitlist#1', 'Fe:', 'Gil:', 'Eve:waitlist#2']);
@@ -78,4 +78,24 @@ assert.strictEqual(JSON.stringify(['In person at Banatao Auditorium', 'In-person
   'In-person guest lecture, morning of Nov 9 (Dr. Mahar Lagmay, UC Berkeley)', 'In-person guest lecture, Nov 10 (Dr. Mahar Lagmay, Stanford)', 'Online, on the livestream', 'Not sure yet'].map(kind)),
   JSON.stringify(['panel', 'panel', 'lecture', 'stanford', 'online', 'unsure']));
 assert.ok(choices.every(c => /campus|Online|Not sure/.test(c)), 'every in-person choice names the campus');
+assert.ok(/room for 20 guests/.test(choices[0]) && /149 seats/.test(choices[1]) && /20 guests/.test(help) && /reception/.test(help) && /same 149/.test(help), help);
+assert.ok(/146 left/.test(help) === false && /\(19 left\)/.test(help), 'help text shows lecture spots left: ' + help);
+
+// Morning lecture: a hard limit of LECTURE_SEATS guests in RSVP order; later lecture answers go on the lecture's own waitlist.
+vm.runInContext('LECTURE_SEATS = 1', ctx);
+sheets['RSVP responses'].rows.push([new Date(), 'Hal', 'h@x.org', '', vm.runInContext('LECTURE', ctx), 'Marin', '', '', '', '', '', '', '', ''],
+  [new Date(), 'Ivy', 'i@x.org', '', vm.runInContext('LECTURE_WAITLIST', ctx), 'Marin', '', '', '', '', '', '', '', '']);
+delete cache.map;
+m = JSON.parse(JSON.stringify(vm.runInContext('publicMap()', ctx)));
+assert.strictEqual(m.attend.lecture, 1); assert.strictEqual(m.attend.lectureWaitlist, 2, 'Hal is past the last spot, Ivy picked the lecture waitlist');
+assert.deepStrictEqual(m.lectureSeats, { capacity: 1, taken: 1, left: 0 });
+const l3 = JSON.parse(JSON.stringify(vm.runInContext('rsvpList()', ctx)));
+assert.deepStrictEqual(l3.filter(r => r.lectureSeat).map(r => r.name + ':' + r.lectureSeat + (r.lectureWaitPlace ? '#' + r.lectureWaitPlace : '') + ':' + r.seat),
+  ['Fe:seat:', 'Hal:waitlist#1:', 'Ivy:waitlist#2:'], 'lecture spots never touch the panel seats');
+said = vm.runInContext('updateSeatChoices()', ctx);
+assert.ok(/^Waitlist for the Nov 9 morning guest lecture/.test(choices[0]) && kind(choices[0]) === 'lectureWaitlist' && /Lecture full/.test(said) && /guest spots for the morning guest lecture are taken/.test(help), said);
+assert.ok(choices.every(c => /campus|Online|Not sure/.test(c)), 'the lecture waitlist still names the campus');
+const plan3 = vm.runInContext('seatPlan(readRsvps())', ctx);
+assert.ok(!Object.keys(plan3.status).some(id => plan3.lecture.status[id]), 'the panel check-in list never includes lecture RSVPs');
+vm.runInContext('LECTURE_SEATS = 20', ctx);
 console.log('RSVP backend tests passed');

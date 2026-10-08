@@ -260,12 +260,12 @@
     var f = facts(d);
     if (!d.total) return W.none;
     if (FIL) {
-      var t = n2w(d.total) + " na ang nag-RSVP: " + joining(d, [["inPerson", " sa panel nang personal"], ["online", " online"], ["waitlist", " sa waitlist ng panel"], ["lecture", " sa lecture sa umaga"], ["stanford", " sa Stanford sa Nob 10"], ["unsure", " ang hindi pa sigurado"]]) + ". ";
+      var t = n2w(d.total) + " na ang nag-RSVP: " + joining(d, [["inPerson", " sa panel nang personal"], ["online", " online"], ["waitlist", " sa waitlist ng panel"], ["lecture", " sa lecture sa umaga"], ["lectureWaitlist", " sa waitlist ng lecture"], ["stanford", " sa Stanford sa Nob 10"], ["unsure", " ang hindi pa sigurado"]]) + ". ";
       if (f.withTies) t += f.withTies + " sa kanila ang may ugnayan sa " + f.provs.length + " lalawigan sa Pilipinas, pinakamadalas ang " + list(f.provs.slice(0, 3)) + ".";
       if (f.noTies) t += " " + f.noTies + " ang darating nang walang ugnayan sa Pilipinas, at malugod din silang tinatanggap.";
       return t;
     }
-    var s = n2w(d.total) + (d.total === 1 ? " has" : " have") + " RSVPed: " + joining(d, [["inPerson", " at the panel in person"], ["online", " online"], ["waitlist", " on the panel waitlist"], ["lecture", " at the morning lecture"], ["stanford", " at Stanford on Nov 10"], ["unsure", " not sure yet"]]) + ". ";
+    var s = n2w(d.total) + (d.total === 1 ? " has" : " have") + " RSVPed: " + joining(d, [["inPerson", " at the panel in person"], ["online", " online"], ["waitlist", " on the panel waitlist"], ["lecture", " at the morning lecture"], ["lectureWaitlist", " on the lecture waitlist"], ["stanford", " at Stanford on Nov 10"], ["unsure", " not sure yet"]]) + ". ";
     if (f.withTies) s += f.withTies + " of them have ties to " + f.provs.length + (f.provs.length === 1 ? " province" : " provinces") + " in the Philippines, most often " + list(f.provs.slice(0, 3)) + ".";
     if (f.noTies) s += " " + f.noTies + (f.noTies === 1 ? " is" : " are") + " coming with no ties to the Philippines at all, and are just as welcome.";
     return s;
