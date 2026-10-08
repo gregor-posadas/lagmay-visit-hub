@@ -28,9 +28,9 @@ OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "
 SITE = "https://gregor-posadas.github.io/lagmay-visit-hub/event/"
 WORDS = {
     "en": dict(skip="Skip to content", sub="Flooding in the Philippines, a public conversation", sound="Sound on", theme="Dark mode", share="Share",
-               foot='Presented by UC Berkeley <a href="https://developmentengineering.berkeley.edu/">Development Engineering</a> and <a href="https://www.phildev.org/">PhilDev</a>, the Philippine Development Foundation. Organized by Gregor Posadas, Noam Anglo and Veronica Sison at UC Berkeley, with Rapha Felipe at Stanford. Questions: see <a href="{R}faq/">Questions</a>, ask any of us on the day, or reply to your RSVP email.'),
+               foot='Organized by Gregor Posadas, Noam Anglo and Veronica Sison at UC Berkeley, with Rapha Felipe at Stanford, and co-hosted with <a href="https://www.phildev.org/">PhilDev</a>, the Philippine Development Foundation. Questions: see <a href="{R}faq/">Questions</a>, ask any of us on the day, or reply to your RSVP email.'),
     "fil": dict(skip="Lumaktaw sa nilalaman", sub="Baha sa Pilipinas, isang pampublikong talakayan", sound="May tunog", theme="Madilim", share="Ibahagi",
-                foot='Hatid ng UC Berkeley <a href="https://developmentengineering.berkeley.edu/">Development Engineering</a> at <a href="https://www.phildev.org/">PhilDev</a> (Philippine Development Foundation). Inorganisa nina Gregor Posadas, Noam Anglo at Veronica Sison sa UC Berkeley, kasama si Rapha Felipe sa Stanford. May tanong? Tingnan ang <a href="{R}faq/">Mga tanong</a>, lapitan kami sa mismong araw, o sumagot sa email ng iyong RSVP.'),
+                foot='Inorganisa nina Gregor Posadas, Noam Anglo at Veronica Sison sa UC Berkeley, kasama si Rapha Felipe sa Stanford, at katuwang na host ang <a href="https://www.phildev.org/">PhilDev</a> (Philippine Development Foundation). May tanong? Tingnan ang <a href="{R}faq/">Mga tanong</a>, lapitan kami sa mismong araw, o sumagot sa email ng iyong RSVP.'),
 }
 
 

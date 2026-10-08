@@ -31,6 +31,7 @@ var TABS = {
   Rules: ['id', 'text'],
   Approvals: ['id', 'story', 'question', 'updatedAt', 'updatedBy'],
   ConnectReview: ['id', 'card', 'introSentAt', 'updatedAt', 'updatedBy'],
+  RsvpMail: ['id', 'sentAt', 'kind'],
   Log: ['timestamp', 'who', 'action', 'detail']
 };
 
@@ -1022,6 +1023,7 @@ function seatPlan(rows) {
 function onRsvpSubmit() {
   CacheService.getScriptCache().remove('map');
   updateSeatChoices();
+  try { sendRsvpConfirmations(); } catch (err) { log('rsvp mail', 'error', String(err && err.message || err)); }
 }
 function updateSeatChoices() {
   var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
@@ -1378,4 +1380,116 @@ function sendConnectIntros(who) {
   });
   log(who, 'connect intros', sent + ' sent' + (stopped ? ', stopped at the daily email limit' : ''));
   return { ok: true, sent: sent, stopped: stopped, noMatch: plan.summary.noMatch, alreadySent: plan.summary.alreadySent };
+}
+
+
+/* ------------------------------------------------------------------ RSVP confirmation emails */
+/*
+ * Everyone who RSVPs gets one confirmation email, sent by the form-submit trigger (onRsvpSubmit). It says how they're joining
+ * (seat, waitlist place, livestream, the morning lecture or Stanford) and carries the event as a calendar file (invite.ics)
+ * plus Google Calendar and Outlook links. The RsvpMail tab records who got theirs, so nobody gets two.
+ */
+var EVENT_URL = 'https://gregor-posadas.github.io/lagmay-visit-hub/event/';
+var RSVP_EVENTS = {
+  panel: { uid: 'when-the-waters-rise-2026-11-09@gregor-posadas.github.io', title: 'When the Waters Rise: Dr. Mahar Lagmay at UC Berkeley',
+    start: '20261110T000000Z', end: '20261110T010000Z', startIso: '2026-11-09T16:00:00-08:00', endIso: '2026-11-09T17:00:00-08:00',
+    where: 'Banatao Auditorium (Room 310), Sutardja Dai Hall, 2594 Hearst Ave, UC Berkeley, Berkeley, CA',
+    about: 'A free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Dr. Lisandro Claudio and Dr. Diana Martinez, co-hosted with PhilDev. Stay after to meet the speakers at a reception in B100 Blum Hall, next door. Also livestreamed.' },
+  lecture: { uid: 'lagmay-deveng-203-2026-11-09@gregor-posadas.github.io', title: 'Guest lecture by Dr. Mahar Lagmay (DevEng 203, UC Berkeley)',
+    start: '20261109T190000Z', end: '20261109T200000Z', startIso: '2026-11-09T11:00:00-08:00', endIso: '2026-11-09T12:00:00-08:00',
+    where: 'UC Berkeley campus (room to be confirmed)',
+    about: 'Dr. Mahar Lagmay, Executive Director of the UP Resilience Institute and Project NOAH, guest lecturing in Development Engineering 203. We will email the room before the day.' }
+};
+function icsEscape(v) { return String(v).replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/[,;]/g, function (c) { return '\\' + c; }); }
+function icsFor(ev, stamp) {
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//When the Waters Rise//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
+    'UID:' + ev.uid, 'DTSTAMP:' + stamp, 'DTSTART:' + ev.start, 'DTEND:' + ev.end,
+    'SUMMARY:' + icsEscape(ev.title), 'LOCATION:' + icsEscape(ev.where), 'DESCRIPTION:' + icsEscape(ev.about + '\n\n' + EVENT_URL), 'URL:' + EVENT_URL,
+    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEscape(ev.title), 'TRIGGER:-PT1H', 'END:VALARM',
+    'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+}
+function calLinks(ev) {
+  var details = ev.about + '\n\n' + EVENT_URL;
+  return {
+    google: 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(ev.title) + '&dates=' + ev.start + '/' + ev.end +
+      '&details=' + encodeURIComponent(details) + '&location=' + encodeURIComponent(ev.where),
+    outlook: 'https://outlook.live.com/calendar/0/action/compose?subject=' + encodeURIComponent(ev.title) + '&location=' + encodeURIComponent(ev.where) +
+      '&body=' + encodeURIComponent(details) + '&startdt=' + encodeURIComponent(ev.startIso) + '&enddt=' + encodeURIComponent(ev.endIso)
+  };
+}
+
+/** The email for one RSVP. Pure (no Google services), so it can be tested. Returns { kind, subject, html, event } . */
+function rsvpConfirmation(r, plan) {
+  var first = String(r.name || '').trim().split(/\s+/)[0] || 'there';
+  var kind = joinKind(r.attend), seat = plan.status[r.id];
+  if (kind === 'panel' && seat === 'waitlist') kind = 'waitlist';
+  if (kind === 'waitlist' && !seat) seat = 'waitlist';
+  var place = plan.place[r.id] || 0;
+  var panelWhen = '<b>Monday, November 9, 4 to 5 PM Pacific</b>, in Banatao Auditorium (Room 310), Sutardja Dai Hall, UC Berkeley';
+  var lines = {
+    panel: { subject: 'Your seat is saved: When the Waters Rise, Nov 9',
+      body: '<p>Your seat is saved for ' + panelWhen + '. Please arrive a few minutes early. Stay after to meet the speakers at a reception in B100 Blum Hall, next door.</p>' },
+    waitlist: { subject: "You're on the waitlist: When the Waters Rise, Nov 9",
+      body: '<p>All ' + SEATS + ' seats in Banatao Auditorium are taken, so you are ' + (place ? '<b>number ' + place + '</b> ' : '') + 'on the waitlist. We will email you if a seat opens. ' +
+        'Either way, you can watch the livestream, and the link comes to this address before the event.</p><p>The panel is ' + panelWhen + '.</p>' },
+    online: { subject: "You're on the list: When the Waters Rise livestream, Nov 9",
+      body: '<p>You are joining the livestream of the panel on <b>Monday, November 9, 4 to 5 PM Pacific</b>. We will email the link to this address before the event.</p>' },
+    lecture: { subject: "You're on the list: Dr. Lagmay's guest lecture, Nov 9",
+      body: '<p>You are on the list for Dr. Lagmay\'s guest lecture on the UC Berkeley campus, <b>Monday, November 9, 11 AM to 12 PM Pacific</b>. We will email you the room before the day.</p>' +
+        '<p>The public panel is the same afternoon, 4 to 5 PM in Banatao Auditorium, if you would like to come to that too. You can RSVP for it on the event page.</p>' },
+    stanford: { subject: "You're on the list: Dr. Lagmay at Stanford, Nov 10",
+      body: '<p>You are on the list for Dr. Lagmay\'s talk on the Stanford campus on <b>Tuesday, November 10</b>. The time and room are still being set, and we will email them to you as soon as they are.</p>' },
+    unsure: { subject: 'Thanks for your RSVP: When the Waters Rise, Nov 9',
+      body: '<p>Thanks for letting us know you might come. The panel is ' + panelWhen + ', and it is also livestreamed. The calendar invite below saves the date. If your plans firm up, just reply to this email.</p>' }
+  };
+  var l = lines[kind] || lines.unsure;
+  var ev = kind === 'lecture' ? RSVP_EVENTS.lecture : kind === 'stanford' ? null : RSVP_EVENTS.panel;
+  var cal = '';
+  if (ev) {
+    var links = calLinks(ev);
+    cal = '<p><b>Add it to your calendar:</b> open the attached invite.ics, or use <a href="' + esc(links.google) + '">Google Calendar</a> or <a href="' + esc(links.outlook) + '">Outlook.com</a>.</p>';
+  }
+  var body = '<p>Thank you for your RSVP to <b>When the Waters Rise</b>, a free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Dr. Lisandro Claudio and Dr. Diana Martinez, co-hosted with PhilDev.</p>' +
+    l.body + cal +
+    '<p>Working on something in or for the Philippines? Add a card on the <a href="' + EVENT_URL + 'connect/">Connect page</a> so others at the event can find you.</p>' +
+    '<p>Details, directions and the live map of who is coming: <a href="' + EVENT_URL + '">' + EVENT_URL.replace(/^https:\/\//, '') + '</a></p>';
+  return { kind: kind, subject: l.subject, event: ev,
+    html: emailShell('Hi ' + first + ',', body, 'Questions, or need to change your RSVP? Just reply to this email. Gregor, Noam and Veronica, UC Berkeley') };
+}
+
+/** Sends the confirmation to every RSVP that hasn't had one. Run by the form trigger; safe to run by hand. Returns how many went out. */
+function sendRsvpConfirmations() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return 0;
+  try {
+    var rows = readRsvps(), plan = seatPlan(rows), sent = indexBy(readTable('RsvpMail')), n = 0;
+    var replyTo = setting('PM_EMAIL') || 'gregorposadas@berkeley.edu';
+    var stamp = Utilities.formatDate(new Date(), 'UTC', "yyyyMMdd'T'HHmmss'Z'");
+    rows.forEach(function (r) {
+      if (sent[r.id] || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email)) return;
+      if (MailApp.getRemainingDailyQuota() < 5) return;
+      var m = rsvpConfirmation(r, plan);
+      var msg = { to: r.email, subject: m.subject, htmlBody: m.html, body: stripHtml(m.html), name: 'When the Waters Rise', replyTo: replyTo };
+      if (m.event) msg.attachments = [Utilities.newBlob(icsFor(m.event, stamp), 'text/calendar', 'invite.ics')];
+      MailApp.sendEmail(msg);
+      writeRow('RsvpMail', { id: r.id, sentAt: cell(new Date()), kind: m.kind });
+      n++;
+    });
+    if (n) log('rsvp mail', 'sent', n + ' confirmation' + (n === 1 ? '' : 's'));
+    return n;
+  } finally { lock.releaseLock(); }
+}
+
+/** Run once from the editor: tells people on the form's thank-you screen to look for the email. RSVPs marked "held" in the RsvpMail tab are skipped. */
+function setupRsvpEmails() {
+  var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
+  if (formId) FormApp.openById(formId).setConfirmationMessage("Thank you, you're on the list. Check your email for a confirmation with a calendar invite. See who is coming: " + EVENT_URL);
+  Logger.log('Confirmation emails sent: ' + sendRsvpConfirmations());
+}
+
+/** Run from the editor only if the team decides the RSVPs marked "held" (from before these emails existed) should get theirs too. */
+function sendHeldRsvpConfirmations() {
+  var sh = sheet('RsvpMail');
+  for (var i = sh.getLastRow(); i >= 2; i--) if (String(sh.getRange(i, 2).getValue()) === 'held') sh.deleteRow(i);
+  Logger.log('Confirmation emails sent: ' + sendRsvpConfirmations());
 }
