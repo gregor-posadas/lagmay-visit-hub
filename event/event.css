@@ -31,6 +31,10 @@
 .ev-actions { margin-top: 20px; }
 .btn--big { min-height: 56px; padding: 0 32px; font-size: var(--f3); }
 .ev-welcome { margin-top: 14px; max-width: 38rem; color: var(--ink-2); }
+.ev-cohost-hero { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin: 18px 0 0; font-weight: 700; color: var(--ink-2); }
+.ev-cohost-hero[hidden] { display: none; }
+.ev-cohost-hero a { display: inline-flex; background: #fff; border: 2px solid var(--rule-strong); padding: 6px 12px; }
+.ev-cohost-hero img { height: 44px; width: auto; display: block; }
 
 /* Map */
 .ev-summary { margin: 14px 0 12px; max-width: 46rem; font-size: var(--f2); }
