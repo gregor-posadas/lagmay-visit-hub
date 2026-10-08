@@ -30,6 +30,7 @@ var TABS = {
   Meetings: ['id', 'title', 'start', 'end', 'where', 'link', 'docUrl', 'attendees', 'takeaway'],
   Rules: ['id', 'text'],
   Approvals: ['id', 'story', 'question', 'updatedAt', 'updatedBy'],
+  ConnectReview: ['id', 'card', 'introSentAt', 'updatedAt', 'updatedBy'],
   Log: ['timestamp', 'who', 'action', 'detail']
 };
 
@@ -129,6 +130,7 @@ function doGet(e) {
   try {
     var p = (e && e.parameter) || {};
     if (p.action === 'map') return json({ ok: true, data: publicMap() });   // public: counts and approved stories only
+    if (p.action === 'connect') return json({ ok: true, data: publicConnect() });   // public: approved cards only, never emails
     if (p.action === 'data') {
       checkCode(p.code, 'team');
       return json({ ok: true, data: payload() });
@@ -154,6 +156,9 @@ function doPost(e) {
       case 'saveFunding': checkCode(b.code, 'team'); return json(saveFunding(b.funding || {}, who));
       case 'saveMeeting': checkCode(b.code, 'team'); return json(saveMeeting(b.meeting || {}, who));
       case 'setApproval': checkCode(b.code, 'team'); return json(setApproval(b.id, b.field, !!b.value, who));
+      case 'setConnectCard': checkCode(b.code, 'team'); return json(setConnectCard(b.id, !!b.value, who));
+      case 'previewConnectIntros': checkCode(b.code, 'team'); return json({ ok: true, preview: connectIntroPlan().summary });
+      case 'sendConnectIntros': checkCode(b.pmCode, 'pm'); return json(sendConnectIntros(who));
       // Project manager only
       case 'saveAssignments': checkCode(b.pmCode, 'pm'); return json(saveAssignments(b.assignments || [], who));
       case 'setLinks': checkCode(b.pmCode, 'pm'); return json(setLinks(b, who));
@@ -260,6 +265,8 @@ function payload() {
     rules: readTable('Rules'),
     rsvps: rsvpList(),
     rsvpFormUrl: setting('RSVP_FORM_URL'),
+    connect: connectList(),
+    connectFormUrl: setting('CONNECT_FORM_URL'),
     files: listFiles(),
     notes: meetingNotes(),
     generated: cell(new Date())
@@ -1117,4 +1124,258 @@ function setApproval(id, field, value, who) {
   CacheService.getScriptCache().remove('map');
   log(who, 'rsvp ' + field, id + ' -> ' + (value ? 'yes' : 'no'));
   return { ok: true, approval: a };
+}
+
+
+/* ------------------------------------------------------------------ connect */
+/*
+ * Connect: people working on (or hoping to work on) Philippine-based projects add a short card, so they can find each other
+ * through the event. Cards come in through a Google Form (createConnectForm). A teammate reads each card in the hub and ticks
+ * it; only then does it appear on the event page (if the person said yes to that) and join the intro emails (if they said yes
+ * to those). Emails are never public: they go only to people who both asked for introductions and were approved.
+ */
+var CONNECT_TAB = 'Connect responses';
+var CQ = {
+  name: 'Your name',
+  email: 'Your email',
+  org: 'School, organization or work',
+  base: 'Where are you based?',
+  areas: 'What do you work on or care about?',
+  project: 'What are you working on, or hoping to work on?',
+  seeking: 'What are you looking for?',
+  link: 'A link where people can find you',
+  nov9: 'Will you be at the event on November 9?',
+  show: 'Show your card on the event page?',
+  intros: 'Get introductions by email?'
+};
+var CONNECT_AREAS = ['Floods, disasters and climate resilience', 'Water and sanitation', 'Environment and conservation', 'Cities, housing and infrastructure',
+  'Data, mapping and technology', 'Policy, governance and history', 'Health', 'Education and youth', 'Agriculture and food',
+  'Business and social enterprise', 'Arts, culture and media'];
+var CONNECT_SEEKING = ['Collaborators', 'A mentor', 'Someone to mentor', 'Research partners', 'Partners in the Philippines', 'Funding or funders',
+  'Jobs or internships', 'Volunteers', 'Just to meet people'];
+var CONNECT_BASES = ['Bay Area', 'Elsewhere in the US', 'Philippines', 'Somewhere else'];
+var CONNECT_NOV9 = ['Yes, in person', 'Yes, online', 'Not this time'];
+var SHOW_YES = "Yes, show my card (my name, school or organization, interests, project, what I'm looking for and my link, never my email)";
+var SHOW_NO = 'No, keep it off the page';
+var INTRO_YES = 'Yes. Before November 9, send me people with matching interests, and share my card and email with them';
+var INTRO_NO = 'No thanks';
+var CONNECT_MAX_MATCHES = 8;
+
+function connectDescription() {
+  return 'Working on something in or for the Philippines, or hoping to? Add a card so people at When the Waters Rise can find you, ' +
+    'whether they are in the room, watching online or in the Philippines. The event is Monday, November 9, 2026 at UC Berkeley, co-hosted with PhilDev. ' +
+    'Anyone is welcome, and you do not need to RSVP to the talk to add a card.\n\n' +
+    'An organizer reads every card before it appears. Your email is never shown on the page. If you say yes to introductions, ' +
+    'we will email you a short list of people with matching interests before November 9 and share your card and email with them. ' +
+    'To change or remove your card, email gregorposadas@berkeley.edu. It takes about three minutes.';
+}
+
+/**
+ * Run once from the editor. Makes the Connect form, sends its answers to the "Connect responses" tab of this Sheet, and logs
+ * the link to share. Running it again only logs the links. It emails no one.
+ */
+function createConnectForm() {
+  var props = PropertiesService.getScriptProperties();
+  if (props.getProperty('CONNECT_FORM_ID')) {
+    Logger.log('The Connect form already exists. Share: ' + props.getProperty('CONNECT_FORM_URL') + '  Edit: ' + props.getProperty('CONNECT_EDIT_URL'));
+    return;
+  }
+  var appUrl = setting('APP_URL'), eventUrl = appUrl ? appUrl.replace(/\/?$/, '/') + 'event/#connect' : '';
+  var form = FormApp.create('Connect: people working on Philippine projects (When the Waters Rise)');
+  form.setDescription(connectDescription());
+  form.setConfirmationMessage('Thank you. An organizer will read your card soon' + (eventUrl ? ', and approved cards appear here: ' + eventUrl : '.'));
+  form.setShowLinkToRespondAgain(false);
+  try { form.setRequireLogin(false); } catch (e) { /* not a Workspace setting on this account */ }
+  try { form.setCollectEmail(false); } catch (e) { /* ignore */ }
+
+  form.addTextItem().setTitle(CQ.name).setHelpText('Shown on your card if you choose to show it.').setRequired(true);
+  form.addTextItem().setTitle(CQ.email).setHelpText('Never shown on the page. Shared only through intro emails, if you ask for them.')
+    .setRequired(true).setValidation(FormApp.createTextValidation().requireTextIsEmail().build());
+  form.addTextItem().setTitle(CQ.org).setHelpText('For example a school, a company, an NGO, or "Independent".').setRequired(false);
+  form.addMultipleChoiceItem().setTitle(CQ.base).setRequired(true).setChoiceValues(CONNECT_BASES);
+  form.addCheckboxItem().setTitle(CQ.areas).setHelpText('Pick all that fit.').setRequired(true).setChoiceValues(CONNECT_AREAS).showOtherOption(true);
+  form.addParagraphTextItem().setTitle(CQ.project).setRequired(true)
+    .setHelpText('A sentence or two about a project or idea in or for the Philippines. Up to 300 characters. This is the heart of your card.')
+    .setValidation(FormApp.createParagraphTextValidation().requireTextLengthLessThanOrEqualTo(300).build());
+  form.addCheckboxItem().setTitle(CQ.seeking).setHelpText('Pick all that fit.').setRequired(true).setChoiceValues(CONNECT_SEEKING);
+  form.addTextItem().setTitle(CQ.link).setRequired(false)
+    .setHelpText('Optional. LinkedIn, a website or a project page, shown on your card. Leave it blank to be reached only through intro emails.');
+  form.addMultipleChoiceItem().setTitle(CQ.nov9).setRequired(true).setChoiceValues(CONNECT_NOV9)
+    .setHelpText('Not needed to add a card. If you are coming, RSVP on the event page.');
+  form.addMultipleChoiceItem().setTitle(CQ.show).setRequired(true).setChoiceValues([SHOW_YES, SHOW_NO])
+    .setHelpText('An organizer reads every card first.');
+  form.addMultipleChoiceItem().setTitle(CQ.intros).setRequired(true).setChoiceValues([INTRO_YES, INTRO_NO])
+    .setHelpText('Introductions only go to people who also said yes.');
+
+  var ss = spreadsheet();
+  form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+  SpreadsheetApp.flush();
+  var base = form.getEditUrl().replace(/\/edit.*$/, '');
+  ss.getSheets().forEach(function (sh) {
+    var f = sh.getFormUrl();
+    if (f && f.replace(/\/(edit|viewform).*$/, '') === base && sh.getName() !== CONNECT_TAB) sh.setName(CONNECT_TAB);
+  });
+  props.setProperty('CONNECT_FORM_ID', form.getId());
+  props.setProperty('CONNECT_FORM_URL', form.getPublishedUrl());
+  props.setProperty('CONNECT_EDIT_URL', form.getEditUrl());
+  Logger.log('Connect form ready. Share this link: ' + form.getPublishedUrl());
+  Logger.log('Edit it here: ' + form.getEditUrl());
+  Logger.log('Answers go to the "' + CONNECT_TAB + '" tab. Paste the share link into event/config.js (connectUrl).');
+}
+
+/* Google Forms joins checkbox answers with ", ", and some choices contain commas, so pick out the known choices first. */
+function splitChoices(value, known) {
+  var rest = String(value || ''), found = [];
+  known.slice().sort(function (a, b) { return b.length - a.length; }).forEach(function (k) {
+    var i = rest.indexOf(k);
+    if (i > -1) { found.push(k); rest = rest.slice(0, i) + rest.slice(i + k.length); }
+  });
+  found.sort(function (a, b) { return known.indexOf(a) - known.indexOf(b); });
+  var other = rest.replace(/^[\s,]+|[\s,]+$/g, '').replace(/(\s*,\s*){2,}/g, ', ');
+  if (other) found.push(other.slice(0, 40));
+  return found;
+}
+function normalizeLink(v) {
+  var s = String(v || '').trim();
+  if (!s || /\s/.test(s)) return '';
+  if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
+  return /^https?:\/\/[^\s/]+\.[^\s/]+/i.test(s) ? s.slice(0, 300) : '';
+}
+
+/** Every Connect card as an object keyed like CQ, with id "c<row>" (the form only appends, so rows never move). */
+function readConnect() {
+  var sh = spreadsheet().getSheetByName(CONNECT_TAB);
+  if (!sh || sh.getLastRow() < 2) return [];
+  var values = sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues();
+  var head = values.shift().map(function (h) { return String(h).trim(); });
+  var col = {};
+  Object.keys(CQ).forEach(function (k) { col[k] = head.indexOf(CQ[k]); });
+  var tsCol = head.indexOf('Timestamp');
+  return values.map(function (r, i) {
+    var o = { id: 'c' + (i + 2), at: tsCol > -1 ? cell(r[tsCol]) : '' };
+    Object.keys(CQ).forEach(function (k) { o[k] = col[k] > -1 ? String(r[col[k]] == null ? '' : r[col[k]]).trim() : ''; });
+    return o;
+  }).filter(function (o) { return o.name || o.email; });
+}
+
+/* One card as the public sees it. No email, ever. */
+function connectCard(r) {
+  return {
+    id: r.id,
+    name: text(r.name, 80),
+    org: text(r.org, 120),
+    base: CONNECT_BASES.indexOf(r.base) > -1 ? r.base : '',
+    areas: splitChoices(r.areas, CONNECT_AREAS),
+    project: text(r.project, 300),
+    seeking: splitChoices(r.seeking, CONNECT_SEEKING).filter(function (x) { return CONNECT_SEEKING.indexOf(x) > -1; }),
+    link: normalizeLink(r.link),
+    nov9: r.nov9 === CONNECT_NOV9[0] ? 'in-person' : r.nov9 === CONNECT_NOV9[1] ? 'online' : ''
+  };
+}
+
+/** Public, no code: approved cards from people who asked to be shown, newest first. */
+function publicConnect() {
+  var cache = CacheService.getScriptCache(), hit = cache.get('connect');
+  if (hit) return JSON.parse(hit);
+  var review = indexBy(readTable('ConnectReview'));
+  var cards = readConnect().filter(function (r) { return review[r.id] && review[r.id].card === 'yes' && r.show === SHOW_YES; })
+    .reverse().map(connectCard);
+  var out = { cards: cards, updated: cell(new Date()) };
+  try { cache.put('connect', JSON.stringify(out), 60); } catch (e) { /* too big to cache */ }
+  return out;
+}
+
+/** For the team hub (team code): every card with its review state. Emails stay in the Sheet. */
+function connectList() {
+  var review = indexBy(readTable('ConnectReview'));
+  return readConnect().map(function (r) {
+    var c = connectCard(r), rv = review[r.id] || {};
+    c.at = r.at; c.show = r.show === SHOW_YES; c.intros = r.intros === INTRO_YES;
+    c.cardOk = rv.card === 'yes'; c.introSentAt = rv.introSentAt || '';
+    return c;
+  });
+}
+
+/** A teammate approves a card (or takes it back down). */
+function setConnectCard(id, value, who) {
+  if (!/^c\d+$/.test(String(id || ''))) throw new Error('Unknown card.');
+  var rv = indexBy(readTable('ConnectReview'))[id] || { id: id, card: '', introSentAt: '' };
+  rv.card = value ? 'yes' : '';
+  rv.updatedAt = cell(new Date()); rv.updatedBy = who;
+  writeRow('ConnectReview', rv);
+  CacheService.getScriptCache().remove('connect');
+  log(who, 'connect card', id + ' -> ' + (value ? 'approved' : 'hidden'));
+  return { ok: true, review: rv };
+}
+
+/*
+ * Who each person should meet. Only approved cards from people who asked for introductions take part, on both sides.
+ * Score: one point per shared area, plus two when one wants a mentor and the other wants someone to mentor.
+ * Pure (no Google services), so it can be tested.
+ */
+function matchConnect(people) {
+  function score(a, b) {
+    var s = a.areas.filter(function (x) { return b.areas.indexOf(x) > -1; }).length;
+    var wants = function (p, x) { return p.seeking.indexOf(x) > -1; };
+    if ((wants(a, 'A mentor') && wants(b, 'Someone to mentor')) || (wants(a, 'Someone to mentor') && wants(b, 'A mentor'))) s += 2;
+    return s;
+  }
+  return people.map(function (p) {
+    var matches = people.filter(function (q) { return q.id !== p.id && q.email.toLowerCase() !== p.email.toLowerCase(); })
+      .map(function (q) { return { person: q, score: score(p, q), shared: p.areas.filter(function (x) { return q.areas.indexOf(x) > -1; }) }; })
+      .filter(function (m) { return m.score > 0; })
+      .sort(function (a, b) { return b.score - a.score || (a.person.id < b.person.id ? -1 : 1); })
+      .slice(0, CONNECT_MAX_MATCHES);
+    return { person: p, matches: matches };
+  });
+}
+
+function connectIntroPlan() {
+  var review = indexBy(readTable('ConnectReview'));
+  var people = readConnect().filter(function (r) {
+    return review[r.id] && review[r.id].card === 'yes' && r.intros === INTRO_YES && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email);
+  }).map(function (r) { var c = connectCard(r); c.email = r.email; c.sent = review[r.id].introSentAt || ''; return c; });
+  var plan = matchConnect(people);
+  var toSend = plan.filter(function (x) { return !x.person.sent && x.matches.length; });
+  return { plan: toSend, summary: { optedIn: people.length, toSend: toSend.length,
+    noMatch: plan.filter(function (x) { return !x.person.sent && !x.matches.length; }).length,
+    alreadySent: plan.filter(function (x) { return x.person.sent; }).length } };
+}
+
+function introEmail(entry) {
+  var p = entry.person, first = p.name.split(/\s+/)[0] || p.name;
+  var eventUrl = (setting('APP_URL') || 'https://gregor-posadas.github.io/lagmay-visit-hub/').replace(/\/?$/, '/') + 'event/';
+  var items = entry.matches.map(function (m) {
+    var q = m.person;
+    return '<li style="margin:0 0 16px"><b>' + esc(q.name) + '</b>' + (q.org ? ', ' + esc(q.org) : '') + (q.base ? ' (' + esc(q.base) + ')' : '') + '<br>' +
+      esc(q.project) + '<br>' +
+      (q.seeking.length ? '<span style="color:#4d4a43">Looking for: ' + esc(q.seeking.join(', ')) + '</span><br>' : '') +
+      (m.shared.length ? '<span style="color:#4d4a43">You both care about: ' + esc(m.shared.join('; ')) + '</span><br>' : '') +
+      '<a href="mailto:' + esc(q.email) + '">' + esc(q.email) + '</a>' + (q.link ? ' · <a href="' + esc(q.link) + '">' + esc(q.link.replace(/^https?:\/\//, '')) + '</a>' : '') + '</li>';
+  }).join('');
+  var body = '<p>You asked for introductions to people working on Philippine projects, through When the Waters Rise. ' +
+    'Here ' + (entry.matches.length === 1 ? 'is one person' : 'are ' + entry.matches.length + ' people') + ' with interests like yours who also asked to be introduced. ' +
+    'They may hear about you too. Feel free to write to them directly.</p><ul style="padding-left:20px">' + items + '</ul>' +
+    '<p>The event is Monday, November 9, 4 to 5 PM Pacific, in Banatao Auditorium at UC Berkeley, co-hosted with PhilDev, with a reception after. ' +
+    'It is also livestreamed. <a href="' + esc(eventUrl) + '">Event page and RSVP</a>.</p>';
+  return emailShell('Hi ' + first + ',', body, 'You got this because you said yes to introductions on the Connect form. To change or remove your card, reply to this email.');
+}
+
+/** Run by the project manager, from the hub or the editor. Sends each approved, opted-in person their matches, once. */
+function sendConnectIntros(who) {
+  var plan = connectIntroPlan(), sent = 0, stopped = false;
+  var replyTo = setting('PM_EMAIL') || 'gregorposadas@berkeley.edu';
+  plan.plan.forEach(function (entry) {
+    if (stopped) return;
+    if (MailApp.getRemainingDailyQuota() < 5) { stopped = true; return; }
+    var msg = { to: entry.person.email, subject: 'People to meet through When the Waters Rise', htmlBody: introEmail(entry), name: 'When the Waters Rise', replyTo: replyTo };
+    msg.body = stripHtml(msg.htmlBody);
+    MailApp.sendEmail(msg);
+    var rv = indexBy(readTable('ConnectReview'))[entry.person.id];
+    rv.introSentAt = cell(new Date()); rv.updatedAt = rv.introSentAt; rv.updatedBy = who || 'pm';
+    writeRow('ConnectReview', rv);
+    sent++;
+  });
+  log(who, 'connect intros', sent + ' sent' + (stopped ? ', stopped at the daily email limit' : ''));
+  return { ok: true, sent: sent, stopped: stopped, noMatch: plan.summary.noMatch, alreadySent: plan.summary.alreadySent };
 }

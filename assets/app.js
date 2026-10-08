@@ -238,7 +238,7 @@
   function load() {
     var p = state.demo ? tracked(fetch("data/demo.json").then(function (r) { return r.json(); }), "Loading") : apiGet();
     return p.then(function (d) {
-      ["members", "projects", "assignments", "milestones", "meetings", "contacts", "funding", "budget", "rules", "rsvps", "files", "notes"].forEach(function (k) { d[k] = d[k] || []; });
+      ["members", "projects", "assignments", "milestones", "meetings", "contacts", "funding", "budget", "rules", "rsvps", "connect", "files", "notes"].forEach(function (k) { d[k] = d[k] || []; });
       state.data = d; state.error = "";
       showNotice();
     });
@@ -1105,6 +1105,7 @@
       '<a class="btn btn--quiet" href="' + esc(eventUrl("?sample&present")) + '" target="_blank" rel="noopener">Rehearse with sample people<span class="sr"> (opens in a new tab)</span></a></div>' +
       (form ? "" : '<p class="next-step"><b>The form isn\'t made yet.</b> In Apps Script, run <code>createRsvpForm</code> once. It logs the link to share.</p>') + "</div>" +
       '<div class="stats stats--5"><div class="stat"><b>' + list.length + '</b><span>RSVPs</span></div><div class="stat"><b>' + inPerson + '</b><span>In person</span></div><div class="stat"><b>' + shownStories + " of " + stories.length + '</b><span>Stories ticked to show</span></div><div class="stat"><b>' + picked + " of " + questions.length + '</b><span>Questions picked</span></div><div class="stat"><b>' + needs.length + "</b><span>Access requests</span></div></div>" +
+      connectSection() +
       '<section class="section" aria-labelledby="st-h"><h2 id="st-h">Flood stories</h2><p class="section__note">Read each one before ticking it. Tick only stories that are safe to read aloud to a full room.</p>' + (storyRows ? '<ul class="rsvp-list">' + storyRows + "</ul>" : '<p class="empty">No stories yet.</p>') + "</section>" +
       '<section class="section" aria-labelledby="q-h"><h2 id="q-h">Questions for the speakers</h2><p class="section__note">Tick the ones the moderator should have. They are never shown publicly.</p>' + (questionRows ? '<ul class="rsvp-list">' + questionRows + "</ul>" : '<p class="empty">No questions yet.</p>') + "</section>" +
       '<section class="section" aria-labelledby="ac-h"><h2 id="ac-h">Access requests</h2><p class="section__note">Only the four of us see these. Captions need booking with CITRIS ahead of time.</p>' +
@@ -1113,6 +1114,47 @@
       (food.length ? '<ul class="list">' + food.map(function (r) { return "<li><b>" + esc(r.name) + ":</b> " + esc(r.diet) + "</li>"; }).join("") + "</ul>" : '<p class="empty">None so far.</p>') + "</section>" +
       '<section class="section" aria-labelledby="all-h"><h2 id="all-h">Everyone</h2>' + (all ? '<div class="table-scroll"><table class="pm-table pm-table--rsvp"><thead><tr><th scope="col">Name</th><th scope="col">Joining</th><th scope="col">Lives in</th><th scope="col">Connection</th></tr></thead><tbody>' + all + "</tbody></table></div>" : '<p class="empty">No RSVPs yet.</p>') +
       '<p class="section__note">Emails are only in the Sheet\'s RSVP responses tab.</p></section></div>';
+  }
+  /* ---------- Connect cards: read each one before it goes on the event page or into intro emails ---------- */
+  function connectSection() {
+    var cards = (state.data.connect || []).slice().sort(function (a, b) { return a.at < b.at ? 1 : -1; });
+    var form = safeUrl(state.data.connectFormUrl);
+    var ok = cards.filter(function (c) { return c.cardOk; }), shown = ok.filter(function (c) { return c.show; }).length;
+    var intros = ok.filter(function (c) { return c.intros; }), sent = intros.filter(function (c) { return c.introSentAt; }).length;
+    var rows = cards.map(function (c) {
+      var meta = [c.org, c.base, c.nov9 === "in-person" ? "Coming in person" : c.nov9 === "online" ? "Watching online" : ""].filter(Boolean);
+      return '<li class="rsvp-item"><p><b>' + esc(c.name) + "</b>" + (meta.length ? " · " + esc(meta.join(" · ")) : "") + "</p><blockquote>" + esc(c.project) + "</blockquote>" +
+        '<p class="row__meta">' + (c.areas.length ? "<span>" + esc(c.areas.join("; ")) + "</span>" : "") + (c.seeking.length ? "<span>Looking for: " + esc(c.seeking.join(", ")) + "</span>" : "") +
+        (c.link ? "<span>" + extLink(c.link, c.link.replace(/^https?:\/\//, "")) + "</span>" : "") + "</p>" +
+        '<p class="row__meta"><span class="st">' + shape(c.show ? "yes" : "no") + (c.show ? "Asked to be shown on the page" : "Asked to stay off the page") + '</span><span class="st">' + shape(c.intros ? "yes" : "no") + (c.intros ? (c.introSentAt ? "Intro email sent " + esc(fmtDay(new Date(c.introSentAt))) : "Wants intro emails") : "No intro emails") + "</span></p>" +
+        '<label class="check rsvp-ok"><input type="checkbox" data-connect="' + esc(c.id) + '"' + (c.cardOk ? " checked" : "") + "> Approved</label>" +
+        '<small class="rsvp-note">' + (c.show ? "Approved cards appear on the event page" + (c.intros ? " and join the intro emails." : ".") : c.intros ? "Approved, it joins the intro emails but stays off the page." : "Approved, it stays in the Sheet only.") + "</small></li>";
+    }).join("");
+    return '<section class="section" aria-labelledby="cn-h"><h2 id="cn-h">Connect cards</h2><p class="section__note">People working on Philippine projects add a card so others can find them. Read each one before ticking it. An approved card goes on the event page if they asked for that, and joins the intro emails if they asked for those. Emails are never shown.</p>' +
+      '<div class="actions" style="margin-top:0">' + (form ? extLink(form, "Open the Connect form", "btn") : "") + '<a class="btn" href="' + esc(eventUrl("#connect")) + '" target="_blank" rel="noopener">See the cards on the event page<span class="sr"> (opens in a new tab)</span></a>' +
+      '<button type="button" class="btn" data-act="connect-intros"' + (state.demo || !intros.length ? " disabled" : "") + ">Send intro emails</button></div>" +
+      (form ? "" : '<p class="next-step"><b>The form isn\'t made yet.</b> In Apps Script, run <code>createConnectForm</code> once. It logs the link to share.</p>') +
+      '<p class="section__note">' + cards.length + (cards.length === 1 ? " card" : " cards") + ", " + ok.length + " approved, " + shown + " on the page. " + intros.length + " approved " + (intros.length === 1 ? "person wants" : "people want") + " intro emails" + (sent ? ", " + sent + " already sent" : "") + ".</p>" +
+      (rows ? '<ul class="rsvp-list">' + rows + "</ul>" : '<p class="empty">No cards yet.</p>') + "</section>";
+  }
+  function setConnectCard(id, value) {
+    var c = byId(state.data.connect || [], id); if (!c) return;
+    var prev = c.cardOk; c.cardOk = value; route();
+    apiPost({ action: "setConnectCard", id: id, value: value }).then(function (res) {
+      toast((value ? "Card approved" : "Card taken down") + demoNote(res));
+    }).catch(function (e) { c.cardOk = prev; route(); toast("Not saved: " + e.message); });
+  }
+  function sendIntros() {
+    apiPost({ action: "previewConnectIntros" }).then(function (r) {
+      var p = r.preview || {};
+      if (!p.toSend) { toast(p.optedIn ? "No new intro emails to send" + (p.noMatch ? ": " + p.noMatch + " still have no match" : "") : "Nobody approved has asked for intro emails yet"); return; }
+      var body = "<p>Sends " + p.toSend + (p.toSend === 1 ? " email" : " emails") + ", one to each approved person who asked for introductions and hasn't had theirs yet. Each lists up to 8 people with shared interests, with their card and email. Replies come to you.</p>" +
+        (p.noMatch ? "<p>" + p.noMatch + (p.noMatch === 1 ? " person has" : " people have") + " no match yet and won't get one this time.</p>" : "") +
+        (p.alreadySent ? "<p>" + p.alreadySent + " already got theirs and won't get another.</p>" : "") + pmCodeField("Needed once per device to send intro emails.");
+      openDialog(dlgShell("Send intro emails", body, '<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn btn--solid">Send ' + p.toSend + (p.toSend === 1 ? " email" : " emails") + "</button>"), function () {
+        return apiPost({ action: "sendConnectIntros" }).then(function (res) { toast(res.sent + (res.sent === 1 ? " intro email sent" : " intro emails sent") + (res.stopped ? ". Stopped at today's email limit; send again tomorrow." : "")); load(); });
+      });
+    }).catch(function (e) { toast("Couldn't check: " + e.message); });
   }
   function setApproval(id, field, value) {
     var r = byId(state.data.rsvps, id); if (!r) return;
@@ -1499,6 +1541,7 @@
     if (ev.target.id === "tl-done" || ev.target.id === "tl-only" || ev.target.id === "tl-links") { store.set({ "tl-done": "tl.done", "tl-only": "tl.crit", "tl-links": "tl.links" }[ev.target.id], ev.target.checked ? "1" : "0"); var wy = window.scrollY; route(); window.scrollTo(0, wy); return; }
     var t = ev.target;
     if (t.hasAttribute && t.hasAttribute("data-approve")) setApproval(t.getAttribute("data-approve"), t.getAttribute("data-field"), t.checked);
+    if (t.hasAttribute && t.hasAttribute("data-connect")) setConnectCard(t.getAttribute("data-connect"), t.checked);
     if (t.name === "status" && t.closest("[data-status-for]")) setStatus(t.closest("[data-status-for]").getAttribute("data-status-for"), t.value);
     if (t.name === "cstatus" && t.closest("[data-cstatus-for]")) setContactStatus(t.closest("[data-cstatus-for]").getAttribute("data-cstatus-for"), t.value);
     if (t.name === "fstatus" && t.closest("[data-fstatus-for]")) setFundingStatus(t.closest("[data-fstatus-for]").getAttribute("data-fstatus-for"), t.value);
@@ -1548,6 +1591,7 @@
     if (act === "edit-line") { x = byId(state.data.budget, id); openDialog(lineForm(x), function (v) { return saveLine(x, v); }); }
     if (act === "new-meeting") openDialog(meetingForm(null), function (v) { return saveMeetingFrom(null, v); });
     if (act === "edit-meeting") { x = byId(state.data.meetings, id); openDialog(meetingForm(x), function (v) { return saveMeetingFrom(x, v); }); }
+    if (act === "connect-intros") sendIntros();
     if (act === "forget-pm") { store.del("pmCode"); route(); toast("Project manager code removed from this device"); }
     if (act === "send-reminders") {
       var send = function () { return apiPost({ action: "sendReminders" }).then(function (r) { toast(r.sent ? "Summary sent to you" : "Nothing to report today, so no email"); }); };
@@ -1657,7 +1701,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261008053201";
+  var BUILD = "20261008054106";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp

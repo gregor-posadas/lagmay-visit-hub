@@ -4,6 +4,8 @@
 // Add ?sample to the address to see the map with made-up people (for testing and rehearsal).
 window.EV_CONFIG = {
   apiUrl: "https://script.google.com/macros/s/AKfycbwzr5dKY7SYF8xUqL_0JkgbBGhuGas3v0OHo-DEoB9bmjSg3s6SylZh_UWmd6S7EdSZ/exec",
+  // connectUrl: the Connect form's share link, logged by createConnectForm() in Apps Script. Until it is set, the button says sign-up opens soon.
+  connectUrl: "",
   rsvpUrl: "https://docs.google.com/forms/d/e/1FAIpQLSep5CC-7wR6JnsLgJwK2Sqd3Uy3FxqaIgfCPndmfU0bHdDDew/viewform",
   timeText: "4 to 5 PM Pacific",
   // Start and end in Pacific time, 24-hour. Add to calendar and the countdown use these. If either is left blank,
