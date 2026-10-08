@@ -1099,7 +1099,7 @@
     }).join("");
     return '<div class="wrap"><div class="head"><h1 tabindex="-1">RSVPs</h1><p>' + (list.length ? list.length + (list.length === 1 ? " person has" : " people have") + " RSVPed, " + inPerson + " of 149 panel seats taken" + (waiting ? ", " + waiting + " on the waitlist" : "") + ". " : "No RSVPs yet. ") +
       "Stories appear on the event page and in the opening only after someone here ticks them, and only if the person said yes to sharing.</p>" +
-      '<div class="actions">' + (form ? extLink(form, "Open the RSVP form", "btn btn--solid") : "") +
+      '<div class="actions">' + (form ? extLink(form, "Open the RSVP form", "btn btn--solid") : "") + (safeUrl(state.data.checkinUrl) ? extLink(safeUrl(state.data.checkinUrl), "Door check-in sheet", "btn") : "") +
       '<a class="btn" href="' + esc(eventUrl()) + '" target="_blank" rel="noopener">Event page<span class="sr"> (opens in a new tab)</span></a>' +
       '<a class="btn" href="' + esc(eventUrl("?present")) + '" target="_blank" rel="noopener">Opening for Nov 9<span class="sr"> (opens in a new tab)</span></a>' +
       '<a class="btn btn--quiet" href="' + esc(eventUrl("?sample&present")) + '" target="_blank" rel="noopener">Rehearse with sample people<span class="sr"> (opens in a new tab)</span></a></div>' +
@@ -1701,7 +1701,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261008065606";
+  var BUILD = "20261008070322";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp

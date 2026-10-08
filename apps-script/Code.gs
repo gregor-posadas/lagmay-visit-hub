@@ -38,6 +38,7 @@ var TABS = {
 var DEFAULTS = {
   FOLDER_ID: '10D8K0m294pmMo6uYNr2slKSOXGJvo6ny',           // the shared "Dr. Lagmay Visit" Drive folder
   MEETINGS_FOLDER_ID: '1CHy4VFSHm6qzL6QMuMbEU2e6W64s4oGn',  // its Meetings subfolder
+  CHECKIN_SHEET_ID: '12MAeXvAl9_QhQf_Cha2cFpmnUokpSADz3FZQLdp8MgM',  // the door check-in spreadsheet for Nov 9 (separate, so volunteers see no hub data)
   TEAM_EMAILS: 'off'       // 'on' sends each teammate their own reminders; 'off' (default) emails only the project manager
 };
 function setting(key) {
@@ -268,6 +269,7 @@ function payload() {
     rsvpFormUrl: setting('RSVP_FORM_URL'),
     connect: connectList(),
     connectFormUrl: setting('CONNECT_FORM_URL'),
+    checkinUrl: setting('CHECKIN_SHEET_ID') ? 'https://docs.google.com/spreadsheets/d/' + setting('CHECKIN_SHEET_ID') + '/edit' : '',
     files: listFiles(),
     notes: meetingNotes(),
     generated: cell(new Date())
@@ -1024,6 +1026,7 @@ function onRsvpSubmit() {
   CacheService.getScriptCache().remove('map');
   updateSeatChoices();
   try { sendRsvpConfirmations(); } catch (err) { log('rsvp mail', 'error', String(err && err.message || err)); }
+  try { syncCheckinSheet(); } catch (err) { log('check-in', 'error', String(err && err.message || err)); }
 }
 function updateSeatChoices() {
   var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
@@ -1492,4 +1495,70 @@ function sendHeldRsvpConfirmations() {
   var sh = sheet('RsvpMail');
   for (var i = sh.getLastRow(); i >= 2; i--) if (String(sh.getRange(i, 2).getValue()) === 'held') sh.deleteRow(i);
   Logger.log('Confirmation emails sent: ' + sendRsvpConfirmations());
+}
+
+
+/* ------------------------------------------------------------------ door check-in */
+/*
+ * A separate spreadsheet for the door on Nov 9 (CHECKIN_SHEET_ID), so volunteers see names and nothing else from the hub.
+ * Its Check-in tab lists everyone holding a seat or on the panel waitlist, as "Last, First", with their status and a
+ * partly hidden email to tell two people with the same name apart. Volunteers tick Here; the time is stamped for them.
+ * Syncing adds new people and refreshes name, status and email, but never touches Here, Time in or Notes.
+ */
+var CHECKIN_COLS = ['Name', 'Status', 'Email', 'Here', 'Time in', 'Notes', 'RSVP id'];
+function lastFirst(name) {
+  var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  return parts.length < 2 ? parts.join(' ') : parts[parts.length - 1] + ', ' + parts.slice(0, -1).join(' ');
+}
+function maskEmail(e) {
+  var m = String(e || '').trim().match(/^([^@]{0,2})[^@]*(@.+)$/);
+  return m ? m[1] + '…' + m[2] : '';
+}
+/** Who belongs on the door list, in the shape of its first three columns. Pure, so it can be tested. */
+function checkinPeople(rows, plan) {
+  return rows.filter(function (r) { return plan.status[r.id]; }).map(function (r) {
+    return { id: r.id, name: lastFirst(r.name), status: plan.status[r.id] === 'seat' ? 'Seat' : 'Waitlist ' + (plan.place[r.id] || ''), email: maskEmail(r.email) };
+  });
+}
+function syncCheckinSheet() {
+  var id = setting('CHECKIN_SHEET_ID');
+  if (!id) return 'No check-in sheet set.';
+  var sh = SpreadsheetApp.openById(id).getSheetByName('Check-in');
+  var rows = readRsvps(), people = checkinPeople(rows, seatPlan(rows)), byId = {};
+  people.forEach(function (p) { byId[p.id] = p; });
+  var last = sh.getLastRow(), seen = {};
+  if (last > 1) {
+    var ids = sh.getRange(2, 7, last - 1, 1).getValues(), abc = sh.getRange(2, 1, last - 1, 3).getValues();
+    abc = abc.map(function (old, i) {
+      var p = byId[String(ids[i][0])];
+      if (!p) return old;
+      seen[p.id] = true;
+      return [p.name, p.status, p.email];   // Here, Time in and Notes (columns D to F) are never written here
+    });
+    sh.getRange(2, 1, abc.length, 3).setValues(abc);
+  }
+  var fresh = people.filter(function (p) { return !seen[p.id]; });
+  if (fresh.length) {
+    var start = Math.max(last, 1) + 1;
+    sh.getRange(start, 1, fresh.length, CHECKIN_COLS.length).setValues(fresh.map(function (p) { return [p.name, p.status, p.email, false, '', '', p.id]; }));
+  }
+  // Keep it A to Z for the door, but stop re-sorting once doors are close, so a tick can't land on a row that just moved.
+  if (new Date() < new Date('2026-11-09T14:00:00-08:00') && sh.getLastRow() > 2) sh.getRange(2, 1, sh.getLastRow() - 1, CHECKIN_COLS.length).sort({ column: 1, ascending: true });
+  return people.length + ' on the door list, ' + fresh.length + ' new.';
+}
+/** Installable on-edit trigger for the check-in spreadsheet: stamps the time when someone is ticked Here or a walk-in is written in. */
+function onCheckinEdit(e) {
+  if (!e || !e.range) return;
+  var sh = e.range.getSheet(), row = e.range.getRow(), col = e.range.getColumn(), name = sh.getName();
+  if (row < 2 || e.range.getNumRows() > 1) return;
+  var now = Utilities.formatDate(new Date(), TZ, 'h:mm a');
+  if (name === 'Check-in' && col === 4) sh.getRange(row, 5).setValue(e.range.getValue() === true ? now : '');
+  if (name === 'Walk-ins' && col === 1 && e.range.getValue() && !sh.getRange(row, 3).getValue()) sh.getRange(row, 3).setValue(now);
+}
+/** Run once from the editor: makes the time-stamp trigger on the check-in spreadsheet and fills it with everyone so far. */
+function setupCheckin() {
+  var id = setting('CHECKIN_SHEET_ID');
+  var has = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'onCheckinEdit'; });
+  if (!has) ScriptApp.newTrigger('onCheckinEdit').forSpreadsheet(id).onEdit().create();
+  Logger.log((has ? 'Time-stamp trigger was already there. ' : 'Time-stamp trigger made. ') + syncCheckinSheet());
 }
