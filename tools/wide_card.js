@@ -17,7 +17,7 @@ body { width: 1920px; height: 1080px; background: #f4f0e8; color: #1b1a17; font-
 .txt { padding: 72px 96px 0 96px; position: relative; }
 .top { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .brand { display: flex; align-items: center; gap: 18px; font-size: 30px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-.k { margin-top: 44px; font-size: 30px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #4d4a43; }
+.k { margin-top: 34px; font-size: 30px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #4d4a43; }
 h1 { font-size: 88px; line-height: 1.04; margin-top: 14px; }
 .b { font-size: 34px; line-height: 1.4; margin-top: 24px; color: #36332d; max-width: 900px; }
 .facts { display: flex; gap: 0; margin-top: 40px; border: 4px solid #1b1a17; background: #fcfaf5; width: fit-content; }
@@ -27,10 +27,11 @@ h1 { font-size: 88px; line-height: 1.04; margin-top: 14px; }
 .cta { border: 5px solid #1b1a17; box-shadow: 12px 12px 0 #1b1a17; background: #fcfaf5; padding: 18px 22px; display: flex; align-items: center; gap: 22px; }
 .cta img { width: 128px; height: 128px; background: #fff; }
 .cta b { font-size: 38px; display: block; } .cta span { font-size: 26px; color: #4d4a43; display: block; margin-top: 6px; white-space: nowrap; }
-.co { display: flex; align-items: center; gap: 18px; white-space: nowrap; font-size: 26px; font-weight: 700; color: #4d4a43; }
-.co img { height: 80px; background: #fff; border: 4px solid #1b1a17; padding: 6px 14px; }
+.co { margin-top: 30px; display: flex; align-items: center; gap: 18px; white-space: nowrap; font-size: 26px; font-weight: 700; color: #4d4a43; }
+.co img { height: 72px; background: #fff; border: 4px solid #1b1a17; padding: 6px 14px; }
 </style></head><body><div class="pic"></div><div class="txt">
-<div class="top"><p class="brand"><svg width="44" height="44" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#385F96"/><path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>When the Waters Rise</p><div class="co"><span>Co-hosted with</span><img src="${B}event/img/logos/logo-phildev.png" alt=""></div></div>
+<div class="top"><p class="brand"><svg width="44" height="44" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#385F96"/><path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>When the Waters Rise</p></div>
+<div class="co"><span>Presented by</span><img src="${B}event/img/logos/logo-deveng.png" alt=""><img src="${B}event/img/logos/logo-phildev.png" alt=""></div>
 <p class="k">Free public talk · Mon, Nov 9 · UC Berkeley</p>
 <h1>Dr. Mahar Lagmay at UC Berkeley</h1>
 <p class="b">The scientist behind Project NOAH's national flood maps, in conversation with UC Berkeley scholars Dr. Lisandro Claudio and Dr. Diana Martinez. Everyone welcome.</p>
