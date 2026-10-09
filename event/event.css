@@ -24,11 +24,32 @@
 .ev-kicker { font-weight: 700; color: var(--ink-2); }
 .ev-hero h1 { font-size: clamp(2.2rem, 7vw, 3.6rem); line-height: 1.05; margin: 6px 0 14px; letter-spacing: -0.01em; }
 .ev-lede { font-size: var(--f3); max-width: 38rem; }
-.ev-facts { margin: 28px 0 8px; max-width: 60rem; }
-.ev-facts dt { font-size: var(--f1); color: var(--ink-2); }
-.ev-facts dd { margin: 0; font-weight: 700; }
-.ev-facts dd small { font-weight: 400; color: var(--ink-2); font-size: var(--f1); }
+/* The day: every session of the visit, in order, with the room each one has. Replaces the single-event facts box. */
+.ev-day { margin: 28px 0 8px; max-width: 60rem; border: 2px solid var(--rule-strong); }
+.ev-day__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 16px; padding: 12px 18px; border-bottom: 2px solid var(--rule-strong); }
+.ev-day__head h2 { font-size: var(--f2); margin: 0; }
+.ev-day__head p { margin: 0; font-size: var(--f1); color: var(--ink-2); }
+.ev-day__list { list-style: none; margin: 0; padding: 0; }
+.ev-slot { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr) 11rem; gap: 4px 20px; padding: 14px 18px; border-bottom: 1px solid var(--rule); }
+.ev-slot > * { margin: 0; min-width: 0; }
+.ev-slot__time { font-weight: 700; }
+.ev-slot__what h3 { font-size: var(--f2); margin: 0 0 2px; }
+.ev-slot__what p { margin: 0; font-size: var(--f1); color: var(--ink-2); }
+.ev-slot__room { font-size: var(--f1); color: var(--ink-2); }
+.ev-slot__room b { color: var(--ink); font-size: var(--f2); }
+.ev-slot.is-main { box-shadow: inset 6px 0 0 var(--rule-strong); }
+.ev-slot__tag { display: inline-block; margin-left: 6px; padding: 0 8px; border: 2px solid var(--rule-strong); font-size: var(--f1); font-weight: 700; vertical-align: 2px; }
+.ev-day__later { margin: 0; padding: 12px 18px; font-size: var(--f1); color: var(--ink-2); }
+.ev-day__later b { color: var(--ink); }
+@media (max-width: 719px) {
+  .ev-slot { grid-template-columns: 1fr; gap: 2px; }
+  .ev-slot__room { margin-top: 6px; }
+  .ev-slot__room br { display: none; }
+  .ev-slot__room b::after { content: " · "; font-weight: 400; color: var(--ink-2); }
+}
 .ev-actions { margin-top: 20px; }
+.ev-cal__group { margin: 4px 0 2px; font-size: var(--f1); font-weight: 700; color: var(--ink-2); }
+.ev-cal__group:not(:first-child) { margin-top: 12px; }
 .btn--big { min-height: 56px; padding: 0 32px; font-size: var(--f3); }
 .ev-welcome { margin-top: 14px; max-width: 38rem; color: var(--ink-2); }
 .ev-cohost-hero { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin: 18px 0 0; font-weight: 700; color: var(--ink-2); }
