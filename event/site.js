@@ -312,27 +312,48 @@
   })();
 
   /* In-person seats, from the map data: a bar of seats taken (solid) against seats still open (empty paper), the same
-     encoding as the funding gauge, with the numbers in words beside it. The sentence turns bold when few are left or none. */
-  function seats(d) {
-    var el = document.getElementById("ev-seats"); if (!el || !d || !d.seats) return;
-    var fil = document.documentElement.lang === "fil", s = d.seats, cap = s.capacity, t = el.querySelector(".ev-seats__t");
-    var taken = Math.min(cap, s.taken), left = Math.max(0, s.left), wait = (d.attend && d.attend.waitlist) || 0;
-    var full = left <= 0, few = !full && left <= 50, pct = (taken / cap * 100).toFixed(2);
+     encoding as the funding gauge, with the numbers in words beside it. The sentence turns bold when few are left or none.
+     One bar for the panel in Banatao (#ev-seats) and one for the morning lecture's 20 guest spots (#ev-seats-lecture). */
+  function gauge(el, s, wait, fewAt, T) {
+    var cap = s.capacity, t = el.querySelector(".ev-seats__t");
+    var taken = Math.min(cap, s.taken), left = Math.max(0, s.left);
+    var full = left <= 0, few = !full && left <= fewAt, pct = (taken / cap * 100).toFixed(2);
+    el.hidden = false;
     el.classList.toggle("is-full", full); el.classList.toggle("is-few", few);
-    if (full) t.innerHTML = fil ? "<b>Puno na.</b> Kinuha na ang lahat ng " + cap + " na upuan sa Banatao Auditorium. Mag-RSVP pa rin para sa waitlist, o para makuha ang link ng livestream."
-                                : "<b>Full.</b> All " + cap + " in-person seats in Banatao Auditorium are taken. RSVP anyway to join the waitlist, or to get the livestream link.";
-    else if (few) t.innerHTML = fil ? "<b>" + left + " na upuan na lang</b> ang natitira sa " + cap + ". Ayon sa pagkakasunod ng RSVP ang mga upuan."
-                                    : "<b>Only " + left + " of " + cap + " seats left</b> in Banatao Auditorium. Seats go in the order people RSVP.";
-    var L = fil ? { left: left === 1 ? "upuang bakante" : "upuang bakante", taken: "nakuha na", of: "sa " + cap + " na upuan", wait: "sa waitlist", kTaken: "Nakuha na", kOpen: "Bakante pa",
-                    aria: taken + " sa " + cap + " na upuan ang nakuha na; " + left + " pa ang bakante" + (wait ? "; " + wait + " sa waitlist" : "") + "." }
-                  : { left: left === 1 ? "seat left" : "seats left", taken: "taken", of: "of " + cap + " seats", wait: "on the waitlist", kTaken: "Taken", kOpen: "Still open",
-                    aria: taken + " of " + cap + " seats taken; " + left + " still open" + (wait ? "; " + wait + " on the waitlist" : "") + "." };
+    if (full) t.innerHTML = T.full(cap); else if (few) t.innerHTML = T.few(left, cap);
     var g = el.querySelector(".ev-seats__g");
     if (!g) { g = document.createElement("div"); g.className = "gauge ev-seats__g"; el.appendChild(g); }
-    g.innerHTML = '<div class="gauge__nums"><span><b>' + left + "</b> " + L.left + "</span><span><b>" + taken + "</b> " + L.taken + "</span><span>" + L.of + "</span>" +
-      (wait ? "<span><b>" + wait + "</b> " + L.wait + "</span>" : "") + "</div>" +
-      '<div class="gauge__bar" role="img" aria-label="' + L.aria + '"><span class="gauge__seg gauge__seg--secured" style="width:' + pct + '%"></span></div>' +
-      '<ul class="gauge__key" aria-hidden="true"><li><i class="k-secured"></i>' + L.kTaken + '</li><li><i class="k-gap"></i>' + L.kOpen + "</li></ul>";
+    g.innerHTML = '<div class="gauge__nums"><span><b>' + left + "</b> " + T.left(left) + "</span><span><b>" + taken + "</b> " + T.taken + "</span><span>" + T.of(cap) + "</span>" +
+      (wait ? "<span><b>" + wait + "</b> " + T.wait + "</span>" : "") + "</div>" +
+      '<div class="gauge__bar" role="img" aria-label="' + T.aria(taken, cap, left, wait) + '"><span class="gauge__seg gauge__seg--secured" style="width:' + pct + '%"></span></div>' +
+      '<ul class="gauge__key" aria-hidden="true"><li><i class="k-secured"></i>' + T.kTaken + '</li><li><i class="k-gap"></i>' + T.kOpen + "</li></ul>";
+  }
+  function seats(d) {
+    if (!d) return;
+    var fil = document.documentElement.lang === "fil", a = d.attend || {};
+    var panel = document.getElementById("ev-seats"), lecture = document.getElementById("ev-seats-lecture");
+    if (panel && d.seats) gauge(panel, d.seats, a.waitlist || 0, 50, fil ? {
+      full: function (cap) { return "<b>Puno na.</b> Kinuha na ang lahat ng " + cap + " na upuan sa Banatao Auditorium. Mag-RSVP pa rin para sa waitlist, o para makuha ang link ng livestream."; },
+      few: function (left, cap) { return "<b>" + left + " na upuan na lang</b> ang natitira sa " + cap + ". Ayon sa pagkakasunod ng RSVP ang mga upuan."; },
+      left: function () { return "upuang bakante"; }, taken: "nakuha na", of: function (cap) { return "sa " + cap + " na upuan"; }, wait: "sa waitlist", kTaken: "Nakuha na", kOpen: "Bakante pa",
+      aria: function (t, cap, left, w) { return t + " sa " + cap + " na upuan ang nakuha na; " + left + " pa ang bakante" + (w ? "; " + w + " sa waitlist" : "") + "."; }
+    } : {
+      full: function (cap) { return "<b>Full.</b> All " + cap + " in-person seats in Banatao Auditorium are taken. RSVP anyway to join the waitlist, or to get the livestream link."; },
+      few: function (left, cap) { return "<b>Only " + left + " of " + cap + " seats left</b> in Banatao Auditorium. Seats go in the order people RSVP."; },
+      left: function (n) { return n === 1 ? "seat left" : "seats left"; }, taken: "taken", of: function (cap) { return "of " + cap + " seats"; }, wait: "on the waitlist", kTaken: "Taken", kOpen: "Still open",
+      aria: function (t, cap, left, w) { return t + " of " + cap + " panel seats taken; " + left + " still open" + (w ? "; " + w + " on the waitlist" : "") + "."; }
+    });
+    if (lecture && d.lectureSeats) gauge(lecture, d.lectureSeats, a.lectureWaitlist || 0, 5, fil ? {
+      full: function (cap) { return "<b>Puno na ang lecture sa umaga.</b> Kinuha na ang lahat ng " + cap + " na puwesto para sa bisita. Mag-RSVP pa rin para sa waitlist nito."; },
+      few: function (left, cap) { return "<b>" + left + " na puwesto na lang</b> ang natitira sa " + cap + " para sa lecture sa umaga."; },
+      left: function () { return "puwestong bakante"; }, taken: "nakuha na", of: function (cap) { return "sa " + cap + " na puwesto"; }, wait: "sa waitlist", kTaken: "Nakuha na", kOpen: "Bakante pa",
+      aria: function (t, cap, left, w) { return t + " sa " + cap + " na puwesto sa lecture ang nakuha na; " + left + " pa ang bakante" + (w ? "; " + w + " sa waitlist" : "") + "."; }
+    } : {
+      full: function (cap) { return "<b>The morning lecture is full.</b> All " + cap + " guest spots are taken. RSVP anyway to join its waitlist."; },
+      few: function (left, cap) { return "<b>Only " + left + " of " + cap + " guest spots left</b> for the morning lecture. Spots go in the order people RSVP."; },
+      left: function (n) { return n === 1 ? "spot left" : "spots left"; }, taken: "taken", of: function (cap) { return "of " + cap + " guest spots"; }, wait: "on the waitlist", kTaken: "Taken", kOpen: "Still open",
+      aria: function (t, cap, left, w) { return t + " of " + cap + " lecture guest spots taken; " + left + " still open" + (w ? "; " + w + " on the waitlist" : "") + "."; }
+    });
   }
 
   window.EV_SITE = { theme: theme, tick: tick, tipsInit: tipsInit, icon: icon, seats: seats };

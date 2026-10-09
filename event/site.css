@@ -196,6 +196,8 @@
 .ev-seats { margin-top: 12px; max-width: 38rem; padding-left: 12px; border-left: 4px solid var(--rule-strong); font-size: var(--f1); color: var(--ink-2); }
 .ev-seats.is-few { color: var(--ink); }
 .ev-seats.is-full { color: var(--ink); border-left-width: 8px; }
+.ev-seats[hidden] { display: none; }
+.ev-seats--lecture { margin-top: 16px; }
 
 /* Directions: photos of Banatao Auditorium */
 .ev-room__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 12px; }
