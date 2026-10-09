@@ -31,13 +31,13 @@ def flag(x, y, w, h):
 
 
 def brand(x, y, icon, size, color=INK):
-    return img(x, y, icon, icon, 'wave-icon.png', 'Wave icon') + text(x + icon + size * 0.5, y + (icon - size * 1.2) / 2, 700, size, 'WHEN THE WATERS RISE', 700, color, 1.2, 0.04)
+    return img(x, y, icon, icon, 'wave-icon.jpg', 'Wave icon') + text(x + icon + size * 0.5, y + (icon - size * 1.2) / 2, 700, size, 'WHEN THE WATERS RISE', 700, color, 1.2, 0.04)
 
 
 def cohost(x, y, size, h, gap=16):
     lab_w = round(size * 7.4)
     return (text(x, y + (h - size * 1.2) / 2, lab_w, size, 'Co-hosted with', 700, MUTED, 1.2)
-            + img(x + lab_w + gap, y, round(h * LOGO_RATIO), h, 'phildev-box.png', 'PhilDev, the Philippine Development Foundation'))
+            + img(x + lab_w + gap, y, round(h * LOGO_RATIO), h, 'phildev-box.jpg', 'PhilDev, the Philippine Development Foundation'))
 
 
 def facts(x, y, widths, h, big, small):
@@ -57,7 +57,7 @@ def rsvp(x, y, w, h, qr, big, small, shadow=12):
     pad = (h - qr) / 2
     tx = x + pad + qr + 24
     return (rect(x + shadow, y + shadow, w, h, INK) + rect(x, y, w, h, CARD, f'5px solid {INK}')
-            + img(x + pad, y + pad, qr, qr, 'qr-rsvp.png', 'QR code for the event page')
+            + img(x + pad, y + pad, qr, qr, 'qr-rsvp.jpg', 'QR code for the event page')
             + text(tx, y + h / 2 - big * 1.2 + 2, w - (tx - x) - 20, big, 'RSVP', 700, INK, 1.15)
             + text(tx, y + h / 2 + 8, w - (tx - x) - 20, small, URL, 400, MUTED, 1.2))
 
@@ -102,7 +102,7 @@ P += [brand(X, 488, 44, 30), cohost(X, 552, 26, 64),
 pages.append(('Instagram post 1080 x 1350', 1080, 1350, P))
 
 # 4. Story / phone, 1080 x 1920 (Instagram and Facebook stories, WhatsApp status)
-S = [rect(0, 0, 1080, 282, INK), img(90, 90, 60, 60, 'wave-icon.png', 'Wave icon'),
+S = [rect(0, 0, 1080, 282, INK), img(90, 90, 60, 60, 'wave-icon-dark.jpg', 'Wave icon'),
      text(172, 90, 820, 50, 'WHEN THE WATERS RISE', 700, '#ffffff', 1.2, 0.02),
      text(90, 172, 900, 32, 'Flooding in the Philippines, a public conversation', 400, '#dddddd', 1.3),
      flag(0, 282, 1080, 14),
