@@ -7,6 +7,8 @@ import html
 INK, MUTED, BODY, CARD, BG = '#1b1a17', '#4d4a43', '#36332d', '#fcfaf5', '#f4f0e8'
 BLUE, RED, RULE = '#385F96', '#A3242A', '#cfc8b8'
 URL = 'gregor-posadas.github.io/lagmay-visit-hub/event'
+BASE = 'https://gregor-posadas.github.io/lagmay-visit-hub/event/canva/'   # Canva's importer needs absolute image URLs
+FONT = "font-family:'Atkinson Hyperlegible',sans-serif;"
 LOGO_RATIO = 556 / 216   # phildev-box.png width / height
 
 
@@ -16,12 +18,12 @@ def rect(x, y, w, h, bg, border=None):
 
 
 def text(x, y, w, size, s, weight=400, color=INK, lh=1.25, ls=0, tag='p'):
-    return (f'<{tag} style="position:absolute;left:{x}px;top:{y}px;width:{w}px;margin:0;font-size:{size}px;'
+    return (f'<{tag} style="position:absolute;left:{x}px;top:{y}px;width:{w}px;margin:0;{FONT}font-size:{size}px;'
             f'font-weight:{weight};color:{color};line-height:{lh};letter-spacing:{ls}em">{html.escape(s)}</{tag}>')
 
 
 def img(x, y, w, h, src, alt):
-    return f'<img src="{src}" alt="{html.escape(alt)}" style="position:absolute;left:{x}px;top:{y}px;width:{w}px;height:{h}px">'
+    return f'<img src="{BASE}{src}" alt="{html.escape(alt)}" style="position:absolute;left:{x}px;top:{y}px;width:{w}px;height:{h}px">'
 
 
 def flag(x, y, w, h):
