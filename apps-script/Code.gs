@@ -858,7 +858,7 @@ var Q = {
   email: 'Your email',
   role: 'Which best describes you?',
   attend: 'How will you join us?',
-  county: 'Which Bay Area county do you live in?',
+  county: 'Where do you live?',
   tie: 'What is your connection to the Philippines?',
   prov1: 'Which province is that connection to?',
   prov2: 'Another province (optional)',
@@ -870,7 +870,7 @@ var Q = {
   connect: 'Would you like to connect with others working on projects in or for the Philippines?'
 };
 /* Earlier titles of renamed questions, so answers given before the rename are still found. */
-var Q_OLD = { county: ['Where do you live now?'] };
+var Q_OLD = { county: ['Which Bay Area county do you live in?', 'Where do you live now?'] };
 var TIES = {
   'I was born there': 'born',
   'My parents are from there': 'parents',
@@ -880,6 +880,11 @@ var TIES = {
   'No connection, just interested (everyone is welcome)': 'none'
 };
 var NOT_SURE = 'Not sure', NO_SAY = 'Prefer not to say', OUTSIDE = 'Outside the Bay Area';
+/* "Where do you live?" (Oct 8): the Bay Area counties, then places farther away, so people joining from elsewhere, in person
+   or online, have a real answer. On the map every non-Bay answer (and the older "Outside the Bay Area") counts as outside. */
+var AWAY = ['Elsewhere in California', 'Elsewhere in the US', 'The Philippines', 'Another country'];
+var COUNTY_CHOICES = BAY_COUNTIES.concat(AWAY, [NO_SAY]);
+function isAway(v) { return v === OUTSIDE || AWAY.indexOf(v) > -1; }
 /* Banatao Auditorium holds 149. In-person seats go in the order people RSVP; after that, "In person" answers go on the waitlist.
    The reception after the panel (B100 Blum Hall and its lobby) is for the same 149, so it has no count of its own. */
 var SEATS = 149;
@@ -947,10 +952,10 @@ function rsvpDescription() {
     'This form also takes RSVPs for Dr. Lagmay\'s guest lecture on the UC Berkeley campus that morning and his talk on the Stanford campus on November 10.\n' +
     'Room for each: the morning guest lecture has 20 guest spots (it is a class, so these are on top of the students). The panel in Banatao Auditorium has 149 seats, ' +
     'and the reception after it in Blum Hall is for the same 149. Spots go in the order people RSVP. You can come to both the lecture and the panel.\n\n' +
-    'Everyone is welcome, whether or not you have ties to the Philippines. It takes about two minutes.\n\n' +
-    'Your name and email are only for the RSVP list and are never shown. The places you pick (a Bay Area county and a province) ' +
-    'appear as anonymous counts on a map at the event and on its web page. Only your name, your email, how you\'ll join and your county ' +
-    'are required, and the county question has "Prefer not to say".';
+    'Everyone is welcome, whether or not you have ties to the Philippines, and wherever you live. It takes about two minutes.\n\n' +
+    'Your name and email are only for the RSVP list and are never shown. Where you live, and a province if you have a tie to one, ' +
+    'appear as anonymous counts on a map at the event and on its web page. Only your name, your email, how you\'ll join and where you live ' +
+    'are required, and that last one has "Prefer not to say".';
 }
 
 function createRsvpForm() {
@@ -975,7 +980,7 @@ function createRsvpForm() {
     'Community member', NO_SAY]).showOtherOption(true);
   form.addMultipleChoiceItem().setTitle(Q.attend).setHelpText(joinHelp()).setRequired(true).setChoiceValues(joinChoices(false));
   form.addListItem().setTitle(Q.county).setHelpText(COUNTY_HELP)
-    .setRequired(true).setChoiceValues(BAY_COUNTIES.concat([OUTSIDE, NO_SAY]));
+    .setRequired(true).setChoiceValues(COUNTY_CHOICES);
 
   // Page 2: the connection. "No connection" skips the province questions.
   var tiePage = form.addPageBreakItem().setTitle('Your connection to the Philippines')
@@ -990,7 +995,7 @@ function createRsvpForm() {
     return TIES[label] === 'none' ? tie.createChoice(label, storyPage) : tie.createChoice(label, provPage);
   }));
   form.addParagraphTextItem().setTitle(Q.story).setRequired(false)
-    .setHelpText('A storm, a flood, what your family did. A sentence or two is plenty. Share only what you are comfortable sharing.');
+    .setHelpText(STORY_HELP);
   form.addMultipleChoiceItem().setTitle(Q.consent).setRequired(false)
     .setHelpText('A few answers may be read aloud or shown on screen at the start of the event, never with a name. A teammate reads every answer first.')
     .setChoiceValues([CONSENT_YES, 'No, please keep it private']);
@@ -1090,7 +1095,8 @@ function joinHelp(plan) {
   return 'Pick one. Dr. Lagmay is visiting from the University of the Philippines Resilience Institute. ' + lecPart + ' ' + panelPart +
     ' The reception after the panel, in B100 Blum Hall and its lobby, is for the same ' + SEATS + '. Spots go in the order people RSVP. Coming to both the lecture and the panel? Pick "Both".';
 }
-var COUNTY_HELP = 'If you live outside the Bay Area, pick "Outside the Bay Area".';
+var COUNTY_HELP = 'People are joining from all over, in person and online. Pick your Bay Area county, or one of the choices after them if you live somewhere else. "Prefer not to say" is at the end.';
+var STORY_HELP = 'It can be anywhere in the world, in the Philippines or not: a storm, a flood, what your family did. A sentence or two is plenty. Share only what you are comfortable sharing.';
 var DIET_HELP = 'For the refreshments after the panel. Optional, and only the organizers see this.';
 
 /**
@@ -1104,7 +1110,9 @@ function reviseRsvpForm() {
   var form = FormApp.openById(formId), items = form.getItems(), done = [];
   if (form.getDescription() !== rsvpDescription()) { form.setDescription(rsvpDescription()); done.push('description updated'); }
   var county = items.filter(function (it) { return it.getTitle() === Q.county || (Q_OLD.county || []).indexOf(it.getTitle()) > -1; })[0];
-  if (county) { county.setTitle(Q.county).setHelpText(COUNTY_HELP); done.push('county question renamed'); }
+  if (county) { county.setTitle(Q.county).setHelpText(COUNTY_HELP); county.asListItem().setChoiceValues(COUNTY_CHOICES); done.push('county question renamed, with places outside the Bay Area'); }
+  var story = items.filter(function (it) { return it.getTitle() === Q.story; })[0];
+  if (story && story.getHelpText() !== STORY_HELP) { story.setHelpText(STORY_HELP); done.push('story help text updated'); }
   done.push(updateSeatChoices());
   var hasDiet = items.some(function (it) { return it.getTitle() === Q.diet; });
   if (!hasDiet) {
@@ -1141,7 +1149,7 @@ function publicMap() {
     if (seat === 'seat') out.attend.inPerson++; else if (seat === 'waitlist') out.attend.waitlist++;
     if (lecSeat) out.attend[lecSeat === 'seat' ? 'lecture' : 'lectureWaitlist']++;
     if (!seat && !lecSeat) { if (kind === 'stanford' || kind === 'online') out.attend[kind]++; else out.attend.unsure++; }
-    var county = BAY_COUNTIES.indexOf(r.county) > -1 ? r.county : r.county === OUTSIDE ? 'outside' : 'unsaid';
+    var county = BAY_COUNTIES.indexOf(r.county) > -1 ? r.county : isAway(r.county) ? 'outside' : 'unsaid';
     out.bay[county] = (out.bay[county] || 0) + 1;
     var tie = TIES[r.tie] || 'unsaid';
     out.ties[tie] = (out.ties[tie] || 0) + 1;
