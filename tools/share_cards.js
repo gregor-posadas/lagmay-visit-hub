@@ -9,7 +9,7 @@ const cards = {
   'event-fil': { lang: 'fil', kicker: 'Libreng talakayan · Lunes, Nob 9', title: 'Si Dr. Mahar Lagmay sa UC Berkeley', sub: 'Pagbaha sa Pilipinas, isang pampublikong talakayan',
     body: 'Ang siyentipiko sa likod ng mga pambansang flood map ng Project NOAH, kasama ang mga iskolar ng UC Berkeley na sina Dr. Lisandro Claudio at Dr. Diana Martinez. Banatao Auditorium. Bukas sa lahat.', cta: 'Mag-RSVP', img: 'event/data/maps/town-metro-manila.webp', path: 'fil/' },
   'support-en': { lang: 'en', kicker: 'Help bring Dr. Lagmay to Berkeley', title: 'Support the event', sub: 'When the Waters Rise · Nov 9 · UC Berkeley',
-    body: 'The talk is free, and his flight, the room and the reception are covered. Help with editing the recording and printing posters, or lend a hand on the day.', cta: 'How to help', img: 'event/data/maps/town-cebu.webp', path: 'support/' },
+    body: 'The talk is free, and his flight, the room and the reception are covered. Help with the rest of the livestream and recording and with printing posters, or lend a hand on the day.', cta: 'How to help', img: 'event/data/maps/town-cebu.webp', path: 'support/' },
 };
 const html = c => `<!doctype html><html lang="${c.lang}"><head><meta charset="utf-8"><style>
 @font-face { font-family: A; src: url(${B}fonts/AtkinsonHyperlegibleNext-Regular.woff2); }
