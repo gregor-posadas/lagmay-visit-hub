@@ -2,6 +2,8 @@
 //   node tools/share_cards.js      (with `python3 -m http.server 8765` running in the repo root)
 const { chromium } = require('playwright');
 const B = 'http://localhost:8765/';
+const LOGOS = ['up', 'upri.jpg', 'noah', '|', 'blum', 'deveng', 'townsend', 'bcp', 'stanford-sea']
+  .map(n => n === '|' ? '<span class="sep"></span>' : `<img src="${B}event/img/logos/logo-${n.includes('.') ? n : n + '.png'}" alt="">`).join('');
 const CO = { en: 'Co-hosted with', fil: 'Katuwang na host' };
 const cards = {
   'event-en': { lang: 'en', kicker: 'Free public talk · Mon, Nov 9', title: 'When the Waters Rise', sub: 'Flooding in the Philippines, a public conversation',
@@ -23,17 +25,21 @@ const html = c => `<!doctype html><html lang="${c.lang}"><head><meta charset="ut
 .k { margin: 64px 90px 0; font-size: 32px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #4d4a43; }
 .t { margin: 16px 90px 0; font-size: 92px; font-weight: 700; line-height: 1.05; }
 .b { margin: 30px 90px 0; font-size: 38px; line-height: 1.38; color: #36332d; }
-.u { position: absolute; left: 90px; right: 90px; bottom: 120px; border: 6px solid #1b1a17; box-shadow: 14px 14px 0 #1b1a17; background: #fcfaf5; padding: 30px 34px; display: flex; justify-content: space-between; align-items: center; }
+.u { position: absolute; left: 90px; right: 90px; bottom: 150px; border: 6px solid #1b1a17; box-shadow: 14px 14px 0 #1b1a17; background: #fcfaf5; padding: 30px 34px; display: flex; justify-content: space-between; align-items: center; }
 .co { margin: 40px 90px 0; display: flex; align-items: center; gap: 22px; font-size: 32px; font-weight: 700; color: #4d4a43; }
 .co img { height: 80px; background: #fff; border: 4px solid #1b1a17; padding: 6px 14px; }
 .co { flex-wrap: wrap; gap: 16px 18px; }
+.u .qr { width: 132px; height: 132px; display: block; margin-right: 30px; flex: none; } .u .l { display: flex; align-items: center; flex: 1; }
+.lg { position: absolute; left: 90px; right: 90px; bottom: 44px; height: 70px; background: #fff; border: 2px solid #cfc8b8; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+.lg img { height: 36px; display: block; } .lg .sep { width: 2px; height: 36px; background: #cfc8b8; }
 .u b { font-size: 40px; } .u span { font-size: 27px; color: #4d4a43; display: block; margin-top: 6px; } .u i { font-style: normal; font-size: 52px; font-weight: 700; }
 </style></head><body>
 <div class="band"><h1><svg width="56" height="56" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#385F96"/><path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>When the Waters Rise</h1><p>${c.sub}</p><div class="flag"></div></div>
 <div class="pic"></div>
 <p class="k">${c.kicker}</p><p class="t">${c.title === 'When the Waters Rise' ? 'Dr. Mahar Lagmay at UC Berkeley' : c.title}</p><p class="b">${c.body}</p>
 <div class="co"><span>${CO[c.lang]}</span><img src="${B}event/img/logos/logo-phildev.png" alt=""></div>
-<div class="u"><div><b>${c.cta}</b><span>gregor-posadas.github.io/lagmay-visit-hub/event${c.path ? '/' + c.path.replace(/\/$/, '') : ''}</span></div><i>↗</i></div>
+<div class="u"><div class="l">${c.path === 'support/' ? '' : `<img class="qr" src="${B}event/img/qr-event.svg" alt="">`}<div><b>${c.cta}</b><span>gregor-posadas.github.io/lagmay-visit-hub/event${c.path ? '/' + c.path.replace(/\/$/, '') : ''}</span></div></div><i>↗</i></div>
+<div class="lg">${LOGOS}</div>
 </body></html>`;
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium' });
