@@ -71,6 +71,9 @@
 .ev-logos__cohost img { max-height: 96px; }
 .ev-cohost__note { margin: 4px 0 0; max-width: 40rem; }
 .ev-logos__text { font-weight: 700; font-size: var(--f2); text-align: center; max-width: 16rem; }
+/* A logo that is only a symbol carries its name beside it. */
+.ev-logos__named { gap: 16px; }
+.ev-logos__named span { font-weight: 700; font-size: var(--f2); }
 @media (max-width: 600px) { .ev-logos { display: grid; grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .ev-logos a { transition: none; } .ev-logos a:hover, .ev-logos a:active { transform: none; } }
 
