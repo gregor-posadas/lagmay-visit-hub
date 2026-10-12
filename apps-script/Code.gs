@@ -1456,6 +1456,8 @@ function sendConnectIntros(who) {
  * plus Google Calendar and Outlook links. The RsvpMail tab records who got theirs, so nobody gets two.
  */
 var EVENT_URL = 'https://gregor-posadas.github.io/lagmay-visit-hub/event/';
+/* For anyone who may not make it to Berkeley (waitlist, not sure yet): Stanford hosts its own talk on Nov 10. */
+var STANFORD_NOTE = '<p>Can\'t make it to Berkeley? Stanford is hosting a talk by Dr. Lagmay on <b>Tuesday, November 10</b>, with details to come. To join that one, fill in the RSVP form again and pick Stanford.</p>';
 var RSVP_EVENTS = {
   panel: { uid: 'when-the-waters-rise-2026-11-09@gregor-posadas.github.io', title: 'When the Waters Rise: Dr. Mahar Lagmay at UC Berkeley',
     start: '20261110T000000Z', end: '20261110T010000Z', startIso: '2026-11-09T16:00:00-08:00', endIso: '2026-11-09T17:00:00-08:00',
@@ -1503,7 +1505,7 @@ function rsvpConfirmation(r, plan) {
       body: '<p>Your seat is saved for ' + panelWhen + '. Please arrive a few minutes early. Stay after to meet the speakers at a reception in B100 Blum Hall and its lobby, next door.</p>' },
     waitlist: { subject: "You're on the waitlist: When the Waters Rise, Nov 9",
       body: '<p>All ' + SEATS + ' seats in Banatao Auditorium are taken, so you are ' + (place ? '<b>number ' + place + '</b> ' : '') + 'on the waitlist. We will email you if a seat opens. ' +
-        'Either way, you can watch the livestream, and the link comes to this address before the event.</p><p>The panel is ' + panelWhen + '.</p>' },
+        'Either way, you can watch the livestream, and the link comes to this address before the event.</p><p>The panel is ' + panelWhen + '.</p>' + STANFORD_NOTE },
     online: { subject: "You're on the list: When the Waters Rise livestream, Nov 9",
       body: '<p>You are joining the livestream of the panel on <b>Monday, November 9, 4 to 5 PM Pacific</b>. We will email the link to this address before the event.</p>' },
     lecture: { subject: "You're on the list: Dr. Lagmay's guest lecture, Nov 9",
@@ -1516,7 +1518,7 @@ function rsvpConfirmation(r, plan) {
     stanford: { subject: "You're on the list: Dr. Lagmay at Stanford, Nov 10",
       body: '<p>You are on the list for Dr. Lagmay\'s talk on the Stanford campus on <b>Tuesday, November 10</b>. The time and room are still being set, and we will email them to you as soon as they are.</p>' },
     unsure: { subject: 'Thanks for your RSVP: When the Waters Rise, Nov 9',
-      body: '<p>Thanks for letting us know you might come. The panel is ' + panelWhen + ', and it is also livestreamed. The calendar invite below saves the date. If your plans firm up, just reply to this email.</p>' }
+      body: '<p>Thanks for letting us know you might come. The panel is ' + panelWhen + ', and it is also livestreamed. The calendar invite below saves the date. If your plans firm up, just reply to this email.</p>' + STANFORD_NOTE }
   };
   var l = lines[kind] || lines.unsure;
   var evs = kind === 'lecture' ? [RSVP_EVENTS.lecture] : kind === 'stanford' || kind === 'lectureWaitlist' ? [] : [RSVP_EVENTS.panel];
@@ -1526,7 +1528,7 @@ function rsvpConfirmation(r, plan) {
     var lecPart = lecSeat === 'seat' ? '<p><b>Morning guest lecture:</b> your spot is saved for <b>Monday, November 9, 11 AM to 12 PM Pacific</b>, on the UC Berkeley campus. We will email you the room before the day.</p>'
       : '<p><b>Morning guest lecture:</b> it is a class session with room for ' + LECTURE_SEATS + ' guests, and those spots are taken, so you are ' + (lec.place[r.id] ? '<b>number ' + lec.place[r.id] + '</b> ' : '') + 'on its waitlist. We will email you if a spot opens.</p>';
     var panelPart = panelSeat === 'seat' ? '<p><b>Panel:</b> your seat is saved for ' + panelWhen + '. Please arrive a few minutes early, and stay after to meet the speakers at a reception in B100 Blum Hall and its lobby, next door.</p>'
-      : '<p><b>Panel:</b> all ' + SEATS + ' seats are taken, so you are ' + (plan.place[r.id] ? '<b>number ' + plan.place[r.id] + '</b> ' : '') + 'on its waitlist. We will email you if a seat opens, and you can watch the livestream either way. The panel is ' + panelWhen + '.</p>';
+      : '<p><b>Panel:</b> all ' + SEATS + ' seats are taken, so you are ' + (plan.place[r.id] ? '<b>number ' + plan.place[r.id] + '</b> ' : '') + 'on its waitlist. We will email you if a seat opens, and you can watch the livestream either way. The panel is ' + panelWhen + '.</p>' + STANFORD_NOTE;
     var allIn = lecSeat === 'seat' && panelSeat === 'seat';
     l = { subject: allIn ? "You're on the list: Dr. Lagmay's lecture and the panel, Nov 9" : "Your RSVP for Dr. Lagmay's lecture and the panel, Nov 9",
       body: '<p>You signed up for both of Dr. Lagmay\'s sessions at UC Berkeley on November 9.</p>' + lecPart + panelPart };

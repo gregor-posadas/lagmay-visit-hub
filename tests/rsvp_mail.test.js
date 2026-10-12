@@ -66,3 +66,12 @@ assert.ok(!sent[1].attachments, 'Stanford gets no invite yet');
 assert.strictEqual(sent[0].replyTo, 'gregorposadas@berkeley.edu'); assert.strictEqual(sent[0].name, 'When the Waters Rise');
 assert.strictEqual(run('sendRsvpConfirmations()'), 0, 'nobody gets a second one');
 console.log('RSVP mail tests passed');
+
+// Waitlisted and not-sure RSVPs hear that Stanford hosts its own talk; seated ones don't need it.
+{
+  const wl = run('rsvpConfirmation')({ id: 'w1', name: 'Wes', email: 'w@x.org', attend: run('WAITLIST') }, { status: { w1: 'waitlist' }, place: { w1: 3 }, lecture: { status: {}, place: {} } });
+  assert.ok(/Stanford is hosting a talk/.test(wl.html), 'waitlist email mentions Stanford');
+  const seated = run('rsvpConfirmation')({ id: 's1', name: 'Sam', email: 's@x.org', attend: run('PANEL') }, { status: { s1: 'seat' }, place: {}, lecture: { status: {}, place: {} } });
+  assert.ok(!/Stanford is hosting a talk/.test(seated.html), 'seated email does not');
+}
+console.log('stanford note ok');
