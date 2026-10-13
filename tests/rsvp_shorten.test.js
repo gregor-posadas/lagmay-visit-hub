@@ -33,7 +33,11 @@ const form = {
     if (typeof from !== 'number' || typeof to !== 'number') throw new Error("The parameters don't match the method signature for FormApp.Form.moveItem.");
     const [it] = items.splice(from, 1); items.splice(to, 0, it);
   },
-  deleteItem(x) { items.splice(typeof x === 'number' ? x : items.indexOf(x), 1); },
+  deleteItem(x) {
+    const it = typeof x === 'number' ? items[x] : x;
+    if (items.some(q => (q.choices || []).some(c => c.to === it))) throw new Error('Invalid data updating form.');
+    items.splice(items.indexOf(it), 1);
+  },
   addPageBreakItem() { const p = page(''); items.push(p); return p; },
   addMultipleChoiceItem() { const q = mc(''); items.push(q); return q; },
   setDescription(d) { description = d; }
@@ -86,6 +90,9 @@ items = [txt(Q.name), txt(Q.email), mc(Q.attend), mk('LIST', Q.county), txt(Q.ac
   page('Your connection to the Philippines'), mc(Q.tie), page('Where in the Philippines'), mk('LIST', Q.prov1),
   page('Almost done'), mc(run('Q_MORE')),
   page('A few optional extras'), txt(Q.question), txt(Q.story), mc(Q.consent), mc(Q.role), mc(Q.connect), page('Connect with others at the event')];
+{ const t = items.find(i => i.title === Q.tie), prov = items.find(i => i.title === 'Where in the Philippines'), ex = items.find(i => i.title === 'Almost done');
+  t.choices = Object.keys(run('TIES')).map(v => ({ v, to: /No connection/.test(v) ? ex : prov }));
+  items.find(i => i.title === run('Q_MORE')).choices = [{ v: 'No', to: SUBMIT }, { v: 'Yes', to: items.find(i => i.title === 'A few optional extras') }]; }
 run('shortenRsvpForm()');
 check('earlier short version');
 console.log('RSVP form shortening tests passed');

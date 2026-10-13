@@ -1147,6 +1147,13 @@ function shortenRsvpForm() {
   var tiePage = pages([SHORT_PAGES.tie])[0], connectPage = pages([SHORT_PAGES.connect])[0];
   if (!tiePage || !connectPage) throw new Error('Could not find the connection page or the Connect page, so nothing was changed.');
 
+  // Every connection answer, including the new "a friend" one, just goes on to the next page. This comes first: Forms
+  // won't delete a page that a choice still jumps to, and the old province page and an extra "Almost done" may be such pages.
+  var tie = find(Q.tie).asMultipleChoiceItem();
+  tie.setChoices(Object.keys(TIES).map(function (label) { return tie.createChoice(label); }));
+  var oldMore = find(Q_MORE);
+  if (oldMore) oldMore.asMultipleChoiceItem().setChoiceValues([MORE_NO, MORE_YES]);
+
   // Pages: one "Almost done", one extras page, and no separate province page.
   var exits = pages([SHORT_PAGES.more]);
   exits.slice(1).forEach(function (it) { form.deleteItem(it.getIndex()); });
@@ -1172,9 +1179,6 @@ function shortenRsvpForm() {
   find(Q.question).asParagraphTextItem().setRequired(false).setHelpText(QUESTION_HELP);
   find(Q.prov1).asListItem().setHelpText(PROV_HELP);
 
-  // Every connection answer, including the new "a friend" one, goes on to "Almost done".
-  var tie = find(Q.tie).asMultipleChoiceItem();
-  tie.setChoices(Object.keys(TIES).map(function (label) { return tie.createChoice(label); }));
   var more = moreQ.asMultipleChoiceItem().setHelpText(MORE_HELP).setRequired(true);
   more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT), more.createChoice(MORE_YES, extras.asPageBreakItem())]);
   done.push('connection choices set (with "a friend"), and "Almost done" leads to the extras');
