@@ -1137,46 +1137,50 @@ function shortenRsvpForm() {
   var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
   if (!formId) { Logger.log('No RSVP form yet.'); return; }
   var form = FormApp.openById(formId), done = [];
+  // Items are moved by index: Form.moveItem() won't take a typed item such as a new PageBreakItem.
   function find(t) { return form.getItems().filter(function (it) { return it.getTitle() === t; })[0]; }
-  if (find(Q_MORE)) { Logger.log('The form is already shortened.'); return; }
+  function page(titles) { return form.getItems(FormApp.ItemType.PAGE_BREAK).filter(function (it) { return titles.indexOf(it.getTitle()) > -1; })[0]; }
+  function moveBefore(it, target) { var i = it.getIndex(), j = target.getIndex(); if (i !== j - 1) form.moveItem(i, i < j ? j - 1 : j); }
+  function moveAfter(it, target) { var i = it.getIndex(), j = target.getIndex(); if (i !== j + 1) form.moveItem(i, i < j ? j : j + 1); }
   var need = ['county', 'access', 'diet', 'role', 'tie', 'prov1', 'story', 'question', 'connect'].filter(function (k) { return !find(Q[k]); });
   if (need.length) throw new Error('Could not find these questions, so nothing was changed: ' + need.join(', '));
-  function pageBefore(item) {
-    var all = form.getItems(), i = item.getIndex() - 1;
-    if (i < 0 || all[i].getType() !== FormApp.ItemType.PAGE_BREAK) throw new Error('Expected a page break before "' + item.getTitle() + '"');
-    return all[i].asPageBreakItem();
-  }
-  var storyPage = pageBefore(find(Q.story)), provPage = pageBefore(find(Q.prov1));
+  var storyPage = page(['Stories and questions', 'A few optional extras']);
+  var provIdx = find(Q.prov1).getIndex() - 1, provPage = form.getItems()[provIdx];
+  if (!storyPage || provPage.getType() !== FormApp.ItemType.PAGE_BREAK) throw new Error('Could not find the story page or the province page, so nothing was changed.');
+  var moreQ = find(Q_MORE);
+  if (moreQ && moreQ.getIndex() < storyPage.getIndex()) { Logger.log('The form is already shortened.'); return; }
 
   form.setDescription(rsvpDescription()); done.push('description shortened');
   done.push(updateSeatChoices());
 
   // Access needs and food allergies go on the first page, right after where people live, so everyone sees them.
-  form.moveItem(find(Q.access), find(Q.county).getIndex() + 1);
-  form.moveItem(find(Q.diet), find(Q.access).getIndex() + 1);
+  moveAfter(find(Q.access), find(Q.county));
+  moveAfter(find(Q.diet), find(Q.access));
   find(Q.access).asParagraphTextItem().setHelpText(ACCESS_HELP);
   find(Q.diet).asParagraphTextItem().setHelpText(DIET_HELP);
-  done.push('access needs and food allergies moved to the first page');
+  done.push('access needs and food allergies on the first page');
 
   if (find(Q.prov2)) { form.deleteItem(find(Q.prov2)); done.push('"Another province" removed'); }
 
   // The optional page: a question for the speakers first, then the story, then "which best describes you", then Connect.
-  storyPage.setTitle('A few optional extras').setHelpText('All optional. Skip any you like.');
-  form.moveItem(find(Q.question), storyPage.getIndex() + 1);
-  form.moveItem(find(Q.role), find(Q.connect).getIndex() - 1);
+  storyPage.asPageBreakItem().setTitle('A few optional extras').setHelpText('All optional. Skip any you like.');
+  moveAfter(find(Q.question), storyPage);
+  moveBefore(find(Q.role), find(Q.connect));
   done.push('a question for the speakers, the story and "which best describes you" are now optional extras');
 
-  // "Almost done": submit now, or go on to the extras.
-  var exitPage = form.addPageBreakItem().setTitle('Almost done');
-  form.moveItem(exitPage, storyPage.getIndex());
-  var more = form.addMultipleChoiceItem().setTitle(Q_MORE).setHelpText(MORE_HELP).setRequired(true);
-  form.moveItem(more, exitPage.getIndex() + 1);
-  more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT), more.createChoice(MORE_YES, storyPage)]);
+  // "Almost done": submit now, or go on to the extras. Reuses the page an earlier, interrupted run left at the end.
+  var exitPage = page(['Almost done']);
+  if (!exitPage) { var added = form.addPageBreakItem().setTitle('Almost done').getIndex(); exitPage = form.getItems()[added]; }
+  moveBefore(exitPage, storyPage);
+  if (!moreQ) { var addedQ = form.addMultipleChoiceItem().setTitle(Q_MORE).getIndex(); moreQ = form.getItems()[addedQ]; }
+  moveAfter(moreQ, exitPage);
+  var more = moreQ.asMultipleChoiceItem().setHelpText(MORE_HELP).setRequired(true);
+  more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT), more.createChoice(MORE_YES, storyPage.asPageBreakItem())]);
 
   // "No connection" now skips to "Almost done" instead of the stories.
   var tie = find(Q.tie).asMultipleChoiceItem();
   tie.setChoices(Object.keys(TIES).map(function (label) {
-    return TIES[label] === 'none' ? tie.createChoice(label, exitPage) : tie.createChoice(label, provPage);
+    return TIES[label] === 'none' ? tie.createChoice(label, exitPage.asPageBreakItem()) : tie.createChoice(label, provPage.asPageBreakItem());
   }));
   done.push('"Almost done" page added after the province question');
 
