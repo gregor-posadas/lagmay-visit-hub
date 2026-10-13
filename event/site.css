@@ -185,8 +185,8 @@
 
 /* The RSVP tab is boxed so it reads as the thing to do; filled when you're on it */
 /* RSVP in the menu is a filled button on every page, so it reads as the thing to do rather than one more tab. */
-.nav a.nav__rsvp { background: var(--band-ink); color: var(--band); font-weight: 700; margin: 6px 4px; min-height: calc(var(--tap) - 12px); border-bottom: 0; }
-.nav a.nav__rsvp:hover { box-shadow: 0 0 0 3px var(--band), 0 0 0 5px var(--band-ink); }
+.nav a.nav__rsvp { background: #385F96; color: #fff; box-shadow: 0 0 0 2px var(--band-ink); padding-left: 18px; padding-right: 18px; font-weight: 700; margin: 6px 4px; min-height: calc(var(--tap) - 12px); border-bottom: 0; }
+.nav a.nav__rsvp:hover { background: #2C4B77; box-shadow: 0 0 0 3px var(--band-ink); }
 .nav a.nav__rsvp[aria-current="page"] { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 3px; }
 
 /* RSVP page: the embedded Google Form */
@@ -219,3 +219,10 @@
 .ev-seats__g .gauge__bar { height: 20px; }
 .ev-seats__g .gauge__key { margin-top: 6px; color: var(--ink-2); }
 .ev-seats__g .gauge__key i { width: 14px; height: 14px; }
+
+/* The RSVP buttons: big and blue (#385F96, white text at 6.5:1), so they are the first thing to find on any screen size. */
+.btn.btn--rsvp { background: #385F96; border-color: #385F96; color: #fff; min-height: 64px; padding: 0 48px; font-size: calc(var(--f3) * 1.25); box-shadow: var(--lift) var(--lift) 0 0 var(--ink); }
+.btn.btn--rsvp:hover { background: #2C4B77; border-color: #2C4B77; color: #fff; }
+.btn.btn--rsvp:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.btn.btn--rsvp:active, .btn.btn--rsvp.is-pressed { box-shadow: 0 0 0 0 var(--ink); }
+.ev-hero-cta .btn.btn--rsvp { min-width: 260px; min-height: 72px; font-size: calc(var(--f3) * 1.45); }
