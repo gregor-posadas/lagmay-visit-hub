@@ -893,14 +893,15 @@ var SEATS = 149;
 var LECTURE_SEATS = 20;
 /* "How will you join us?" is single choice. The panel and the morning lecture are seat-limited; Stanford and online aren't. */
 /* The campus goes before the speaker so no one reads it as Dr. Lagmay's own university; he is visiting from UPRI. */
-var LECTURE = 'Guest lecture by Dr. Mahar Lagmay, in person on the UC Berkeley campus, Nov 9, 11 AM to 12 PM (room for 20 guests)';
-var PANEL = 'Panel with Drs. Mahar Lagmay, Lisandro Claudio and Diana Martinez, in person in Banatao Auditorium on the UC Berkeley campus, Nov 9, 4 to 5 PM, then a reception (149 seats)';
+/* Oct 13: shortened. The details (who is speaking, the reception, the waitlist) are on the event page and in the help text. */
+var LECTURE = 'Guest lecture on the UC Berkeley campus, Nov 9, 11 AM to 12 PM (room for 20 guests)';
+var PANEL = 'Panel and reception in Banatao Auditorium, UC Berkeley campus, Nov 9, 4 to 5 PM (149 seats)';
 /* Both in-person sessions on Nov 9. Takes a lecture spot and a panel seat, each in RSVP order, so either can be a waitlist place. */
-var BOTH = 'Both in person on the UC Berkeley campus, Nov 9: the morning guest lecture (11 AM to 12 PM) and the panel with a reception (4 to 5 PM)';
-var LECTURE_WAITLIST = 'Waitlist for the Nov 9 morning guest lecture on the UC Berkeley campus (all 20 guest spots are taken; we will email you if one opens)';
-var STANFORD = 'Guest lecture by Dr. Mahar Lagmay, in person on the Stanford campus, Nov 10';
+var BOTH = 'Both on the UC Berkeley campus, Nov 9: the guest lecture (11 AM) and the panel (4 PM)';
+var LECTURE_WAITLIST = 'Waitlist for the Nov 9 guest lecture on the UC Berkeley campus (we will email you if a spot opens)';
+var STANFORD = 'Guest lecture on the Stanford campus, Nov 10';
 var ONLINE = 'Online, on the livestream of the Nov 9 panel';
-var WAITLIST = 'Waitlist for the Nov 9 panel at UC Berkeley (we will email you if a seat opens; you can watch online meanwhile)';
+var WAITLIST = 'Waitlist for the Nov 9 panel on the UC Berkeley campus (we will email you if a seat opens)';
 var IN_PERSON = PANEL;   // the seat-limited choice
 /* "Both" stays on the list when a session is full; its label says which part would be a waitlist place. */
 function bothChoice(full, lectureFull) {
@@ -946,16 +947,11 @@ function addConnectQuestion(form) {
  */
 /* The text at the top of the RSVP form. reviseRsvpForm() puts it on the live form too. */
 function rsvpDescription() {
-  return 'A free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, visiting from the UP Resilience Institute ' +
-    'and Project NOAH, and UC Berkeley faculty Dr. Lisandro Claudio and Dr. Diana Martinez.\n' +
-    'Monday, November 9, 2026, 4 to 5 PM Pacific. Banatao Auditorium, Sutardja Dai Hall, UC Berkeley. Also livestreamed.\n' +
-    'This form also takes RSVPs for Dr. Lagmay\'s guest lecture on the UC Berkeley campus that morning and his talk on the Stanford campus on November 10.\n' +
-    'Room for each: the morning guest lecture has 20 guest spots (it is a class, so these are on top of the students). The panel in Banatao Auditorium has 149 seats, ' +
-    'and the reception after it in Blum Hall is for the same 149. Spots go in the order people RSVP. You can come to both the lecture and the panel.\n\n' +
-    'Everyone is welcome, whether or not you have ties to the Philippines, and wherever you live. It takes about two minutes.\n\n' +
-    'Your name and email are only for the RSVP list and are never shown. Where you live, and a province if you have a tie to one, ' +
-    'appear as anonymous counts on a map at the event and on its web page. Only your name, your email, how you\'ll join and where you live ' +
-    'are required, and that last one has "Prefer not to say".';
+  return 'Monday, November 9, 2026, 4 to 5 PM Pacific, in Banatao Auditorium at UC Berkeley, and livestreamed. A free public conversation on flooding ' +
+    'in the Philippines with Dr. Mahar Lagmay (UP Resilience Institute and Project NOAH), Dr. Lisandro Claudio and Dr. Diana Martinez. ' +
+    'This form also takes RSVPs for his guest lecture that morning and his Stanford talk on November 10.\n\n' +
+    'Everyone is welcome, and it takes a minute or two. Details: ' + EVENT_URL + '\n\n' +
+    'Your name and email are never shown. Where you live and your province appear only as anonymous counts on the event map.';
 }
 
 function createRsvpForm() {
@@ -975,12 +971,11 @@ function createRsvpForm() {
   form.addTextItem().setTitle(Q.name).setHelpText('For the RSVP list only. Never shown.').setRequired(true);
   form.addTextItem().setTitle(Q.email).setHelpText('Only for event updates, such as the start time and the livestream link.')
     .setRequired(true).setValidation(FormApp.createTextValidation().requireTextIsEmail().build());
-  form.addMultipleChoiceItem().setTitle(Q.role).setRequired(false).setChoiceValues([
-    'UC Berkeley student', 'UC Berkeley faculty or staff', 'Stanford student, faculty or staff', 'Student at another school',
-    'Community member', NO_SAY]).showOtherOption(true);
   form.addMultipleChoiceItem().setTitle(Q.attend).setHelpText(joinHelp()).setRequired(true).setChoiceValues(joinChoices(false));
   form.addListItem().setTitle(Q.county).setHelpText(COUNTY_HELP)
     .setRequired(true).setChoiceValues(COUNTY_CHOICES);
+  form.addParagraphTextItem().setTitle(Q.access).setRequired(false).setHelpText(ACCESS_HELP);
+  form.addParagraphTextItem().setTitle(Q.diet).setRequired(false).setHelpText(DIET_HELP);
 
   // Page 2: the connection. "No connection" skips the province questions.
   var tiePage = form.addPageBreakItem().setTitle('Your connection to the Philippines')
@@ -989,21 +984,23 @@ function createRsvpForm() {
   var provPage = form.addPageBreakItem().setTitle('Where in the Philippines')
     .setHelpText('Provinces are listed A to Z, and Metro Manila is one choice. Pick the place that matters most to you.');
   var p1 = form.addListItem().setTitle(Q.prov1).setRequired(false).setChoiceValues([NOT_SURE].concat(PROVINCES).concat([NO_SAY]));
-  form.addListItem().setTitle(Q.prov2).setHelpText('If your family has roots in two places.').setRequired(false).setChoiceValues(PROVINCES);
-  var storyPage = form.addPageBreakItem().setTitle('Stories and questions').setHelpText('Both are optional.');
+  var exitPage = form.addPageBreakItem().setTitle('Almost done');
+  var more = form.addMultipleChoiceItem().setTitle(Q_MORE).setHelpText(MORE_HELP).setRequired(true);
+  var storyPage = form.addPageBreakItem().setTitle('A few optional extras').setHelpText('All optional. Skip any you like.');
   tie.setChoices(Object.keys(TIES).map(function (label) {
-    return TIES[label] === 'none' ? tie.createChoice(label, storyPage) : tie.createChoice(label, provPage);
+    return TIES[label] === 'none' ? tie.createChoice(label, exitPage) : tie.createChoice(label, provPage);
   }));
+  more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT), more.createChoice(MORE_YES, storyPage)]);
+  form.addParagraphTextItem().setTitle(Q.question).setRequired(false)
+    .setHelpText('The moderator will pick from these. Questions are not shown with names.');
   form.addParagraphTextItem().setTitle(Q.story).setRequired(false)
     .setHelpText(STORY_HELP);
   form.addMultipleChoiceItem().setTitle(Q.consent).setRequired(false)
     .setHelpText('A few answers may be read aloud or shown on screen at the start of the event, never with a name. A teammate reads every answer first.')
     .setChoiceValues([CONSENT_YES, 'No, please keep it private']);
-  form.addParagraphTextItem().setTitle(Q.question).setRequired(false)
-    .setHelpText('The moderator will pick from these. Questions are not shown with names.');
-  form.addParagraphTextItem().setTitle(Q.access).setRequired(false)
-    .setHelpText('For example live captions, wheelchair seating, or a seat near an exit. Only the organizers see this.');
-  form.addParagraphTextItem().setTitle(Q.diet).setRequired(false).setHelpText(DIET_HELP);
+  form.addMultipleChoiceItem().setTitle(Q.role).setRequired(false).setChoiceValues([
+    'UC Berkeley student', 'UC Berkeley faculty or staff', 'Stanford student, faculty or staff', 'Student at another school',
+    'Community member', NO_SAY]).showOtherOption(true);
   addConnectQuestion(form);
 
   // Answers go to this Sheet, in a tab we rename so the code can find it.
@@ -1088,16 +1085,20 @@ function updateSeatChoices() {
 /* The help text under "How will you join us?": the room for each session and how much is left, refreshed on every RSVP. */
 function joinHelp(plan) {
   var lec = plan ? plan.lecture : { left: LECTURE_SEATS }, left = plan ? plan.left : SEATS;
-  var lecPart = lec.left === 0 ? 'All ' + LECTURE_SEATS + ' guest spots for the morning guest lecture are taken; you can join its waitlist.'
-    : 'The morning guest lecture is a class session with room for ' + LECTURE_SEATS + ' guests on top of the students' + (plan ? ' (' + lec.left + ' left)' : '') + '.';
-  var panelPart = left === 0 ? 'All ' + SEATS + ' seats for the panel in Banatao Auditorium are taken; you can join its waitlist or watch the livestream.'
-    : 'The panel in Banatao Auditorium has ' + SEATS + ' seats' + (plan ? ' (' + left + ' left)' : '') + '.';
-  return 'Pick one. Dr. Lagmay is visiting from the University of the Philippines Resilience Institute. ' + lecPart + ' ' + panelPart +
-    ' The reception after the panel, in B100 Blum Hall and its lobby, is for the same ' + SEATS + '. Spots go in the order people RSVP. Coming to both the lecture and the panel? Pick "Both".';
+  var lecPart = lec.left === 0 ? 'All ' + LECTURE_SEATS + ' guest spots for the guest lecture are taken; you can join its waitlist.'
+    : 'The guest lecture is a class with room for ' + LECTURE_SEATS + ' guests' + (plan ? ' (' + lec.left + ' left)' : '') + '.';
+  var panelPart = left === 0 ? 'All ' + SEATS + ' panel seats are taken; you can join the waitlist or watch online.'
+    : 'The panel has ' + SEATS + ' seats' + (plan ? ' (' + left + ' left)' : '') + ', and the reception after it is for the same ' + SEATS + '.';
+  return 'Pick one. ' + lecPart + ' ' + panelPart + ' Spots go in the order people RSVP. Coming to both the lecture and the panel? Pick "Both".';
 }
 var COUNTY_HELP = 'People are joining from all over, in person and online. Pick your Bay Area county, or one of the choices after them if you live somewhere else. "Prefer not to say" is at the end.';
 var STORY_HELP = 'It can be anywhere in the world, in the Philippines or not: a storm, a flood, what your family did. A sentence or two is plenty. Share only what you are comfortable sharing.';
-var DIET_HELP = 'For the refreshments after the panel. Optional, and only the organizers see this.';
+var DIET_HELP = 'For the refreshments after the panel. Leave it blank if none. Only the organizers see this.';
+var ACCESS_HELP = 'For example live captions, wheelchair seating, or a seat near an exit. Leave it blank if none. Only the organizers see this.';
+/* Oct 13: the early exit. Everything after it is optional, so most people finish after the province question. */
+var Q_MORE = 'Want to add anything else?';
+var MORE_NO = 'No, submit my RSVP', MORE_YES = 'Yes: a question for the speakers, a flood story, or connecting with others';
+var MORE_HELP = "That's everything we need. The rest is optional.";
 
 /**
  * Run once from the editor (Oct 2026 changes): renames the county question, makes "How will you join us?" a single choice
@@ -1122,6 +1123,63 @@ function reviseRsvpForm() {
     done.push('food question added');
   }
   if (!items.some(function (it) { return it.getTitle() === Q.connect; })) { addConnectQuestion(form); done.push('Connect question and page added'); }
+  CacheService.getScriptCache().remove('map');
+  Logger.log(done.join('; '));
+}
+
+/**
+ * Run once from the editor (Oct 13): shortens the live RSVP form. The short description and attendance choices replace the
+ * long ones; access needs and food allergies move to the first page, so everyone sees them; "Another province" goes; and after
+ * the province question an "Almost done" page lets people submit, or go on to the optional extras (a question for the speakers,
+ * a flood story, "which best describes you" and Connect). Answers already given keep their columns. Safe to run twice.
+ */
+function shortenRsvpForm() {
+  var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
+  if (!formId) { Logger.log('No RSVP form yet.'); return; }
+  var form = FormApp.openById(formId), done = [];
+  function find(t) { return form.getItems().filter(function (it) { return it.getTitle() === t; })[0]; }
+  if (find(Q_MORE)) { Logger.log('The form is already shortened.'); return; }
+  var need = ['county', 'access', 'diet', 'role', 'tie', 'prov1', 'story', 'question', 'connect'].filter(function (k) { return !find(Q[k]); });
+  if (need.length) throw new Error('Could not find these questions, so nothing was changed: ' + need.join(', '));
+  function pageBefore(item) {
+    var all = form.getItems(), i = item.getIndex() - 1;
+    if (i < 0 || all[i].getType() !== FormApp.ItemType.PAGE_BREAK) throw new Error('Expected a page break before "' + item.getTitle() + '"');
+    return all[i].asPageBreakItem();
+  }
+  var storyPage = pageBefore(find(Q.story)), provPage = pageBefore(find(Q.prov1));
+
+  form.setDescription(rsvpDescription()); done.push('description shortened');
+  done.push(updateSeatChoices());
+
+  // Access needs and food allergies go on the first page, right after where people live, so everyone sees them.
+  form.moveItem(find(Q.access), find(Q.county).getIndex() + 1);
+  form.moveItem(find(Q.diet), find(Q.access).getIndex() + 1);
+  find(Q.access).asParagraphTextItem().setHelpText(ACCESS_HELP);
+  find(Q.diet).asParagraphTextItem().setHelpText(DIET_HELP);
+  done.push('access needs and food allergies moved to the first page');
+
+  if (find(Q.prov2)) { form.deleteItem(find(Q.prov2)); done.push('"Another province" removed'); }
+
+  // The optional page: a question for the speakers first, then the story, then "which best describes you", then Connect.
+  storyPage.setTitle('A few optional extras').setHelpText('All optional. Skip any you like.');
+  form.moveItem(find(Q.question), storyPage.getIndex() + 1);
+  form.moveItem(find(Q.role), find(Q.connect).getIndex() - 1);
+  done.push('a question for the speakers, the story and "which best describes you" are now optional extras');
+
+  // "Almost done": submit now, or go on to the extras.
+  var exitPage = form.addPageBreakItem().setTitle('Almost done');
+  form.moveItem(exitPage, storyPage.getIndex());
+  var more = form.addMultipleChoiceItem().setTitle(Q_MORE).setHelpText(MORE_HELP).setRequired(true);
+  form.moveItem(more, exitPage.getIndex() + 1);
+  more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT), more.createChoice(MORE_YES, storyPage)]);
+
+  // "No connection" now skips to "Almost done" instead of the stories.
+  var tie = find(Q.tie).asMultipleChoiceItem();
+  tie.setChoices(Object.keys(TIES).map(function (label) {
+    return TIES[label] === 'none' ? tie.createChoice(label, exitPage) : tie.createChoice(label, provPage);
+  }));
+  done.push('"Almost done" page added after the province question');
+
   CacheService.getScriptCache().remove('map');
   Logger.log(done.join('; '));
 }

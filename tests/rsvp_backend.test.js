@@ -97,7 +97,7 @@ const l3 = JSON.parse(JSON.stringify(vm.runInContext('rsvpList()', ctx)));
 assert.deepStrictEqual(l3.filter(r => r.lectureSeat).map(r => r.name + ':' + r.lectureSeat + (r.lectureWaitPlace ? '#' + r.lectureWaitPlace : '') + ':' + r.seat),
   ['Fe:seat:', 'Hal:waitlist#1:', 'Ivy:waitlist#2:'], 'lecture spots never touch the panel seats');
 said = vm.runInContext('updateSeatChoices()', ctx);
-assert.ok(/^Waitlist for the Nov 9 morning guest lecture/.test(choices[0]) && kind(choices[0]) === 'lectureWaitlist' && /Lecture full/.test(said) && /guest spots for the morning guest lecture are taken/.test(help), said);
+assert.ok(/^Waitlist for the Nov 9 guest lecture/.test(choices[0]) && kind(choices[0]) === 'lectureWaitlist' && /Lecture full/.test(said) && /guest spots for the guest lecture are taken/.test(help), said);
 assert.ok(choices.every(c => /campus|Online|Not sure/.test(c)), 'the lecture waitlist still names the campus');
 const plan3 = vm.runInContext('seatPlan(readRsvps())', ctx);
 assert.ok(!Object.keys(plan3.status).some(id => plan3.lecture.status[id]), 'the panel check-in list never includes lecture RSVPs');
