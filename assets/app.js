@@ -1071,7 +1071,7 @@
   }
 
   /* ---------- RSVPs: review stories and questions before the event ---------- */
-  var TIE_WORD = { born: "Born there", parents: "Parents from there", roots: "Grandparents or earlier", lived: "Lived, worked or studied there", other: "Another connection", none: "No connection" };
+  var TIE_WORD = { born: "Born there", parents: "Parents from there", roots: "Grandparents or earlier", lived: "Lived, worked or studied there", friend: "A friend or someone close", other: "Another connection", none: "No connection" };
   function eventUrl(extra) { return location.href.split("#")[0].replace(/[^/]*$/, "") + "event/" + (extra || ""); }
   function approvalBox(r, field, label, disabled, note) {
     var on = field === "story" ? r.storyOk : r.questionOk;
@@ -1708,7 +1708,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261013221205";
+  var BUILD = "20261013224013";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp

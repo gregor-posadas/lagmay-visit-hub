@@ -876,6 +876,7 @@ var TIES = {
   'My parents are from there': 'parents',
   'My grandparents or earlier generations are from there': 'roots',
   "I've lived, worked or studied there": 'lived',
+  'A friend or someone close to me is from there': 'friend',
   'Another connection': 'other',
   'No connection, just interested (everyone is welcome)': 'none'
 };
@@ -976,23 +977,16 @@ function createRsvpForm() {
     .setRequired(true).setChoiceValues(COUNTY_CHOICES);
   form.addParagraphTextItem().setTitle(Q.access).setRequired(false).setHelpText(ACCESS_HELP);
   form.addParagraphTextItem().setTitle(Q.diet).setRequired(false).setHelpText(DIET_HELP);
+  form.addParagraphTextItem().setTitle(Q.question).setRequired(false).setHelpText(QUESTION_HELP);
 
-  // Page 2: the connection. "No connection" skips the province questions.
-  var tiePage = form.addPageBreakItem().setTitle('Your connection to the Philippines')
-    .setHelpText('There is no wrong answer here, and no connection is needed to come.');
-  var tie = form.addMultipleChoiceItem().setTitle(Q.tie).setRequired(false);
-  var provPage = form.addPageBreakItem().setTitle('Where in the Philippines')
-    .setHelpText('Provinces are listed A to Z, and Metro Manila is one choice. Pick the place that matters most to you.');
-  var p1 = form.addListItem().setTitle(Q.prov1).setRequired(false).setChoiceValues([NOT_SURE].concat(PROVINCES).concat([NO_SAY]));
-  var exitPage = form.addPageBreakItem().setTitle('Almost done');
+  // Page 2: the connection, one question. Every answer goes on to "Almost done".
+  form.addPageBreakItem().setTitle(SHORT_PAGES.tie).setHelpText('There is no wrong answer here, and no connection is needed to come.');
+  form.addMultipleChoiceItem().setTitle(Q.tie).setRequired(false).setChoiceValues(Object.keys(TIES));
+  form.addPageBreakItem().setTitle(SHORT_PAGES.more);
   var more = form.addMultipleChoiceItem().setTitle(Q_MORE).setHelpText(MORE_HELP).setRequired(true);
-  var storyPage = form.addPageBreakItem().setTitle('A few optional extras').setHelpText('All optional. Skip any you like.');
-  tie.setChoices(Object.keys(TIES).map(function (label) {
-    return TIES[label] === 'none' ? tie.createChoice(label, exitPage) : tie.createChoice(label, provPage);
-  }));
-  more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT), more.createChoice(MORE_YES, storyPage)]);
-  form.addParagraphTextItem().setTitle(Q.question).setRequired(false)
-    .setHelpText('The moderator will pick from these. Questions are not shown with names.');
+  var extras = form.addPageBreakItem().setTitle(SHORT_PAGES.extras).setHelpText('All optional. Skip any you like.');
+  more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT), more.createChoice(MORE_YES, extras)]);
+  form.addListItem().setTitle(Q.prov1).setRequired(false).setHelpText(PROV_HELP).setChoiceValues([NOT_SURE].concat(PROVINCES).concat([NO_SAY]));
   form.addParagraphTextItem().setTitle(Q.story).setRequired(false)
     .setHelpText(STORY_HELP);
   form.addMultipleChoiceItem().setTitle(Q.consent).setRequired(false)
@@ -1097,7 +1091,9 @@ var DIET_HELP = 'For the refreshments after the panel. Leave it blank if none. O
 var ACCESS_HELP = 'For example live captions, wheelchair seating, or a seat near an exit. Leave it blank if none. Only the organizers see this.';
 /* Oct 13: the early exit. Everything after it is optional, so most people finish after the province question. */
 var Q_MORE = 'Want to add anything else?';
-var MORE_NO = 'No, submit my RSVP', MORE_YES = 'Yes: a question for the speakers, a flood story, or connecting with others';
+var MORE_NO = 'No, submit my RSVP', MORE_YES = 'Yes: the province you are connected to, a flood story, or connecting with others';
+var QUESTION_HELP = 'Optional. The moderator will pick from these. Questions are not shown with names.';
+var PROV_HELP = 'If you have a connection to the Philippines. Provinces are listed A to Z, and Metro Manila is one choice.';
 var MORE_HELP = "That's everything we need. The rest is optional.";
 
 /**
@@ -1128,61 +1124,60 @@ function reviseRsvpForm() {
 }
 
 /**
- * Run once from the editor (Oct 13): shortens the live RSVP form. The short description and attendance choices replace the
- * long ones; access needs and food allergies move to the first page, so everyone sees them; "Another province" goes; and after
- * the province question an "Almost done" page lets people submit, or go on to the optional extras (a question for the speakers,
- * a flood story, "which best describes you" and Connect). Answers already given keep their columns. Safe to run twice.
+ * Run from the editor (Oct 13): puts the live RSVP form in its short layout, whatever state it is in now (as first built,
+ * half-converted, or the earlier short version). Answers already given keep their columns. Running it again changes nothing.
+ *   Page 1: name, email, how you'll join, where you live, access needs, food allergies, a question for the speakers (optional)
+ *   "Your connection to the Philippines": one question; every answer goes on to "Almost done"
+ *   "Almost done": submit now, or "Yes" for the optional extras
+ *   "A few optional extras": the province, a flood story and whether we may share it, which best describes you, Connect
  */
+var SHORT_PAGES = { tie: 'Your connection to the Philippines', more: 'Almost done', extras: 'A few optional extras',
+  oldExtras: ['Stories and questions'], oldProv: 'Where in the Philippines', connect: 'Connect with others at the event' };
 function shortenRsvpForm() {
   var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
   if (!formId) { Logger.log('No RSVP form yet.'); return; }
   var form = FormApp.openById(formId), done = [];
-  // Items are moved by index: Form.moveItem() won't take a typed item such as a new PageBreakItem.
+  // Items are found fresh each time (getItems is a snapshot) and moved by index (moveItem won't take a typed item).
   function find(t) { return form.getItems().filter(function (it) { return it.getTitle() === t; })[0]; }
-  function page(titles) { return form.getItems(FormApp.ItemType.PAGE_BREAK).filter(function (it) { return titles.indexOf(it.getTitle()) > -1; })[0]; }
-  function moveBefore(it, target) { var i = it.getIndex(), j = target.getIndex(); if (i !== j - 1) form.moveItem(i, i < j ? j - 1 : j); }
-  function moveAfter(it, target) { var i = it.getIndex(), j = target.getIndex(); if (i !== j + 1) form.moveItem(i, i < j ? j : j + 1); }
-  var need = ['county', 'access', 'diet', 'role', 'tie', 'prov1', 'story', 'question', 'connect'].filter(function (k) { return !find(Q[k]); });
+  function pages(titles) { return form.getItems(FormApp.ItemType.PAGE_BREAK).filter(function (it) { return titles.indexOf(it.getTitle()) > -1; }); }
+  function added(item) { var i = item.getIndex(); return form.getItems()[i]; }
+  var need = ['name', 'email', 'attend', 'county', 'access', 'diet', 'question', 'tie', 'prov1', 'story', 'consent', 'role', 'connect']
+    .filter(function (k) { return !find(Q[k]); });
   if (need.length) throw new Error('Could not find these questions, so nothing was changed: ' + need.join(', '));
-  var storyPage = page(['Stories and questions', 'A few optional extras']);
-  var provIdx = find(Q.prov1).getIndex() - 1, provPage = form.getItems()[provIdx];
-  if (!storyPage || provPage.getType() !== FormApp.ItemType.PAGE_BREAK) throw new Error('Could not find the story page or the province page, so nothing was changed.');
-  var moreQ = find(Q_MORE);
-  if (moreQ && moreQ.getIndex() < storyPage.getIndex()) { Logger.log('The form is already shortened.'); return; }
+  var tiePage = pages([SHORT_PAGES.tie])[0], connectPage = pages([SHORT_PAGES.connect])[0];
+  if (!tiePage || !connectPage) throw new Error('Could not find the connection page or the Connect page, so nothing was changed.');
 
-  form.setDescription(rsvpDescription()); done.push('description shortened');
+  // Pages: one "Almost done", one extras page, and no separate province page.
+  var exits = pages([SHORT_PAGES.more]);
+  exits.slice(1).forEach(function (it) { form.deleteItem(it.getIndex()); });
+  var exitPage = exits[0] || added(form.addPageBreakItem());
+  exitPage.asPageBreakItem().setTitle(SHORT_PAGES.more);
+  var extras = pages([SHORT_PAGES.extras].concat(SHORT_PAGES.oldExtras))[0] || added(form.addPageBreakItem());
+  extras.asPageBreakItem().setTitle(SHORT_PAGES.extras).setHelpText('All optional. Skip any you like.');
+  pages([SHORT_PAGES.oldProv]).forEach(function (it) { form.deleteItem(it.getIndex()); done.push('province page merged into the extras'); });
+  if (find(Q.prov2)) { form.deleteItem(find(Q.prov2).getIndex()); done.push('"Another province" removed'); }
+  var moreQ = find(Q_MORE) || added(form.addMultipleChoiceItem().setTitle(Q_MORE));
+
+  // Put everything in order, front to back. Anything not listed stays after these.
+  var order = [find(Q.name), find(Q.email), find(Q.attend), find(Q.county), find(Q.access), find(Q.diet), find(Q.question),
+    tiePage, find(Q.tie), exitPage, moreQ, extras, find(Q.prov1), find(Q.story), find(Q.consent), find(Q.role), find(Q.connect), connectPage];
+  var moved = 0;
+  order.forEach(function (it, i) { var from = it.getIndex(); if (from !== i) { form.moveItem(from, i); moved++; } });
+  if (moved) done.push(moved + ' items reordered');
+
+  form.setDescription(rsvpDescription());
   done.push(updateSeatChoices());
-
-  // Access needs and food allergies go on the first page, right after where people live, so everyone sees them.
-  moveAfter(find(Q.access), find(Q.county));
-  moveAfter(find(Q.diet), find(Q.access));
   find(Q.access).asParagraphTextItem().setHelpText(ACCESS_HELP);
   find(Q.diet).asParagraphTextItem().setHelpText(DIET_HELP);
-  done.push('access needs and food allergies on the first page');
+  find(Q.question).asParagraphTextItem().setRequired(false).setHelpText(QUESTION_HELP);
+  find(Q.prov1).asListItem().setHelpText(PROV_HELP);
 
-  if (find(Q.prov2)) { form.deleteItem(find(Q.prov2)); done.push('"Another province" removed'); }
-
-  // The optional page: a question for the speakers first, then the story, then "which best describes you", then Connect.
-  storyPage.asPageBreakItem().setTitle('A few optional extras').setHelpText('All optional. Skip any you like.');
-  moveAfter(find(Q.question), storyPage);
-  moveBefore(find(Q.role), find(Q.connect));
-  done.push('a question for the speakers, the story and "which best describes you" are now optional extras');
-
-  // "Almost done": submit now, or go on to the extras. Reuses the page an earlier, interrupted run left at the end.
-  var exitPage = page(['Almost done']);
-  if (!exitPage) { var added = form.addPageBreakItem().setTitle('Almost done').getIndex(); exitPage = form.getItems()[added]; }
-  moveBefore(exitPage, storyPage);
-  if (!moreQ) { var addedQ = form.addMultipleChoiceItem().setTitle(Q_MORE).getIndex(); moreQ = form.getItems()[addedQ]; }
-  moveAfter(moreQ, exitPage);
-  var more = moreQ.asMultipleChoiceItem().setHelpText(MORE_HELP).setRequired(true);
-  more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT), more.createChoice(MORE_YES, storyPage.asPageBreakItem())]);
-
-  // "No connection" now skips to "Almost done" instead of the stories.
+  // Every connection answer, including the new "a friend" one, goes on to "Almost done".
   var tie = find(Q.tie).asMultipleChoiceItem();
-  tie.setChoices(Object.keys(TIES).map(function (label) {
-    return TIES[label] === 'none' ? tie.createChoice(label, exitPage.asPageBreakItem()) : tie.createChoice(label, provPage.asPageBreakItem());
-  }));
-  done.push('"Almost done" page added after the province question');
+  tie.setChoices(Object.keys(TIES).map(function (label) { return tie.createChoice(label); }));
+  var more = moreQ.asMultipleChoiceItem().setHelpText(MORE_HELP).setRequired(true);
+  more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT), more.createChoice(MORE_YES, extras.asPageBreakItem())]);
+  done.push('connection choices set (with "a friend"), and "Almost done" leads to the extras');
 
   CacheService.getScriptCache().remove('map');
   Logger.log(done.join('; '));

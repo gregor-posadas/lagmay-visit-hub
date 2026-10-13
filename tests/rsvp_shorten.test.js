@@ -33,7 +33,7 @@ const form = {
     if (typeof from !== 'number' || typeof to !== 'number') throw new Error("The parameters don't match the method signature for FormApp.Form.moveItem.");
     const [it] = items.splice(from, 1); items.splice(to, 0, it);
   },
-  deleteItem(item) { items.splice(items.indexOf(item), 1); },
+  deleteItem(x) { items.splice(typeof x === 'number' ? x : items.indexOf(x), 1); },
   addPageBreakItem() { const p = page(''); items.push(p); return p; },
   addMultipleChoiceItem() { const q = mc(''); items.push(q); return q; },
   setDescription(d) { description = d; }
@@ -45,40 +45,47 @@ run('readRsvps = function () { return []; }');
 
 function check(label) {
   const titles = items.map(i => i.type === 'PAGE_BREAK' ? '[' + i.title + ']' : i.title);
-  assert.deepStrictEqual(titles, [Q.name, Q.email, Q.attend, Q.county, Q.access, Q.diet,
-    '[Your connection to the Philippines]', Q.tie, '[Where in the Philippines]', Q.prov1,
+  assert.deepStrictEqual(titles, [Q.name, Q.email, Q.attend, Q.county, Q.access, Q.diet, Q.question,
+    '[Your connection to the Philippines]', Q.tie,
     '[Almost done]', run('Q_MORE'),
-    '[A few optional extras]', Q.question, Q.story, Q.consent, Q.role, Q.connect, '[Connect with others at the event]'], label + '\n' + titles.join('\n'));
+    '[A few optional extras]', Q.prov1, Q.story, Q.consent, Q.role, Q.connect, '[Connect with others at the event]'], label + '\n' + titles.join('\n'));
   assert.ok(description.length < 700 && /a minute or two/.test(description), 'short description');
   const byTitle = t => items.find(i => i.title === t);
   const more = byTitle(run('Q_MORE'));
   assert.ok(more.required, 'the early exit is a required choice');
   assert.strictEqual(more.choices.find(c => c.v === run('MORE_NO')).to, SUBMIT);
   assert.strictEqual(more.choices.find(c => c.v === run('MORE_YES')).to, byTitle('A few optional extras'));
-  for (const c of byTitle(Q.tie).choices) {
-    const none = /No connection/.test(c.v);
-    assert.strictEqual(c.to, none ? byTitle('Almost done') : byTitle('Where in the Philippines'), c.v);
-  }
+  const tie = byTitle(Q.tie);
+  assert.ok(tie.choices.every(c => c.to === undefined), 'every connection answer just goes on to "Almost done"');
+  assert.ok(tie.choices.some(c => /friend/.test(c.v)), 'the friend option is there');
+  assert.strictEqual(run('TIES')[tie.choices.find(c => /friend/.test(c.v)).v], 'friend');
+  assert.ok(!byTitle(Q.question).required, 'the question for the speakers is optional');
   assert.ok(/Leave it blank if none/.test(byTitle(Q.access).help) && /Leave it blank if none/.test(byTitle(Q.diet).help));
-  assert.ok(!items.some(i => i.title === Q.prov2), '"Another province" is gone');
+  assert.ok(!items.some(i => i.title === Q.prov2 || i.title === 'Where in the Philippines'), 'no second province, no province page');
   assert.strictEqual(items.filter(i => i.title === 'Almost done').length, 1, 'one "Almost done" page');
   assert.ok(byTitle(Q.attend).choices.every(c => c.v.length < 100), 'attendance choices are short');
 }
 
-// 1. From the form as it was.
+// 1. From the form as first built.
 run('shortenRsvpForm()');
 check('fresh');
 const before = items.map(i => i.title).join('|');
 run('shortenRsvpForm()');
 assert.strictEqual(items.map(i => i.title).join('|'), before, 'running it again changes nothing');
 
-// 2. From the half-done state the first, interrupted run left on Oct 13: everything up to the extras page done,
-//    and an empty "Almost done" page stranded at the very end.
+// 2. From the half-done state the first, interrupted run left on Oct 13.
 items = [txt(Q.name), txt(Q.email), mc(Q.attend), mk('LIST', Q.county), txt(Q.access), txt(Q.diet),
   page('Your connection to the Philippines'), mc(Q.tie), page('Where in the Philippines'), mk('LIST', Q.prov1),
   page('A few optional extras'), txt(Q.question), txt(Q.story), mc(Q.consent), mc(Q.role), mc(Q.connect), page('Connect with others at the event'),
   page('Almost done')];
-items.find(i => i.title === Q.tie).choices = [{ v: 'No connection, just interested (everyone is welcome)', to: items[10] }];
 run('shortenRsvpForm()');
 check('half-done');
+
+// 3. From the earlier short version (province page after the connection, question on the extras page).
+items = [txt(Q.name), txt(Q.email), mc(Q.attend), mk('LIST', Q.county), txt(Q.access), txt(Q.diet),
+  page('Your connection to the Philippines'), mc(Q.tie), page('Where in the Philippines'), mk('LIST', Q.prov1),
+  page('Almost done'), mc(run('Q_MORE')),
+  page('A few optional extras'), txt(Q.question), txt(Q.story), mc(Q.consent), mc(Q.role), mc(Q.connect), page('Connect with others at the event')];
+run('shortenRsvpForm()');
+check('earlier short version');
 console.log('RSVP form shortening tests passed');
