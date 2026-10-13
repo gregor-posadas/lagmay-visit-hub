@@ -52,6 +52,9 @@
 .ev-cal__group:not(:first-child) { margin-top: 12px; }
 .btn--big { min-height: 56px; padding: 0 32px; font-size: var(--f3); }
 .ev-welcome { margin-top: 14px; max-width: 38rem; color: var(--ink-2); }
+/* A big RSVP button right under the intro, so no one has to scroll past the schedule to find it. */
+.ev-hero-cta { margin: 4px 0 20px; align-items: center; }
+.ev-hero-cta__note { margin: 0; font-weight: 700; color: var(--ink-2); }
 .ev-cohost-hero { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin: 18px 0 0; font-weight: 700; color: var(--ink-2); }
 .ev-cohost-hero[hidden] { display: none; }
 .ev-cohost-hero a { display: inline-flex; background: #fff; border: 2px solid var(--rule-strong); padding: 6px 12px; }
