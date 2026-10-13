@@ -51,22 +51,25 @@ function check(label) {
   const titles = items.map(i => i.type === 'PAGE_BREAK' ? '[' + i.title + ']' : i.title);
   assert.deepStrictEqual(titles, [Q.name, Q.email, Q.attend, Q.county, Q.access, Q.diet, Q.question,
     '[Your connection to the Philippines]', Q.tie,
+    '[Where in the Philippines]', Q.prov1,
     '[Almost done]', run('Q_MORE'),
-    '[A few optional extras]', Q.prov1, Q.story, Q.consent, Q.role, Q.connect, '[Connect with others at the event]'], label + '\n' + titles.join('\n'));
+    '[A few optional extras]', Q.story, Q.consent, Q.role, Q.connect, '[Connect with others at the event]'], label + '\n' + titles.join('\n'));
   assert.ok(description.length < 700 && /a minute or two/.test(description), 'short description');
   const byTitle = t => items.find(i => i.title === t);
   const more = byTitle(run('Q_MORE'));
   assert.ok(more.required, 'the early exit is a required choice');
   assert.strictEqual(more.choices.find(c => c.v === run('MORE_NO')).to, SUBMIT);
   assert.strictEqual(more.choices.find(c => c.v === run('MORE_YES')).to, byTitle('A few optional extras'));
-  const tie = byTitle(Q.tie);
-  assert.ok(tie.choices.every(c => c.to === undefined), 'every connection answer just goes on to "Almost done"');
-  assert.ok(tie.choices.some(c => /friend/.test(c.v)), 'the friend option is there');
-  assert.strictEqual(run('TIES')[tie.choices.find(c => /friend/.test(c.v)).v], 'friend');
-  assert.ok(!byTitle(Q.question).required, 'the question for the speakers is optional');
+  const TIES = run('TIES');
+  for (const c of byTitle(Q.tie).choices) {
+    const skip = ['friend', 'none'].includes(TIES[c.v]);
+    assert.strictEqual(c.to, skip ? byTitle('Almost done') : byTitle('Where in the Philippines'), label + ': ' + c.v);
+  }
+  assert.ok(byTitle(Q.tie).choices.some(c => TIES[c.v] === 'friend'), 'the friend option is there');
+  assert.ok(!byTitle(Q.question).required && !byTitle(Q.prov1).required, 'question and province are optional');
   assert.ok(/Leave it blank if none/.test(byTitle(Q.access).help) && /Leave it blank if none/.test(byTitle(Q.diet).help));
-  assert.ok(!items.some(i => i.title === Q.prov2 || i.title === 'Where in the Philippines'), 'no second province, no province page');
-  assert.strictEqual(items.filter(i => i.title === 'Almost done').length, 1, 'one "Almost done" page');
+  assert.ok(!items.some(i => i.title === Q.prov2), 'no second province');
+  for (const p of ['Almost done', 'Where in the Philippines', 'A few optional extras']) assert.strictEqual(items.filter(i => i.title === p).length, 1, 'one ' + p);
   assert.ok(byTitle(Q.attend).choices.every(c => c.v.length < 100), 'attendance choices are short');
 }
 
@@ -95,4 +98,14 @@ items = [txt(Q.name), txt(Q.email), mc(Q.attend), mk('LIST', Q.county), txt(Q.ac
   items.find(i => i.title === run('Q_MORE')).choices = [{ v: 'No', to: SUBMIT }, { v: 'Yes', to: items.find(i => i.title === 'A few optional extras') }]; }
 run('shortenRsvpForm()');
 check('earlier short version');
+
+// 4. From the layout of the previous run (province in the extras, every connection answer to "Almost done").
+items = [txt(Q.name), txt(Q.email), mc(Q.attend), mk('LIST', Q.county), txt(Q.access), txt(Q.diet), txt(Q.question),
+  page('Your connection to the Philippines'), mc(Q.tie), page('Almost done'), mc(run('Q_MORE')),
+  page('A few optional extras'), mk('LIST', Q.prov1), txt(Q.story), mc(Q.consent), mc(Q.role), mc(Q.connect), page('Connect with others at the event')];
+items.find(i => i.title === run('Q_MORE')).choices = [{ v: 'No', to: SUBMIT }, { v: 'Yes', to: items.find(i => i.title === 'A few optional extras') }];
+run('shortenRsvpForm()');
+check('previous run');
+const again = items.map(i => i.title).join('|'); run('shortenRsvpForm()');
+assert.strictEqual(items.map(i => i.title).join('|'), again, 'running it again changes nothing');
 console.log('RSVP form shortening tests passed');

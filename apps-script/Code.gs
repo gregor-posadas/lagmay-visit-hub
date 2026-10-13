@@ -979,14 +979,18 @@ function createRsvpForm() {
   form.addParagraphTextItem().setTitle(Q.diet).setRequired(false).setHelpText(DIET_HELP);
   form.addParagraphTextItem().setTitle(Q.question).setRequired(false).setHelpText(QUESTION_HELP);
 
-  // Page 2: the connection, one question. Every answer goes on to "Almost done".
+  // Page 2: the connection. Family ties and the like go on to the province; a friend or no connection skip to "Almost done".
   form.addPageBreakItem().setTitle(SHORT_PAGES.tie).setHelpText('There is no wrong answer here, and no connection is needed to come.');
-  form.addMultipleChoiceItem().setTitle(Q.tie).setRequired(false).setChoiceValues(Object.keys(TIES));
-  form.addPageBreakItem().setTitle(SHORT_PAGES.more);
+  var tie = form.addMultipleChoiceItem().setTitle(Q.tie).setRequired(false);
+  var provPage = form.addPageBreakItem().setTitle(SHORT_PAGES.prov);
+  form.addListItem().setTitle(Q.prov1).setRequired(false).setHelpText(PROV_HELP).setChoiceValues([NOT_SURE].concat(PROVINCES).concat([NO_SAY]));
+  var exitPage = form.addPageBreakItem().setTitle(SHORT_PAGES.more);
   var more = form.addMultipleChoiceItem().setTitle(Q_MORE).setHelpText(MORE_HELP).setRequired(true);
   var extras = form.addPageBreakItem().setTitle(SHORT_PAGES.extras).setHelpText('All optional. Skip any you like.');
+  tie.setChoices(Object.keys(TIES).map(function (label) {
+    return tie.createChoice(label, NO_PROVINCE_TIES.indexOf(TIES[label]) > -1 ? exitPage : provPage);
+  }));
   more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT), more.createChoice(MORE_YES, extras)]);
-  form.addListItem().setTitle(Q.prov1).setRequired(false).setHelpText(PROV_HELP).setChoiceValues([NOT_SURE].concat(PROVINCES).concat([NO_SAY]));
   form.addParagraphTextItem().setTitle(Q.story).setRequired(false)
     .setHelpText(STORY_HELP);
   form.addMultipleChoiceItem().setTitle(Q.consent).setRequired(false)
@@ -1091,9 +1095,9 @@ var DIET_HELP = 'For the refreshments after the panel. Leave it blank if none. O
 var ACCESS_HELP = 'For example live captions, wheelchair seating, or a seat near an exit. Leave it blank if none. Only the organizers see this.';
 /* Oct 13: the early exit. Everything after it is optional, so most people finish after the province question. */
 var Q_MORE = 'Want to add anything else?';
-var MORE_NO = 'No, submit my RSVP', MORE_YES = 'Yes: the province you are connected to, a flood story, or connecting with others';
+var MORE_NO = 'No, submit my RSVP', MORE_YES = 'Yes: share a flood story, or connect with others working on Philippine projects';
 var QUESTION_HELP = 'Optional. The moderator will pick from these. Questions are not shown with names.';
-var PROV_HELP = 'If you have a connection to the Philippines. Provinces are listed A to Z, and Metro Manila is one choice.';
+var PROV_HELP = 'Provinces are listed A to Z, and Metro Manila is one choice. Pick the place that matters most to you, or "Not sure".';
 var MORE_HELP = "That's everything we need. The rest is optional.";
 
 /**
@@ -1125,14 +1129,17 @@ function reviseRsvpForm() {
 
 /**
  * Run from the editor (Oct 13): puts the live RSVP form in its short layout, whatever state it is in now (as first built,
- * half-converted, or the earlier short version). Answers already given keep their columns. Running it again changes nothing.
+ * half-converted, or an earlier short version). Answers already given keep their columns. Running it again changes nothing.
  *   Page 1: name, email, how you'll join, where you live, access needs, food allergies, a question for the speakers (optional)
- *   "Your connection to the Philippines": one question; every answer goes on to "Almost done"
+ *   "Your connection to the Philippines": one question. Family ties, having lived there and "another connection" go to
+ *     "Where in the Philippines" (the province); a friend or no connection go straight to "Almost done"
  *   "Almost done": submit now, or "Yes" for the optional extras
- *   "A few optional extras": the province, a flood story and whether we may share it, which best describes you, Connect
+ *   "A few optional extras": a flood story and whether we may share it, which best describes you, Connect
  */
-var SHORT_PAGES = { tie: 'Your connection to the Philippines', more: 'Almost done', extras: 'A few optional extras',
-  oldExtras: ['Stories and questions'], oldProv: 'Where in the Philippines', connect: 'Connect with others at the event' };
+var SHORT_PAGES = { tie: 'Your connection to the Philippines', prov: 'Where in the Philippines', more: 'Almost done',
+  extras: 'A few optional extras', oldExtras: ['Stories and questions'], connect: 'Connect with others at the event' };
+/* Connections that skip the province: a friend usually wouldn't know it, and with no connection there is none. */
+var NO_PROVINCE_TIES = ['friend', 'none'];
 function shortenRsvpForm() {
   var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
   if (!formId) { Logger.log('No RSVP form yet.'); return; }
@@ -1147,27 +1154,30 @@ function shortenRsvpForm() {
   var tiePage = pages([SHORT_PAGES.tie])[0], connectPage = pages([SHORT_PAGES.connect])[0];
   if (!tiePage || !connectPage) throw new Error('Could not find the connection page or the Connect page, so nothing was changed.');
 
-  // Every connection answer, including the new "a friend" one, just goes on to the next page. This comes first: Forms
-  // won't delete a page that a choice still jumps to, and the old province page and an extra "Almost done" may be such pages.
+  // Clear every page jump first: Forms won't delete a page that a choice still jumps to.
   var tie = find(Q.tie).asMultipleChoiceItem();
   tie.setChoices(Object.keys(TIES).map(function (label) { return tie.createChoice(label); }));
   var oldMore = find(Q_MORE);
   if (oldMore) oldMore.asMultipleChoiceItem().setChoiceValues([MORE_NO, MORE_YES]);
 
-  // Pages: one "Almost done", one extras page, and no separate province page.
-  var exits = pages([SHORT_PAGES.more]);
-  exits.slice(1).forEach(function (it) { form.deleteItem(it.getIndex()); });
-  var exitPage = exits[0] || added(form.addPageBreakItem());
-  exitPage.asPageBreakItem().setTitle(SHORT_PAGES.more);
-  var extras = pages([SHORT_PAGES.extras].concat(SHORT_PAGES.oldExtras))[0] || added(form.addPageBreakItem());
-  extras.asPageBreakItem().setTitle(SHORT_PAGES.extras).setHelpText('All optional. Skip any you like.');
-  pages([SHORT_PAGES.oldProv]).forEach(function (it) { form.deleteItem(it.getIndex()); done.push('province page merged into the extras'); });
+  // Pages: one province page, one "Almost done", one extras page.
+  function onePage(title, alsoTitles) {
+    var all = pages([title].concat(alsoTitles || []));
+    all.slice(1).forEach(function (it) { form.deleteItem(it.getIndex()); });
+    var pg = all[0] || added(form.addPageBreakItem());
+    pg.asPageBreakItem().setTitle(title);
+    return find(title);
+  }
+  var provPage = onePage(SHORT_PAGES.prov), exitPage = onePage(SHORT_PAGES.more), extras = onePage(SHORT_PAGES.extras, SHORT_PAGES.oldExtras);
+  provPage.asPageBreakItem().setHelpText('');
+  extras.asPageBreakItem().setHelpText('All optional. Skip any you like.');
   if (find(Q.prov2)) { form.deleteItem(find(Q.prov2).getIndex()); done.push('"Another province" removed'); }
   var moreQ = find(Q_MORE) || added(form.addMultipleChoiceItem().setTitle(Q_MORE));
 
   // Put everything in order, front to back. Anything not listed stays after these.
   var order = [find(Q.name), find(Q.email), find(Q.attend), find(Q.county), find(Q.access), find(Q.diet), find(Q.question),
-    tiePage, find(Q.tie), exitPage, moreQ, extras, find(Q.prov1), find(Q.story), find(Q.consent), find(Q.role), find(Q.connect), connectPage];
+    find(SHORT_PAGES.tie), find(Q.tie), find(SHORT_PAGES.prov), find(Q.prov1), find(SHORT_PAGES.more), find(Q_MORE),
+    find(SHORT_PAGES.extras), find(Q.story), find(Q.consent), find(Q.role), find(Q.connect), find(SHORT_PAGES.connect)];
   var moved = 0;
   order.forEach(function (it, i) { var from = it.getIndex(); if (from !== i) { form.moveItem(from, i); moved++; } });
   if (moved) done.push(moved + ' items reordered');
@@ -1177,11 +1187,18 @@ function shortenRsvpForm() {
   find(Q.access).asParagraphTextItem().setHelpText(ACCESS_HELP);
   find(Q.diet).asParagraphTextItem().setHelpText(DIET_HELP);
   find(Q.question).asParagraphTextItem().setRequired(false).setHelpText(QUESTION_HELP);
-  find(Q.prov1).asListItem().setHelpText(PROV_HELP);
+  find(Q.prov1).asListItem().setRequired(false).setHelpText(PROV_HELP);
 
-  var more = moreQ.asMultipleChoiceItem().setHelpText(MORE_HELP).setRequired(true);
-  more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT), more.createChoice(MORE_YES, extras.asPageBreakItem())]);
-  done.push('connection choices set (with "a friend"), and "Almost done" leads to the extras');
+  // Where each answer goes.
+  var provBreak = find(SHORT_PAGES.prov).asPageBreakItem(), exitBreak = find(SHORT_PAGES.more).asPageBreakItem();
+  tie = find(Q.tie).asMultipleChoiceItem();
+  tie.setChoices(Object.keys(TIES).map(function (label) {
+    return tie.createChoice(label, NO_PROVINCE_TIES.indexOf(TIES[label]) > -1 ? exitBreak : provBreak);
+  }));
+  var more = find(Q_MORE).asMultipleChoiceItem().setHelpText(MORE_HELP).setRequired(true);
+  more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT),
+    more.createChoice(MORE_YES, find(SHORT_PAGES.extras).asPageBreakItem())]);
+  done.push('family and other connections are asked the province; a friend or no connection skip to "Almost done"');
 
   CacheService.getScriptCache().remove('map');
   Logger.log(done.join('; '));
