@@ -6,7 +6,7 @@ Built for Gregor, Noam, Veronica and Rapha. Same design and code base as the [Mi
 
 - **Website:** plain HTML, CSS and JavaScript, served by GitHub Pages. No build step.
 - **Data:** the Google Sheet "Lagmay Visit Hub data" in the "Dr. Lagmay Visit (Nov 2026)" Drive folder. Nothing about the team or the people we're talking to is stored in this repository.
-- **Backend:** a Google Apps Script web app attached to that Sheet. It reads and writes the Sheet, puts deadlines on Gregor's "Lagmay visit deadlines" calendar, emails Gregor a daily summary, lists files from the Drive folder, and summarizes the notes docs in its Meetings subfolder.
+- **Backend:** a Google Apps Script web app attached to that Sheet. It reads and writes the Sheet, puts deadlines on Gregor's "Lagmay visit deadlines" calendar, emails Gregor a Monday briefing, lists files from the Drive folder, and summarizes the notes docs in its Meetings subfolder.
 - **Font:** Atkinson Hyperlegible Next, under the SIL Open Font License (`fonts/OFL.txt`).
 
 Until the backend is connected, the site runs on sample data from `data/demo.json`, so you can look around first. The sample uses first names and made-up organizations only.
@@ -62,7 +62,7 @@ Some university Google accounts only allow web apps for people signed in to that
 
 - **The team gets no email from the hub.** Nothing is added to anyone's personal calendar either. Teammates see their work by opening the hub.
 - **Gregor gets one summary email** at 8 AM Pacific, only on days with something in it: funding changes, funding deadlines this week, overdue work, follow-ups due by tomorrow, what's due in the next 7 days, and what finished. **Email me the summary now** in Project view sends it on demand.
-- **Workstream and funding deadlines are on the "Lagmay visit deadlines" calendar** in Gregor's Google Calendar: the ones he leads or that have no lead. Assignments, his included, stay in the hub and the daily summary so the calendar doesn't fill up; to put his own open assignments back, add `ASSIGNMENTS_ON_CALENDAR` = `yes` in Script properties and run `syncAllCalendarEvents`. "Gregor" is the team member whose email matches `PM_EMAIL`; set `CALENDAR_MEMBER` in Script properties to a member id to change it. When an item is marked done or handed to someone else, its event is deleted; reopening it puts the event back. No one is invited. Each event has pop-up reminders a day and an hour before, which only Gregor sees.
+- **Workstream and funding deadlines are on the "Lagmay visit deadlines" calendar** in Gregor's Google Calendar: the ones he leads or that have no lead. Assignments, his included, stay in the hub and the Monday briefing so the calendar doesn't fill up; to put his own open assignments back, add `ASSIGNMENTS_ON_CALENDAR` = `yes` in Script properties and run `syncAllCalendarEvents`. "Gregor" is the team member whose email matches `PM_EMAIL`; set `CALENDAR_MEMBER` in Script properties to a member id to change it. When an item is marked done or handed to someone else, its event is deleted; reopening it puts the event back. No one is invited. Each event has pop-up reminders a day and an hour before, which only Gregor sees.
 - Anyone can still put a single deadline on their own calendar with **Add to Google Calendar** on its page.
 - To turn per-person reminder emails on later, add `TEAM_EMAILS` = `on` in **Script properties**. Each person's `emailPref` in the Members tab (`daily`, `weekly` or `off`) then decides how often they get one.
 

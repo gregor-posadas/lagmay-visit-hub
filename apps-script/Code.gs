@@ -13,8 +13,9 @@
  *    and every delete need the project manager code.
  *  - Keeps workstream and funding deadlines on one shared "Lagmay visit deadlines"
  *    calendar, without inviting anyone. Assignments stay in the hub and the summary.
- *  - Emails the project manager a summary every morning on days with something in it.
+ *  - Emails the project manager a briefing on Monday mornings (PM_SUMMARY can make it daily).
  *    Teammates get no email (set TEAM_EMAILS to 'on' in Script properties to change that).
+ *    Since Oct 13 the summary goes out on Monday mornings only (set PM_SUMMARY to 'daily' to change that).
  */
 
 var TZ = 'America/Los_Angeles';
@@ -39,7 +40,8 @@ var DEFAULTS = {
   FOLDER_ID: '10D8K0m294pmMo6uYNr2slKSOXGJvo6ny',           // the shared "Dr. Lagmay Visit" Drive folder
   MEETINGS_FOLDER_ID: '1CHy4VFSHm6qzL6QMuMbEU2e6W64s4oGn',  // its Meetings subfolder
   CHECKIN_SHEET_ID: '12MAeXvAl9_QhQf_Cha2cFpmnUokpSADz3FZQLdp8MgM',  // the door check-in spreadsheet for Nov 9 (separate, so volunteers see no hub data)
-  TEAM_EMAILS: 'off'       // 'on' sends each teammate their own reminders; 'off' (default) emails only the project manager
+  TEAM_EMAILS: 'off',      // 'on' sends each teammate their own reminders; 'off' (default) emails only the project manager
+  PM_SUMMARY: 'weekly'     // the project manager's summary: 'weekly' (default, Monday mornings only) or 'daily'
 };
 function setting(key) {
   return PropertiesService.getScriptProperties().getProperty(key) || DEFAULTS[key] || '';
@@ -171,7 +173,7 @@ function doPost(e) {
       case 'deleteContact': checkCode(b.pmCode, 'pm'); return json(deleteSimple('Contacts', b.id, who));
       case 'deleteMeeting': checkCode(b.pmCode, 'pm'); return json(deleteSimple('Meetings', b.id, who));
       case 'deleteFunding': checkCode(b.pmCode, 'pm'); return json(deleteFunding(b.id, who));
-      case 'sendReminders': checkCode(b.pmCode, 'pm'); return json({ ok: true, sent: sendDailyReminders() });
+      case 'sendReminders': checkCode(b.pmCode, 'pm'); return json({ ok: true, sent: sendDailyReminders(true) });
       default: throw new Error('Unknown action.');
     }
   } catch (err) {
@@ -549,7 +551,7 @@ function onCalendar(row, ownerField) {
 }
 /*
  * Individual assignments stay off the calendar, so it shows only workstream and funding deadlines.
- * Assignments live in the hub and the daily summary. Set ASSIGNMENTS_ON_CALENDAR to "yes" in Script properties
+ * Assignments live in the hub and the Monday briefing. Set ASSIGNMENTS_ON_CALENDAR to "yes" in Script properties
  * (then run syncAllCalendarEvents) to put your own open assignments back on it.
  */
 function assignmentsOnCalendar() { return PropertiesService.getScriptProperties().getProperty('ASSIGNMENTS_ON_CALENDAR') === 'yes'; }
@@ -691,8 +693,9 @@ function fileType(mime) {
  */
 var EMAIL_PREFS = ['daily', 'weekly', 'off'];
 
-/** Runs every morning at 8 AM (set up by setup()). Returns the number of emails sent. */
-function sendDailyReminders() {
+/** Runs every morning at 8 AM (set up by setup()). Returns the number of emails sent.
+    force (the hub's Send button) sends the project manager's summary even when it isn't Monday. */
+function sendDailyReminders(force) {
   var props = PropertiesService.getScriptProperties();
   var appUrl = setting('APP_URL');
   var members = readTable('Members'), assignments = readTable('Assignments');
@@ -764,39 +767,43 @@ function sendDailyReminders() {
     sent++;
   });
 
-  // Project manager summary, only on days with something in it.
-  var pmEmail = props.getProperty('PM_EMAIL');
-  if (pmEmail) {
-    var byMember = indexBy(members), week = new Date(now.getTime() + 7 * DAYMS);
+  // Project manager summary. Weekly (the default): Monday mornings only, covering the week since the last one.
+  var pmEmail = props.getProperty('PM_EMAIL'), weekly = setting('PM_SUMMARY') !== 'daily';
+  if (pmEmail && (!weekly || isMonday || force === true)) {
+    var since = weekly ? (props.getProperty('PM_LAST_SUMMARY') ? new Date(props.getProperty('PM_LAST_SUMMARY')) : new Date(now.getTime() - 7 * DAYMS)) : lastRun;
+    var byMember = indexBy(members), week = new Date(now.getTime() + 7 * DAYMS), ahead = weekly ? 7 : 1;
     var first = function (id) { return ((byMember[id] || {}).name || id || 'No one').split(' ')[0]; };
     var open = assignments.filter(function (a) { return a.status !== 'done'; });
     var late = open.filter(function (a) { return a.due && new Date(a.due) < now; }).sort(byDue);
     var upcoming = open.filter(function (a) { return a.due && new Date(a.due) >= now && new Date(a.due) <= week; }).sort(byDue);
-    var doneRecent = assignments.filter(function (a) { return a.status === 'done' && a.updatedAt && new Date(a.updatedAt) >= lastRun; });
-    var stale = contacts.filter(function (c) { return ['ours', 'theirs'].indexOf(c.status) > -1 && dateStr(c.followUp) && dateDay(c.followUp) <= today + 1; })
+    var doneRecent = assignments.filter(function (a) { return a.status === 'done' && a.updatedAt && new Date(a.updatedAt) >= since; });
+    var stale = contacts.filter(function (c) { return ['ours', 'theirs'].indexOf(c.status) > -1 && dateStr(c.followUp) && dateDay(c.followUp) <= today + ahead; })
       .sort(function (a, b) { return a.followUp < b.followUp ? -1 : 1; });
     var deadlines = funding.filter(function (f) { return ['working', 'lead', 'pending'].indexOf(f.status) > -1 && f.due && new Date(f.due) <= week && new Date(f.due) >= new Date(now.getTime() - DAYMS); }).sort(byDue);
-    var fundNews = funding.filter(function (f) { return f.updatedAt && new Date(f.updatedAt) >= lastRun; });
+    var fundNews = funding.filter(function (f) { return f.updatedAt && new Date(f.updatedAt) >= since; });
     var row = function (a) {
       return emailItem(link('a/' + a.id), first(a.memberId) + ': ' + a.title, a.due ? relDay(new Date(a.due), now) + ' at ' + Utilities.formatDate(new Date(a.due), TZ, 'h:mm a') : '', '', '');
     };
     var LABEL = { secured: 'secured', pending: 'waiting on a decision', working: 'working on it', lead: 'not started', declined: 'declined' };
     if (late.length || upcoming.length || doneRecent.length || stale.length || deadlines.length || fundNews.length) {
-      var pmHtml = emailShell('Team summary',
+      var pmHtml = emailShell(weekly ? 'Your Monday briefing' : 'Team summary',
         emailSection('Funding changes since the last summary', fundNews.map(function (f) { return emailItem(link('f/' + f.id), f.source, 'Now ' + (LABEL[f.status] || f.status) + (f.amount ? ', $' + f.amount : ''), '', ''); })) +
         emailSection('Funding deadlines in the next 7 days', deadlines.map(function (f) { return emailItem(link('f/' + f.id), f.source, first(f.ownerId) + ', ' + relDay(new Date(f.due), now), '', ''); })) +
         emailSection('Overdue', late.map(row)) +
-        emailSection('Follow-ups due by tomorrow', stale.map(function (c) {
+        emailSection(weekly ? 'Follow-ups due this week' : 'Follow-ups due by tomorrow', stale.map(function (c) {
           var diff = dateDay(c.followUp) - today;
-          var when = diff < 0 ? 'was due ' + Utilities.formatDate(new Date(c.followUp + 'T12:00:00'), TZ, 'EEE, MMM d') : diff === 0 ? 'due today' : 'due tomorrow';
+          var when = diff < 0 ? 'was due ' + Utilities.formatDate(new Date(c.followUp + 'T12:00:00'), TZ, 'EEE, MMM d') : diff === 0 ? 'due today' : diff === 1 ? 'due tomorrow' : 'due ' + Utilities.formatDate(new Date(c.followUp + 'T12:00:00'), TZ, 'EEE, MMM d');
           return emailItem(link('c/' + c.id), c.name + (c.org ? ', ' + c.org : ''), first(c.ownerId) + ', ' + when + (c.nextStep ? '. Next: ' + c.nextStep : ''), '', '');
         })) +
         emailSection('Due in the next 7 days', upcoming.map(row)) +
-        emailSection('Finished since the last summary', doneRecent.map(row)),
+        emailSection(weekly ? 'Finished last week' : 'Finished since the last summary', doneRecent.map(row)),
         appUrl ? '<a href="' + esc(link('pm')) + '">Open the project view</a>' : '');
-      sendMail(pmEmail, 'Lagmay visit summary: ' + late.length + ' overdue, ' + stale.length + ' follow-ups due', pmHtml);
+      sendMail(pmEmail, weekly
+        ? 'Lagmay visit, Monday briefing: ' + late.length + ' overdue, ' + upcoming.length + ' due this week, ' + stale.length + ' follow-ups'
+        : 'Lagmay visit summary: ' + late.length + ' overdue, ' + stale.length + ' follow-ups due', pmHtml);
       sent++;
     }
+    if (weekly) props.setProperty('PM_LAST_SUMMARY', cell(now));
   }
   props.setProperty('LAST_DIGEST', cell(now));
   return sent;
