@@ -1,6 +1,8 @@
-// Finished tasks and workstreams come off the deadlines calendar; open ones stay on it.
+// Assignments stay off the deadlines calendar by default; with ASSIGNMENTS_ON_CALENDAR = yes, open ones of the PM's go on
+// and finished ones come off. Workstream and funding deadlines are on either way.
 const fs = require('fs'), vm = require('vm'), assert = require('assert'), path = require('path');
 const events = {}; let next = 1;
+const props = { PM_EMAIL: 'GregorPosadas@berkeley.edu' };
 const cal = {
   createEvent(title, start, end) { const id = 'ev' + next++; events[id] = { title, start, end, deleted: false }; return mkEv(id); },
   getEventById(id) { return events[id] && !events[id].deleted ? mkEv(id) : null; }
@@ -12,7 +14,7 @@ function mkEv(id) {
 }
 const ctx = {
   CalendarApp: { getCalendarById: () => cal, getDefaultCalendar: () => cal },
-  PropertiesService: { getScriptProperties: () => ({ getProperty: k => k === 'PM_EMAIL' ? 'GregorPosadas@berkeley.edu' : null }) },
+  PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] || null }) },
   Logger: { log() {} }, console
 };
 vm.createContext(ctx);
@@ -20,6 +22,16 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'apps-script', 'Code.
 vm.runInContext("readTable = function (t) { return t === 'Members' ? [{ id: 'gregor', name: 'Gregor Posadas', email: 'gregorposadas@berkeley.edu' }, { id: 'noam', name: 'Noam Anglo', email: 'nanglo@berkeley.edu' }] : []; }", ctx);
 const sync = a => vm.runInContext('syncCalendar', ctx)(a);
 
+// Default: no assignment events, and an existing one is removed.
+const off = { id: 'a-0', memberId: 'gregor', title: 'Old task', due: '2026-10-12T17:00:00-07:00', status: 'todo', calendarEventId: '' };
+props.ASSIGNMENTS_ON_CALENDAR = 'yes';
+const offOld = sync(off);
+delete props.ASSIGNMENTS_ON_CALENDAR;
+off.calendarEventId = offOld;
+assert.strictEqual(sync(off), '', 'by default an open task of mine gets no event');
+assert.ok(events[offOld].deleted, 'and an event it already had is deleted');
+
+props.ASSIGNMENTS_ON_CALENDAR = 'yes';
 const a = { id: 'a-1', memberId: 'gregor', title: 'Book the room', due: '2026-10-12T17:00:00-07:00', status: 'todo', calendarEventId: '' };
 a.calendarEventId = sync(a);
 assert.ok(a.calendarEventId, 'an open task with a due date gets an event');

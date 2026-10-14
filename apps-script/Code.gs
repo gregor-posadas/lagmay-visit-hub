@@ -11,8 +11,8 @@
  *  - Saves changes back to the Sheet. Anyone with the team code can update their own
  *    work, contacts, funding sources and meetings. Assignments, workstreams, the budget
  *    and every delete need the project manager code.
- *  - Keeps assignment, workstream and funding deadlines on one shared
- *    "Lagmay visit deadlines" calendar, without inviting anyone.
+ *  - Keeps workstream and funding deadlines on one shared "Lagmay visit deadlines"
+ *    calendar, without inviting anyone. Assignments stay in the hub and the summary.
  *  - Emails the project manager a summary every morning on days with something in it.
  *    Teammates get no email (set TEAM_EMAILS to 'on' in Script properties to change that).
  */
@@ -102,7 +102,7 @@ function setup() {
 function syncAllCalendarEvents() {
   var n = 0, removed = 0;
   readTable('Assignments').forEach(function (a) {
-    if (!onCalendar(a, 'memberId') && !a.calendarEventId) return;
+    if (!(assignmentsOnCalendar() && onCalendar(a, 'memberId')) && !a.calendarEventId) return;
     var id = syncCalendar(a);
     if (id !== a.calendarEventId) { if (!id) removed++; a.calendarEventId = id; writeRow('Assignments', a); }
     if (id) n++;
@@ -118,7 +118,7 @@ function syncAllCalendarEvents() {
     if (id !== f.calendarEventId) { f.calendarEventId = id; writeRow('Funding', f); }
     if (id) n++;
   });
-  Logger.log('Deadlines calendar synced: ' + n + ' open deadlines; ' + removed + ' removed (done, undated or someone else\'s). No one is invited to these events.');
+  Logger.log('Deadlines calendar synced: ' + n + ' open deadlines; ' + removed + ' removed (assignments, or done, undated or someone else\'s). No one is invited to these events.');
 }
 
 function randomCode() {
@@ -547,9 +547,15 @@ function onCalendar(row, ownerField) {
   var mine = calendarOwnerId(), owner = row[ownerField] || '';
   return !mine || owner === mine || (ownerField !== 'memberId' && !owner);
 }
+/*
+ * Individual assignments stay off the calendar, so it shows only workstream and funding deadlines.
+ * Assignments live in the hub and the daily summary. Set ASSIGNMENTS_ON_CALENDAR to "yes" in Script properties
+ * (then run syncAllCalendarEvents) to put your own open assignments back on it.
+ */
+function assignmentsOnCalendar() { return PropertiesService.getScriptProperties().getProperty('ASSIGNMENTS_ON_CALENDAR') === 'yes'; }
 /* Finished work and teammates' work come off the calendar; reopening or reassigning puts it back. */
 function syncCalendar(a) {
-  if (!onCalendar(a, 'memberId')) { removeEvent(a.calendarEventId); return ''; }
+  if (!assignmentsOnCalendar() || !onCalendar(a, 'memberId')) { removeEvent(a.calendarEventId); return ''; }
   return deadlineEvent(a.calendarEventId, 'Due: ' + a.title, a.due,
     (a.instructions || '') + (a.link ? '\n\nDocument: ' + a.link : '') + hubLink('a/' + a.id));
 }
