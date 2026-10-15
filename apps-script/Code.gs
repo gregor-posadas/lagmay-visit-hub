@@ -1007,12 +1007,12 @@ function addConnectQuestion(form) {
  */
 /* The text at the top of the RSVP form. reviseRsvpForm() puts it on the live form too. */
 function rsvpDescription() {
+  // Oct 14: Gregor's wording. Access needs and food allergies are no longer form questions; people email instead.
   return 'Monday, November 9, 2026, 4 to 5 PM Pacific, in Banatao Auditorium at UC Berkeley, and livestreamed. A free public conversation on flooding ' +
-    'in the Philippines with Dr. Mahar Lagmay (UP Resilience Institute and Project NOAH), Dr. Lisandro Claudio and Dr. Diana Martinez. ' +
-    'This form also takes RSVPs for his DevEng 203 guest lecture that morning and the reception after the panel.\n\n' +
-    'Everyone is welcome, and it takes a minute or two. Details: ' + EVENT_URL + '\n\n' +
-    'Your name and email are never shown. Where you live and your province appear only as anonymous counts on the event map.';
+    'in the Philippines with Dr. Mahar Lagmay (UP Resilience Institute and Project NOAH), Dr. Lisandro Claudio and Dr. Diana Martinez.\n\n' +
+    'For accommodation requests, including food allergies, please contact ' + ACCOMMODATION_EMAIL + '.';
 }
+var ACCOMMODATION_EMAIL = 'gregorposadas@berkeley.edu';
 
 function createRsvpForm() {
   var props = PropertiesService.getScriptProperties();
@@ -1034,8 +1034,6 @@ function createRsvpForm() {
   form.addCheckboxItem().setTitle(Q.join).setHelpText(joinHelp()).setRequired(true).setChoiceValues(joinChoices(false));
   form.addListItem().setTitle(Q.county).setHelpText(COUNTY_HELP)
     .setRequired(true).setChoiceValues(COUNTY_CHOICES);
-  form.addParagraphTextItem().setTitle(Q.access).setRequired(false).setHelpText(ACCESS_HELP);
-  form.addParagraphTextItem().setTitle(Q.diet).setRequired(false).setHelpText(DIET_HELP);
   form.addParagraphTextItem().setTitle(Q.question).setRequired(false).setHelpText(QUESTION_HELP);
 
   // Page 2: the connection. Family ties and the like go on to the province; a friend or no connection skip to "Almost done".
@@ -1194,13 +1192,11 @@ function reviseRsvpForm() {
   var story = items.filter(function (it) { return it.getTitle() === Q.story; })[0];
   if (story && story.getHelpText() !== STORY_HELP) { story.setHelpText(STORY_HELP); done.push('story help text updated'); }
   done.push(updateSeatChoices());
-  var hasDiet = items.some(function (it) { return it.getTitle() === Q.diet; });
-  if (!hasDiet) {
-    var access = items.filter(function (it) { return it.getTitle() === Q.access; })[0];
-    var diet = form.addParagraphTextItem().setTitle(Q.diet).setRequired(false).setHelpText(DIET_HELP);
-    if (access) form.moveItem(diet.getIndex(), access.getIndex() + 1);
-    done.push('food question added');
-  }
+  // Oct 14: the access and food questions come off the form (the description says whom to email). Earlier answers stay on the Sheet.
+  [Q.access, Q.diet].forEach(function (t) {
+    var it = form.getItems().filter(function (x) { return x.getTitle() === t; })[0];
+    if (it) { form.deleteItem(it.getIndex()); done.push('"' + t + '" removed'); }
+  });
   if (!items.some(function (it) { return it.getTitle() === Q.connect; })) { addConnectQuestion(form); done.push('Connect question and page added'); }
   CacheService.getScriptCache().remove('map');
   Logger.log(done.join('; '));
@@ -1228,7 +1224,7 @@ function shortenRsvpForm() {
   function pages(titles) { return form.getItems(FormApp.ItemType.PAGE_BREAK).filter(function (it) { return titles.indexOf(it.getTitle()) > -1; }); }
   function added(item) { var i = item.getIndex(); return form.getItems()[i]; }
   function joinQ() { return find(Q.join) || find(Q.attend); }
-  var need = ['name', 'email', 'county', 'access', 'diet', 'question', 'tie', 'prov1', 'story', 'consent', 'role', 'connect']
+  var need = ['name', 'email', 'county', 'question', 'tie', 'prov1', 'story', 'consent', 'role', 'connect']
     .filter(function (k) { return !find(Q[k]); }).concat(joinQ() ? [] : ['join']);
   if (need.length) throw new Error('Could not find these questions, so nothing was changed: ' + need.join(', '));
   var tiePage = pages([SHORT_PAGES.tie])[0], connectPage = pages([SHORT_PAGES.connect])[0];
@@ -1255,7 +1251,8 @@ function shortenRsvpForm() {
   var moreQ = find(Q_MORE) || added(form.addMultipleChoiceItem().setTitle(Q_MORE));
 
   // Put everything in order, front to back. Anything not listed stays after these.
-  var order = [find(Q.name), find(Q.email), joinQ(), find(Q.county), find(Q.access), find(Q.diet), find(Q.question),
+  [Q.access, Q.diet].forEach(function (t) { if (find(t)) { form.deleteItem(find(t).getIndex()); done.push('"' + t + '" removed'); } });
+  var order = [find(Q.name), find(Q.email), joinQ(), find(Q.county), find(Q.question),
     find(SHORT_PAGES.tie), find(Q.tie), find(SHORT_PAGES.prov), find(Q.prov1), find(SHORT_PAGES.more), find(Q_MORE),
     find(SHORT_PAGES.extras), find(Q.story), find(Q.consent), find(Q.role), find(Q.connect), find(SHORT_PAGES.connect)];
   var moved = 0;
@@ -1264,8 +1261,6 @@ function shortenRsvpForm() {
 
   form.setDescription(rsvpDescription());
   done.push(updateSeatChoices());
-  find(Q.access).asParagraphTextItem().setHelpText(ACCESS_HELP);
-  find(Q.diet).asParagraphTextItem().setHelpText(DIET_HELP);
   find(Q.question).asParagraphTextItem().setRequired(false).setHelpText(QUESTION_HELP);
   find(Q.prov1).asListItem().setRequired(false).setHelpText(PROV_HELP);
 

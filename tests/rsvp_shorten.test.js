@@ -49,12 +49,12 @@ run('readRsvps = function () { return []; }');
 
 function check(label) {
   const titles = items.map(i => i.type === 'PAGE_BREAK' ? '[' + i.title + ']' : i.title);
-  assert.deepStrictEqual(titles, [Q.name, Q.email, Q.join, Q.county, Q.access, Q.diet, Q.question,
+  assert.deepStrictEqual(titles, [Q.name, Q.email, Q.join, Q.county, Q.question,
     '[Your connection to the Philippines]', Q.tie,
     '[Where in the Philippines]', Q.prov1,
     '[Almost done]', run('Q_MORE'),
     '[A few optional extras]', Q.story, Q.consent, Q.role, Q.connect, '[Connect with others at the event]'], label + '\n' + titles.join('\n'));
-  assert.ok(description.length < 700 && /a minute or two/.test(description), 'short description');
+  assert.ok(description.length < 400 && /please contact gregorposadas@berkeley.edu/.test(description), 'short description: ' + description);
   const byTitle = t => items.find(i => i.title === t);
   const more = byTitle(run('Q_MORE'));
   assert.ok(more.required, 'the early exit is a required choice');
@@ -67,7 +67,7 @@ function check(label) {
   }
   assert.ok(byTitle(Q.tie).choices.some(c => TIES[c.v] === 'friend'), 'the friend option is there');
   assert.ok(!byTitle(Q.question).required && !byTitle(Q.prov1).required, 'question and province are optional');
-  assert.ok(/Leave it blank if none/.test(byTitle(Q.access).help) && /Leave it blank if none/.test(byTitle(Q.diet).help));
+  assert.ok(!byTitle(Q.access) && !byTitle(Q.diet), 'access and food questions removed');
   assert.ok(!items.some(i => i.title === Q.prov2), 'no second province');
   for (const p of ['Almost done', 'Where in the Philippines', 'A few optional extras']) assert.strictEqual(items.filter(i => i.title === p).length, 1, 'one ' + p);
   assert.ok(byTitle(Q.join).choices.length === 4 && byTitle(Q.join).choices.every(c => c.v.length < 100), 'attendance choices are short');
