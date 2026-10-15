@@ -232,3 +232,7 @@
 .nav a.nav__ask[aria-current="page"] { background: rgba(158, 184, 219, .22); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 3px; }
 .rv-frame--story iframe { height: 1100px; }
 @media (max-width: 600px) { .rv-frame--story iframe { height: 1300px; } }
+/* Share your story: bold on a light-blue tint, a step below Ask the speakers' outline. */
+.nav a.nav__story { background: rgba(158, 184, 219, .24); color: var(--band-ink); padding-left: 14px; padding-right: 14px; font-weight: 700; margin: 6px 4px; min-height: calc(var(--tap) - 12px); border-bottom: 0; }
+.nav a.nav__story:hover { background: rgba(158, 184, 219, .36); }
+.nav a.nav__story[aria-current="page"] { background: rgba(158, 184, 219, .36); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 3px; }

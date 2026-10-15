@@ -19,12 +19,12 @@ MARK = ('<svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusab
 NAV = {
     # Oct 14: "Support us" and "Accessibility" are off the menu (the pages still exist and are linked where relevant).
     # Later Oct 14: the FAQs moved into About, and Connect ended; their old addresses forward.
-    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("ask", "ask/", "Ask the speakers"), ("story", "story/", "Share your story"), ("about", "about/", "About"), ("history", "history/", "Flood history"), ("directions", "directions/", "Directions")],
-    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("ask", "fil/ask/", "Magtanong"), ("story", "fil/story/", "Ibahagi ang kuwento"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan"), ("directions", "fil/directions/", "Direksyon")],
+    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("ask", "ask/", "Ask the speakers"), ("story", "story/", "Share your story"), ("history", "history/", "Flood history"), ("directions", "directions/", "Directions"), ("about", "about/", "About"), ("contact", "contact/", "Contact us")],
+    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("ask", "fil/ask/", "Magtanong"), ("story", "fil/story/", "Ibahagi ang kuwento"), ("history", "history/", "Kasaysayan"), ("directions", "fil/directions/", "Direksyon"), ("about", "fil/about/", "Tungkol"), ("contact", "fil/contact/", "Makipag-ugnayan")],
 }
 # The language link goes to the same page in the other language where there is one, else to the other language's event page.
-OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "rsvp/": "fil/rsvp/", "connect/": "fil/connect/", "ask/": "fil/ask/", "story/": "fil/story/",
-         "fil/": "", "fil/about/": "about/", "fil/directions/": "directions/", "fil/rsvp/": "rsvp/", "fil/connect/": "connect/", "fil/ask/": "ask/", "fil/story/": "story/"}
+OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "rsvp/": "fil/rsvp/", "connect/": "fil/connect/", "ask/": "fil/ask/", "story/": "fil/story/", "contact/": "fil/contact/",
+         "fil/": "", "fil/about/": "about/", "fil/directions/": "directions/", "fil/rsvp/": "rsvp/", "fil/connect/": "connect/", "fil/ask/": "ask/", "fil/story/": "story/", "fil/contact/": "contact/"}
 SITE = "https://gregor-posadas.github.io/lagmay-visit-hub/event/"
 WORDS = {
     "en": dict(skip="Skip to content", sub="Flooding in the Philippines, a public conversation", sound="Sound on", theme="Dark mode", share="Share",
@@ -54,8 +54,8 @@ def build(src):
     for key, href, label in NAV[lang]:
         cur = ' aria-current="page"' if key == meta.get("nav") else ""
         lng = ' lang="fil" hreflang="fil"' if key == "fil" else (' lang="en" hreflang="en"' if key == "en" else "")
-        # The RSVP tab is a filled blue box so it reads as the thing to do; Ask the speakers is outlined, a step down.
-        cta = ' class="nav__rsvp"' if key == "rsvp" else (' class="nav__ask"' if key == "ask" else "")
+        # Three levels: RSVP is a filled blue box (the thing to do), Ask the speakers is outlined, Share your story is tinted.
+        cta = {"rsvp": ' class="nav__rsvp"', "ask": ' class="nav__ask"', "story": ' class="nav__story"'}.get(key, "")
         links.append(f'      <a href="{(R + href) or "./"}"{cta}{cur}{lng}>{label}</a>')
     nav = "\n".join(links)
     nav = nav.replace(f'href="{R}"', f'href="{R or "./"}"')
