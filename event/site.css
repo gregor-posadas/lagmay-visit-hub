@@ -236,3 +236,58 @@
 .nav a.nav__story { background: rgba(158, 184, 219, .24); color: var(--band-ink); padding-left: 14px; padding-right: 14px; font-weight: 700; margin: 6px 4px; min-height: calc(var(--tap) - 12px); border-bottom: 0; }
 .nav a.nav__story:hover { background: rgba(158, 184, 219, .36); }
 .nav a.nav__story[aria-current="page"] { background: rgba(158, 184, 219, .36); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 3px; }
+
+/* ---------- Phones (Oct 14 mobile review) ---------- */
+/* Header: the name and Share on one row, the menu on one scrollable row under them, so the page starts sooner.
+   The right edge fades to show there is more to scroll. */
+@media (max-width: 719px) {
+  .ev-page .band__inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 8px; padding: 12px 16px 8px; }
+  .ev-page .band__inner > .brand { grid-column: 1; grid-row: 1; min-width: 0; }
+  .ev-page .band__tools { grid-column: 2; grid-row: 1; align-self: start; }
+  .ev-page .nav { grid-column: 1 / -1; grid-row: 2; flex-wrap: nowrap; overflow-x: auto; gap: 6px; margin: 0 -16px; padding: 0 48px 2px 16px;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
+  .ev-page .nav::-webkit-scrollbar { display: none; }
+  .ev-page .nav a { flex: 0 0 auto; white-space: nowrap; }
+  .ev-page .brand__sub { display: none; }   /* the tagline is on the page itself */
+  .ev-page .band__tools .tool { padding: 0 12px; min-width: var(--tap); justify-content: center; }
+  /* Share shrinks to its icon (the word stays for screen readers). */
+  .ev-page #share-btn .tool__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .ev-page #share-btn .ico { margin-right: 0; }
+  .ev-page .brand__name { font-size: calc(var(--f3) * .9); white-space: nowrap; }
+  .ev-page .brand__mark { width: 24px; height: 24px; }
+  .ev-page .nav a.nav__rsvp, .ev-page .nav a.nav__ask, .ev-page .nav a.nav__story { margin: 4px 2px; }
+}
+
+/* Speakers: a small square photo beside the name instead of a full-width face, which was blown up and cropped.
+   (.ev-speakers in front to win over event.css, which loads after this file.) */
+@media (max-width: 759px) {
+  .ev-speakers .ev-speaker { display: grid; grid-template-columns: 96px minmax(0, 1fr); column-gap: 16px; padding: 16px 16px 18px; align-content: start; }
+  .ev-speakers .ev-speaker > * { grid-column: 1 / -1; }
+  .ev-speakers .ev-speaker > :not(.ev-speaker__photo) { margin-left: 0; margin-right: 0; }
+  .ev-speakers .ev-speaker__photo { grid-column: 1; grid-row: 1 / span 2; width: 96px; height: 96px; aspect-ratio: auto; max-height: none; border: 2px solid var(--rule-strong); align-self: start; }
+  .ev-speakers .ev-speaker__photo img { object-position: center 25%; }
+  .ev-speakers .ev-speaker__photo.is-missing::after { font-size: 1.6rem; }
+  .ev-speakers .ev-speaker h3 { grid-column: 2; grid-row: 1; margin: 0 0 4px; align-self: end; }
+  .ev-speakers .ev-speaker .ev-speaker__role { grid-column: 2; grid-row: 2; align-self: start; }
+}
+
+/* Supporter logos: two to a row on phones; the co-host and the logos with names keep a full row. */
+@media (max-width: 600px) {
+  .ev-logos { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .ev-logos > li.ev-logos__cohost, .ev-logos > li.ev-logos__xwide, .ev-logos > li:has(.ev-logos__named) { grid-column: 1 / -1; }
+  .ev-logos a { min-height: 88px; padding: 12px; }
+  .ev-logos img { max-height: 52px; }
+}
+
+/* Buttons in the page body: full width and centred on phones, so labels don't wrap mid-phrase and the taps are easy. */
+@media (max-width: 519px) {
+  main .actions { flex-direction: column; align-items: stretch; }
+  main .actions > .btn, main .actions > details, main .actions > details > summary.btn { width: 100%; box-sizing: border-box; justify-content: center; text-align: center; }
+  .ev-hero-cta .btn.btn--rsvp { min-width: 0; }
+  main .btn.btn--rsvp { padding: 0 20px; }
+  .rd-head .btn.btn--rsvp { font-size: var(--f3); }   /* "Open the RSVP form" fits on one line */
+  .ev-hero-cta__note { text-align: center; }
+}
+/* About: the flood history's own headings sit under "Flood history", so they're a step smaller there. */
+#history .rd-main h2 { font-size: var(--f3); }

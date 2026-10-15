@@ -19,8 +19,8 @@ MARK = ('<svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusab
 NAV = {
     # Oct 14: "Support us" and "Accessibility" are off the menu (the pages still exist and are linked where relevant).
     # Later Oct 14: the FAQs moved into About, and Connect ended; their old addresses forward.
-    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("ask", "ask/", "Ask the speakers"), ("story", "story/", "Share your story"), ("history", "history/", "Flood history"), ("directions", "directions/", "Directions"), ("about", "about/", "About"), ("contact", "contact/", "Contact us")],
-    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("ask", "fil/ask/", "Magtanong"), ("story", "fil/story/", "Ibahagi ang kuwento"), ("history", "history/", "Kasaysayan"), ("directions", "fil/directions/", "Direksyon"), ("about", "fil/about/", "Tungkol"), ("contact", "fil/contact/", "Makipag-ugnayan")],
+    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("ask", "ask/", "Ask the speakers"), ("story", "story/", "Share your story"), ("directions", "directions/", "Directions"), ("about", "about/", "About"), ("contact", "contact/", "Contact us")],
+    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("ask", "fil/ask/", "Magtanong"), ("story", "fil/story/", "Ibahagi ang kuwento"), ("directions", "fil/directions/", "Direksyon"), ("about", "fil/about/", "Tungkol"), ("contact", "fil/contact/", "Makipag-ugnayan")],
 }
 # The language link goes to the same page in the other language where there is one, else to the other language's event page.
 OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "rsvp/": "fil/rsvp/", "connect/": "fil/connect/", "ask/": "fil/ask/", "story/": "fil/story/", "contact/": "fil/contact/",
@@ -60,15 +60,15 @@ def build(src):
     nav = "\n".join(links)
     nav = nav.replace(f'href="{R}"', f'href="{R or "./"}"')
     scripts = "".join(f'<script src="{R}{s.strip()}?v=0"></script>\n' for s in meta.get("scripts", "").split(",") if s.strip())
-    present = '<script>try { var t = localStorage.getItem("lv.theme"); if (t) document.documentElement.setAttribute("data-theme", t); if (/[?&#]present/.test(location.href)) document.documentElement.setAttribute("data-theme", /[?&#]light/.test(location.href) ? "light" : "dark"); } catch (e) {}</script>'
+    present = ''   # Oct 14: light mode only, so no theme from storage and no dark ?present
     page = f"""<!doctype html>
-<html lang="{lang}">
+<html lang="{lang}" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(meta["title"])}</title>
 <meta name="description" content="{html.escape(meta.get("desc", ""))}">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light">
 <link rel="preload" href="{A}fonts/AtkinsonHyperlegibleNext-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{A}fonts/AtkinsonHyperlegibleNext-Bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="{ICON}">
@@ -81,8 +81,6 @@ def build(src):
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="alternate" hreflang="en" href="https://gregor-posadas.github.io/lagmay-visit-hub/event/">
-<link rel="alternate" hreflang="fil" href="https://gregor-posadas.github.io/lagmay-visit-hub/event/fil/">
 <link rel="stylesheet" href="{A}assets/styles.css?v=0">
 <link rel="stylesheet" href="{R}site.css?v=0">
 <link rel="stylesheet" href="{R}event.css?v=0">
@@ -101,10 +99,7 @@ def build(src):
 {nav}
     </nav>
     <div class="band__tools">
-      <button type="button" class="tool" id="sound-toggle" aria-pressed="true"><span class="tool__state">{w["sound"]}</span></button>
-      <button type="button" class="tool theme-toggle" id="theme-toggle">{w["theme"]}</button>
-      {langsw}
-      <button type="button" class="tool" id="share-btn" aria-haspopup="dialog" data-url="{SITE + here}" data-title="{html.escape(meta["title"])}" data-card="{R}img/share/{meta.get("card", "event-fil" if lang == "fil" else "event-en")}.jpg">{w["share"]}</button>
+      <button type="button" class="tool" id="share-btn" aria-haspopup="dialog" data-url="{SITE + here}" data-title="{html.escape(meta["title"])}" data-card="{R}img/share/{meta.get("card", "event-fil" if lang == "fil" else "event-en")}.jpg"><span class="tool__label">{w["share"]}</span></button>
     </div>
   </div>
 </header>

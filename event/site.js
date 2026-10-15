@@ -54,7 +54,7 @@
   paintTheme();
 
   /* ---------- click sounds (off by default under reduced motion) ---------- */
-  var soundBtn = $("sound-toggle"), saved = store.get("sound"), soundOn = saved === null ? !reduced : saved === "on", actx = null;
+  var soundBtn = $("sound-toggle"), saved = store.get("sound"), soundOn = false, actx = null;   // Oct 14: sound removed from the site
   function tick(kind) {
     if (!soundOn) return;
     try { var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; if (!actx) actx = new AC(); if (actx.state === "suspended") { actx.resume().then(function () { play(kind); }, function () {}); return; } play(kind); } catch (e) { /* no audio */ }
