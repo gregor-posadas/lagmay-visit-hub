@@ -1184,9 +1184,11 @@ function slimRsvpForm() {
 function closeConnectForm() {
   var id = PropertiesService.getScriptProperties().getProperty('CONNECT_FORM_ID');
   if (!id) { Logger.log('No Connect form.'); return; }
-  FormApp.openById(id).setAcceptingResponses(false)
-    .setCustomClosedFormMessage('Connect has ended. Thank you to everyone who added a card. The event page: ' + EVENT_URL_BASE());
-  Logger.log('Connect form closed.');
+  var form = FormApp.openById(id);
+  form.setAcceptingResponses(false);
+  try { form.setCustomClosedFormMessage('Connect has ended. Thank you to everyone who added a card.'); }
+  catch (e) { Logger.log('Closed, but the closing note could not be set: ' + e.message); }
+  Logger.log('Connect form closed: ' + !form.isAcceptingResponses());
 }
 
 /**
