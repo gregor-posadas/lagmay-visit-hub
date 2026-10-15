@@ -1,0 +1,42 @@
+<!-- out: fil/story/index.html | title: Ibahagi ang kuwento mo: When the Waters Rise | lang: fil | nav: story | desc: Ilagay ang sarili mo sa mapa ng mga dadalo sa When the Waters Rise, at ibahagi ang ugnayan mo sa Pilipinas o isang baha na pinag-uusapan pa rin ng pamilya mo. Walang pangalan, wala pang isang minuto. | scripts: config.js, event.js -->
+<div id="sample-note" class="notice" role="status" hidden><p><b>Halimbawang datos.</b> Gawa-gawa lang ang mga tao sa mapang ito, para ipakita ang magiging itsura nito.</p></div>
+<main id="main" tabindex="-1">
+  <div class="wrap">
+    <header class="rd-head">
+      <p class="ev-kicker">When the Waters Rise · Lunes, Nobyembre 9 · 4 hanggang 5 ng hapon (oras sa California)</p>
+      <h1>Ibahagi ang kuwento mo</h1>
+      <p class="rd-lead">Saan ka manggagaling, at ano ang ugnayan mo sa Pilipinas? Ilagay ang sarili mo sa mapa sa ibaba, at kung gusto mo, ikuwento ang isang baha na pinag-uusapan pa rin ng pamilya mo. Walang pangalan, wala pang isang minuto, at hindi mo kailangang mag-RSVP. Nasa Ingles ang form.</p>
+    </header>
+
+    <section class="section rv-form" id="story-form" aria-labelledby="sf-h">
+      <h2 id="sf-h">Idagdag ang sarili mo</h2>
+      <p class="section__note">Kung hindi lumabas ang form sa ibaba, o mahirap gamitin dito, <a class="js-map" href="#story-form">buksan ito sa bagong tab<span class="sr"> (magbubukas ng Google Form)</span></a>.</p>
+      <div class="rv-frame rv-frame--story">
+        <iframe id="story-iframe" title="Form para ibahagi ang kuwento mo (Google Form, nasa Ingles)" loading="lazy" hidden></iframe>
+      </div>
+    </section>
+
+    <section class="section ev-who" id="who" aria-labelledby="who-h">
+      <h2 id="who-h" tabindex="-1">Ang mapa sa ngayon</h2>
+      <p class="ev-summary" id="who-summary" aria-live="polite">Nilo-load ang mapa…</p>
+      <figure class="ev-map" id="map" aria-describedby="who-summary">
+        <div class="ev-map__svg" id="map-svg"></div>
+        <figcaption class="ev-key" id="map-key"></figcaption>
+      </figure>
+      <details class="done-list ev-table">
+        <summary>Ang mapa bilang listahan</summary>
+        <div id="map-table"></div>
+      </details>
+      <p class="section__note">Bawat pigura ay isang tao, nakalagay sa county nila sa Bay Area at, kung pumili sila, sa lalawigan sa Pilipinas na may ugnayan sila. Walang pangalan at walang bayan. Ang asul ay kung saan aabot ang 100-taóng baha. Nag-a-update ang mapa halos bawat minuto, kaya baka matagalan nang kaunti bago lumabas ang pigura mo.</p>
+    </section>
+
+    <section class="section" aria-labelledby="sp-h">
+      <h2 id="sp-h">Ano ang mangyayari sa mga sagot mo</h2>
+      <ul class="list">
+        <li>Walang hinihinging pangalan o email. Bilang lang ang ipinapakita ng mapa.</li>
+        <li>Binabasa muna ng isang kasama namin ang bawat kuwento ng baha. Maaaring basahin o ipakita ang ilan sa simula ng event, nang walang pangalan, at kung pumayag ka lang.</li>
+        <li>Dadalo ka ba? <a href="{R}fil/rsvp/">Mag-RSVP dito</a>; hiwalay ito at wala pang isang minuto.</li>
+      </ul>
+    </section>
+  </div>
+</main>

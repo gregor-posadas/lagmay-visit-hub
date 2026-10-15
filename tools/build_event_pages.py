@@ -17,20 +17,19 @@ GLOBE = ('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="fal
 MARK = ('<svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="15" fill="#385F96"/>'
         '<path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>')
 NAV = {
-    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("ask", "ask/", "Ask the speakers"), ("connect", "connect/", "Connect"), ("about", "about/", "About"), ("history", "history/", "Flood history"), ("faq", "faq/", "Questions"), ("directions", "directions/", "Directions"),
-           ("support", "support/", "Support us"), ("access", "accessibility/", "Accessibility")],
-    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("ask", "fil/ask/", "Magtanong"), ("connect", "fil/connect/", "Makipag-ugnayan"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan"), ("faq", "faq/", "Mga tanong"), ("directions", "fil/directions/", "Direksyon"),
-            ("support", "support/", "Suportahan"), ("access", "accessibility/", "Accessibility")],
+    # Oct 14: "Support us" and "Accessibility" are off the menu (the pages still exist and are linked where relevant).
+    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("ask", "ask/", "Ask the speakers"), ("story", "story/", "Share your story"), ("connect", "connect/", "Connect"), ("about", "about/", "About"), ("history", "history/", "Flood history"), ("faq", "faq/", "FAQs"), ("directions", "directions/", "Directions")],
+    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("ask", "fil/ask/", "Magtanong"), ("story", "fil/story/", "Ibahagi ang kuwento"), ("connect", "fil/connect/", "Makipag-ugnayan"), ("about", "fil/about/", "Tungkol"), ("history", "history/", "Kasaysayan"), ("faq", "faq/", "Mga FAQ"), ("directions", "fil/directions/", "Direksyon")],
 }
 # The language link goes to the same page in the other language where there is one, else to the other language's event page.
-OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "rsvp/": "fil/rsvp/", "connect/": "fil/connect/", "ask/": "fil/ask/",
-         "fil/": "", "fil/about/": "about/", "fil/directions/": "directions/", "fil/rsvp/": "rsvp/", "fil/connect/": "connect/", "fil/ask/": "ask/"}
+OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "rsvp/": "fil/rsvp/", "connect/": "fil/connect/", "ask/": "fil/ask/", "story/": "fil/story/",
+         "fil/": "", "fil/about/": "about/", "fil/directions/": "directions/", "fil/rsvp/": "rsvp/", "fil/connect/": "connect/", "fil/ask/": "ask/", "fil/story/": "story/"}
 SITE = "https://gregor-posadas.github.io/lagmay-visit-hub/event/"
 WORDS = {
     "en": dict(skip="Skip to content", sub="Flooding in the Philippines, a public conversation", sound="Sound on", theme="Dark mode", share="Share",
-               foot='Organized by Gregor Posadas, Noam Anglo and Veronica Sison at UC Berkeley, with Rapha Felipe at Stanford, and co-hosted with <a href="https://www.phildev.org/">PhilDev</a>, the Philippine Development Foundation. Questions: see <a href="{R}faq/">Questions</a>, ask any of us on the day, or reply to your RSVP email.'),
+               foot='Organized by Gregor Posadas, Noam Anglo and Veronica Sison at UC Berkeley, with Rapha Felipe at Stanford, and co-hosted with <a href="https://www.phildev.org/">PhilDev</a>, the Philippine Development Foundation. Questions: see the <a href="{R}faq/">FAQs</a>, ask any of us on the day, or reply to your RSVP email.'),
     "fil": dict(skip="Lumaktaw sa nilalaman", sub="Baha sa Pilipinas, isang pampublikong talakayan", sound="May tunog", theme="Madilim", share="Ibahagi",
-                foot='Inorganisa nina Gregor Posadas, Noam Anglo at Veronica Sison sa UC Berkeley, kasama si Rapha Felipe sa Stanford, at katuwang na host ang <a href="https://www.phildev.org/">PhilDev</a> (Philippine Development Foundation). May tanong? Tingnan ang <a href="{R}faq/">Mga tanong</a>, lapitan kami sa mismong araw, o sumagot sa email ng iyong RSVP.'),
+                foot='Inorganisa nina Gregor Posadas, Noam Anglo at Veronica Sison sa UC Berkeley, kasama si Rapha Felipe sa Stanford, at katuwang na host ang <a href="https://www.phildev.org/">PhilDev</a> (Philippine Development Foundation). May tanong? Tingnan ang <a href="{R}faq/">Mga FAQ</a>, lapitan kami sa mismong araw, o sumagot sa email ng iyong RSVP.'),
 }
 
 
@@ -54,7 +53,8 @@ def build(src):
     for key, href, label in NAV[lang]:
         cur = ' aria-current="page"' if key == meta.get("nav") else ""
         lng = ' lang="fil" hreflang="fil"' if key == "fil" else (' lang="en" hreflang="en"' if key == "en" else "")
-        cta = ' class="nav__rsvp"' if key == "rsvp" else ""   # the RSVP tab is boxed so it reads as the thing to do
+        # The RSVP tab is a filled blue box so it reads as the thing to do; Ask the speakers is outlined, a step down.
+        cta = ' class="nav__rsvp"' if key == "rsvp" else (' class="nav__ask"' if key == "ask" else "")
         links.append(f'      <a href="{(R + href) or "./"}"{cta}{cur}{lng}>{label}</a>')
     nav = "\n".join(links)
     nav = nav.replace(f'href="{R}"', f'href="{R or "./"}"')

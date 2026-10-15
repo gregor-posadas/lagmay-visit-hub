@@ -1,0 +1,42 @@
+<!-- out: story/index.html | title: Share your story: When the Waters Rise | lang: en | nav: story | desc: Put yourself on the map of who is joining When the Waters Rise, and share your connection to the Philippines or a flood your family still talks about. Anonymous, under a minute. | scripts: config.js, event.js -->
+<div id="sample-note" class="notice" role="status" hidden><p><b>Sample data.</b> The people on this map are made up, to show how it will look.</p></div>
+<main id="main" tabindex="-1">
+  <div class="wrap">
+    <header class="rd-head">
+      <p class="ev-kicker">When the Waters Rise · Monday, November 9 · 4 to 5 PM Pacific</p>
+      <h1>Share your story</h1>
+      <p class="rd-lead">Where are you joining from, and what ties you to the Philippines? Add yourself to the map below, and if you like, tell us about a flood your family still talks about. It's anonymous, takes under a minute, and you don't need to RSVP.</p>
+    </header>
+
+    <section class="section rv-form" id="story-form" aria-labelledby="sf-h">
+      <h2 id="sf-h">Add yourself</h2>
+      <p class="section__note">If the form below doesn't load, or is hard to use here, <a class="js-map" href="#story-form">open it in a new tab<span class="sr"> (opens a Google Form)</span></a>.</p>
+      <div class="rv-frame rv-frame--story">
+        <iframe id="story-iframe" title="Share your story form for When the Waters Rise (Google Form)" loading="lazy" hidden></iframe>
+      </div>
+    </section>
+
+    <section class="section ev-who" id="who" aria-labelledby="who-h">
+      <h2 id="who-h" tabindex="-1">The map so far</h2>
+      <p class="ev-summary" id="who-summary" aria-live="polite">Loading the map…</p>
+      <figure class="ev-map" id="map" aria-describedby="who-summary">
+        <div class="ev-map__svg" id="map-svg"></div>
+        <figcaption class="ev-key" id="map-key"></figcaption>
+      </figure>
+      <details class="done-list ev-table">
+        <summary>The map as a list</summary>
+        <div id="map-table"></div>
+      </details>
+      <p class="section__note">Each figure is one person, placed in their Bay Area county and, if they chose one, the Philippine province they are connected to. No names, and no towns. The blue is where a <span class="tt"><span class="tt-t">100-year flood</span>A flood so big it has a 1 in 100 chance of happening in any given year. It is not "once a century": it can come two years running, and warmer seas are making heavy rain more likely.</span> would reach. The map updates about once a minute, so your figure may take a moment to appear.</p>
+    </section>
+
+    <section class="section" aria-labelledby="sp-h">
+      <h2 id="sp-h">What happens to your answers</h2>
+      <ul class="list">
+        <li>No name or email is asked. The map shows only counts.</li>
+        <li>A teammate reads every flood story first. A few may be read aloud or shown at the start of the event, never with a name, and only if you said yes.</li>
+        <li>Coming to the event? <a href="{R}rsvp/">RSVP here</a>; it's separate and takes under a minute.</li>
+      </ul>
+    </section>
+  </div>
+</main>

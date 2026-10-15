@@ -226,3 +226,9 @@
 .btn.btn--rsvp:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 .btn.btn--rsvp:active, .btn.btn--rsvp.is-pressed { box-shadow: 0 0 0 0 var(--ink); }
 .ev-hero-cta .btn.btn--rsvp { min-width: 260px; min-height: 72px; font-size: calc(var(--f3) * 1.45); }
+/* Ask the speakers: outlined in the light blue, one step below the filled RSVP tab. */
+.nav a.nav__ask { box-shadow: inset 0 0 0 2px #9EB8DB; color: var(--band-ink); padding-left: 16px; padding-right: 16px; font-weight: 700; margin: 6px 4px; min-height: calc(var(--tap) - 12px); border-bottom: 0; }
+.nav a.nav__ask:hover { background: rgba(158, 184, 219, .18); }
+.nav a.nav__ask[aria-current="page"] { background: rgba(158, 184, 219, .22); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 3px; }
+.rv-frame--story iframe { height: 1100px; }
+@media (max-width: 600px) { .rv-frame--story iframe { height: 1300px; } }

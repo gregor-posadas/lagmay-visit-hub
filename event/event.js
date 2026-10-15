@@ -303,7 +303,7 @@
     $("who-summary").textContent = summary(data);
     $("map-table").innerHTML = table(data);
     $("map-key").innerHTML = key(data);
-    $("sample-note").hidden = !data.sample;
+    if ($("sample-note")) $("sample-note").hidden = !data.sample;
     if (window.EV_SITE && window.EV_SITE.seats) window.EV_SITE.seats(data);
   }
   window.addEventListener("resize", function () { var h = $("map-svg"); if (h && data && layoutFor(h.clientWidth).vertical !== lastWidthMode && !PRESENT) renderPage(); });
@@ -318,6 +318,9 @@
     url = cfg.mapUrl || url || "";
     if (!/^https:\/\//.test(url)) return;
     Array.prototype.forEach.call(document.querySelectorAll(".js-map"), function (a) { a.href = url; a.target = "_blank"; a.rel = "noopener"; });
+    // Share your story: the same form, embedded above the map.
+    var f = $("story-iframe");
+    if (f && !f.src) { f.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "embedded=true"; f.hidden = false; }
   }
   wireMapLinks();
   function refresh() {
@@ -518,9 +521,10 @@
   function wireRsvp() {
     var b = $("rsvp-btn");
     if (cfg.rsvpUrl && /^https:\/\//.test(cfg.rsvpUrl)) {
-      [b].concat(Array.prototype.slice.call(document.querySelectorAll(".js-rsvp"))).forEach(function (a) { a.href = cfg.rsvpUrl; a.target = "_blank"; a.rel = "noopener"; });
+      [b].concat(Array.prototype.slice.call(document.querySelectorAll(".js-rsvp"))).filter(Boolean).forEach(function (a) { a.href = cfg.rsvpUrl; a.target = "_blank"; a.rel = "noopener"; });
       return;
     }
+    if (!b) return;   // pages without the big RSVP button (Share your story)
     b.addEventListener("click", function (e) { e.preventDefault(); toast(W.soon); });
     b.querySelector(".sr").textContent = W.soonSr;
   }
