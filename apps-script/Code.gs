@@ -1197,7 +1197,8 @@ function reviseRsvpForm() {
     var it = form.getItems().filter(function (x) { return x.getTitle() === t; })[0];
     if (it) { form.deleteItem(it.getIndex()); done.push('"' + t + '" removed'); }
   });
-  if (!items.some(function (it) { return it.getTitle() === Q.connect; })) { addConnectQuestion(form); done.push('Connect question and page added'); }
+  // A fresh list: the snapshot in items still holds the questions just deleted.
+  if (!form.getItems().some(function (it) { return it.getTitle() === Q.connect; })) { addConnectQuestion(form); done.push('Connect question and page added'); }
   CacheService.getScriptCache().remove('map');
   Logger.log(done.join('; '));
 }
