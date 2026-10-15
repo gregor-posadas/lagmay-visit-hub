@@ -21,7 +21,7 @@ vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(process.argv[2] || require('path').join(__dirname, '..', 'apps-script', 'Code.gs'), 'utf8'), ctx);
 const Q = vm.runInContext('Q', ctx);
 // The county column still has its first title, as on the live Sheet; diet is a newer column.
-const head = ['Timestamp', Q.name, Q.email, Q.role, Q.attend, 'Where do you live now?', Q.tie, Q.prov1, Q.prov2, Q.story, Q.consent, Q.question, Q.access, Q.diet];
+const head = ['Timestamp', Q.name, Q.email, Q.role, Q.attend, 'Where do you live now?', Q.tie, Q.prov1, Q.prov2, Q.story, Q.consent, Q.question, Q.access, Q.diet, Q.join];  // the checkbox column was added last, as Forms does
 mkSheet('RSVP responses', [head,
   [new Date(), 'Ana', 'a@x.org', 'UC Berkeley student', 'In person at Banatao Auditorium', 'Alameda', 'My parents are from there', 'Pampanga', 'Metro Manila', 'Ondoy took our house', 'Yes, you may share it without my name', 'Q1?', 'captions', 'vegetarian'],
   [new Date(), 'Ben', 'b@x.org', 'Community member', 'Online, on the livestream', 'Outside the Bay Area', 'No connection, just interested (everyone is welcome)', '', '', '', '', '', ''],
@@ -67,14 +67,19 @@ const l2 = JSON.parse(JSON.stringify(vm.runInContext('rsvpList()', ctx)));
 assert.deepStrictEqual(l2.map(r => r.name + ':' + r.seat + (r.waitPlace ? '#' + r.waitPlace : '')), ['Ana:seat', 'Ben:', 'Cy:', 'Di:waitlist#1', 'Fe:', 'Gil:', 'Eve:waitlist#2']);
 // The form swaps the panel for its waitlist when full, and back when a seat opens.
 let choices = null, help = '';
-const item = { getTitle: () => Q.attend, asMultipleChoiceItem: () => ({ setChoiceValues(v) { choices = v; return this; }, setHelpText(h) { help = h; return this; } }) };
+const item = { getTitle: () => Q.join, asCheckboxItem: () => ({ setChoiceValues(v) { choices = v; return this; }, setHelpText(h) { help = h; return this; } }) };
 ctx.FormApp = { ItemType: { MULTIPLE_CHOICE: 'mc' }, openById: () => ({ getItems: () => [item] }) };
 ctx.PropertiesService = { getScriptProperties: () => ({ getProperty: k => k === 'RSVP_FORM_ID' ? 'F1' : null, setProperty() {} }) };
 let said = vm.runInContext('updateSeatChoices()', ctx);
-assert.ok(/UC Berkeley campus, Nov 9, 11 AM/.test(choices[0]) && /^Waitlist/.test(choices[1]) && choices.length === 6 && /panel is full/.test(choices[2]) && /taken/.test(help), said);
+assert.ok(/UC Berkeley campus, Nov 9, 11 AM/.test(choices[0]) && /^Waitlist/.test(choices[1]) && choices.length === 4 && /taken/.test(help), said);
 vm.runInContext('SEATS = 149', ctx);
 said = vm.runInContext('updateSeatChoices()', ctx);
-assert.strictEqual(JSON.stringify(choices.map(c => vm.runInContext('joinKind', ctx)(c))), JSON.stringify(['lecture', 'panel', 'both', 'stanford', 'online', 'unsure']));
+// Each checkbox is found on its own, alone or comma-joined with the others as the Sheet stores them.
+const jset = c => JSON.parse(JSON.stringify(vm.runInContext('joinSet', ctx)({ join: c })));
+assert.deepStrictEqual(JSON.parse(JSON.stringify(choices.map(jset))), [{ lecture: 'want', panel: '', stanford: false, online: false }, { lecture: '', panel: 'want', stanford: false, online: false },
+  { lecture: '', panel: '', stanford: true, online: false }, { lecture: '', panel: '', stanford: false, online: true }]);
+assert.deepStrictEqual(jset(choices.join(', ')), { lecture: 'want', panel: 'want', stanford: true, online: true });
+assert.ok(/^Check everything/.test(help) && !/Pick/.test(help), help);
 assert.ok(/147 of 149/.test(said) && /149/.test(help), said);
 // Answers given under earlier wordings keep counting for the right event.
 const kind = vm.runInContext('joinKind', ctx);
@@ -114,10 +119,30 @@ vm.runInContext('LECTURE_SEATS = 2', ctx);
 const plan5 = vm.runInContext('seatPlan(readRsvps())', ctx);
 assert.strictEqual(plan5.status[jo], 'seat'); assert.strictEqual(plan5.lecture.status[jo], 'waitlist', 'lecture full: Both keeps the panel seat and waits for the lecture');
 said = vm.runInContext('updateSeatChoices()', ctx);
-assert.ok(/lecture is full/.test(choices[2]) && kind(choices[2]) === 'both', choices[2]);
+assert.ok(/^Waitlist for the Nov 9 guest lecture/.test(choices[0]) && choices.length === 4, choices[0]);
 vm.runInContext('LECTURE_SEATS = 20', ctx);
 said = vm.runInContext('updateSeatChoices()', ctx);
-assert.strictEqual(choices[2], vm.runInContext('BOTH', ctx)); assert.ok(/Pick "Both"/.test(help));
+assert.strictEqual(choices[2], vm.runInContext('STANFORD', ctx)); assert.strictEqual(choices[0], vm.runInContext('LECTURE', ctx));
+
+// Checkbox answers (Oct 14): any mix. Kim checks everything, Lou only the livestream, Mo Stanford and the livestream.
+const col = head.length - 1, pad = arr => { const r = new Array(head.length).fill(''); arr.forEach((v, i) => { r[i] = v; }); return r; };
+const C = n => vm.runInContext(n, ctx);
+const kimRow = pad([new Date(), 'Kim', 'k@x.org']); kimRow[col] = [C('LECTURE'), C('PANEL'), C('STANFORD'), C('ONLINE')].join(', ');
+const louRow = pad([new Date(), 'Lou', 'l@x.org']); louRow[col] = C('ONLINE');
+const moRow = pad([new Date(), 'Mo', 'm@x.org']); moRow[col] = C('STANFORD') + ', ' + C('ONLINE');
+const before = JSON.parse(JSON.stringify(vm.runInContext('publicMap()', ctx)));
+sheets['RSVP responses'].rows.push(kimRow, louRow, moRow);
+delete cache.map;
+const plan6 = vm.runInContext('seatPlan(readRsvps())', ctx), kim = 'r' + (sheets['RSVP responses'].rows.length - 2);
+assert.strictEqual(plan6.status[kim], 'seat'); assert.strictEqual(plan6.lecture.status[kim], 'seat', 'checking both sessions takes a spot in each');
+m = JSON.parse(JSON.stringify(vm.runInContext('publicMap()', ctx)));
+assert.strictEqual(m.total, before.total + 3);
+assert.strictEqual(m.attend.inPerson, before.attend.inPerson + 1); assert.strictEqual(m.attend.lecture, before.attend.lecture + 1);
+assert.strictEqual(m.attend.stanford, before.attend.stanford + 2, 'Kim and Mo'); assert.strictEqual(m.attend.online, before.attend.online + 2, 'Lou and Mo; Kim has a seat');
+assert.strictEqual(m.attend.unsure, before.attend.unsure);
+const l6 = JSON.parse(JSON.stringify(vm.runInContext('rsvpList()', ctx)));
+assert.strictEqual(l6.find(r => r.name === 'Kim').attend, 'Morning lecture + Panel + Stanford, Nov 10 + Livestream');
+assert.strictEqual(l6.find(r => r.name === 'Ana').attend, 'In person at Banatao Auditorium', 'older answers show as given');
 // The Connect question: "Yes" leads to the page with the link; "Not right now" and the page's linear default both submit.
 const made = [];
 const fakeForm = {

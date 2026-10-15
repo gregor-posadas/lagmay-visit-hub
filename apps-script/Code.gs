@@ -870,7 +870,8 @@ var Q = {
   name: 'Your name',
   email: 'Your email',
   role: 'Which best describes you?',
-  attend: 'How will you join us?',
+  attend: 'How will you join us?',   // the single-choice question, until Oct 14 (see joinSet)
+  join: 'Which will you join?',      // the checkboxes that replaced it
   county: 'Where do you live?',
   tie: 'What is your connection to the Philippines?',
   prov1: 'Which province is that connection to?',
@@ -905,7 +906,7 @@ var SEATS = 149;
 /* The morning guest lecture is a DevEng 203 class session: room for 20 guests on top of the enrolled students, a hard limit.
    Spots go in RSVP order like the panel's; after that, lecture answers go on the lecture's own waitlist. */
 var LECTURE_SEATS = 20;
-/* "How will you join us?" is single choice. The panel and the morning lecture are seat-limited; Stanford and online aren't. */
+/* "Which will you join?" takes any mix. The panel and the morning lecture are seat-limited; Stanford and online aren't. */
 /* The campus goes before the speaker so no one reads it as Dr. Lagmay's own university; he is visiting from UPRI. */
 /* Oct 13: shortened. The details (who is speaking, the reception, the waitlist) are on the event page and in the help text. */
 var LECTURE = 'Guest lecture on the UC Berkeley campus, Nov 9, 11 AM to 12 PM (room for 20 guests)';
@@ -922,7 +923,40 @@ function bothChoice(full, lectureFull) {
   return BOTH + (full && lectureFull ? ' (both are full, so you would be on both waitlists)' : lectureFull ? ' (the lecture is full, so you would be on its waitlist)' :
     full ? ' (the panel is full, so you would be on its waitlist)' : '');
 }
-function joinChoices(full, lectureFull) { return [lectureFull ? LECTURE_WAITLIST : LECTURE, full ? WAITLIST : PANEL, bothChoice(full, lectureFull), STANFORD, ONLINE, NOT_SURE + ' yet']; }
+/* Oct 14: "Which will you join?" replaced the single choice with checkboxes, one per session plus the livestream, because
+   people found "Pick one" and "Both" confusing. A checkbox question can't take over the old question's column, so it has
+   its own title; answers given before the switch stay under Q.attend and still count (joinSet reads either). */
+function joinChoices(full, lectureFull) { return [lectureFull ? LECTURE_WAITLIST : LECTURE, full ? WAITLIST : PANEL, STANFORD, ONLINE]; }
+/* What one RSVP signed up for: lecture and panel are 'want' (take a spot if one is left, in RSVP order) or 'wait' (they
+   picked the waitlist because it was full); stanford and online are true or false. Reads the checkboxes, or else the old
+   single answer. Checkbox answers arrive comma-joined, so each choice is found by words only its own label has. */
+function joinSet(r) {
+  var s = { lecture: '', panel: '', stanford: false, online: false }, a = String(r.join || '');
+  if (a) {
+    s.lecture = /Waitlist for the Nov 9 guest lecture/.test(a) ? 'wait' : /guest lecture on the UC Berkeley campus/i.test(a) ? 'want' : '';
+    s.panel = /Waitlist for the Nov 9 panel/.test(a) ? 'wait' : /Panel and reception/.test(a) ? 'want' : '';
+    s.stanford = /Stanford campus/.test(a);
+    s.online = /livestream/.test(a);
+    return s;
+  }
+  var k = joinKind(r.attend);
+  if (k === 'both' || k === 'lecture') s.lecture = 'want';
+  if (k === 'both' || k === 'panel') s.panel = 'want';
+  if (k === 'lectureWaitlist') s.lecture = 'wait';
+  if (k === 'waitlist') s.panel = 'wait';
+  if (k === 'stanford') s.stanford = true;
+  if (k === 'online') s.online = true;
+  return s;
+}
+/* A short line for the team hub: "Lecture + Panel + Stanford". */
+function joinSummary(s) {
+  var p = [];
+  if (s.lecture) p.push('Morning lecture' + (s.lecture === 'wait' ? ' (waitlist)' : ''));
+  if (s.panel) p.push('Panel' + (s.panel === 'wait' ? ' (waitlist)' : ''));
+  if (s.stanford) p.push('Stanford, Nov 10');
+  if (s.online) p.push('Livestream');
+  return p.join(' + ') || 'Not sure yet';
+}
 /* Which event an answer is for. Earlier wordings still count: "In person at Banatao Auditorium" (the first form) and
    "In-person panel discussion" / "In-person guest lecture, morning" (Oct 5) were the panel and the morning lecture. */
 function joinKind(a) {
@@ -985,7 +1019,7 @@ function createRsvpForm() {
   form.addTextItem().setTitle(Q.name).setHelpText('For the RSVP list only. Never shown.').setRequired(true);
   form.addTextItem().setTitle(Q.email).setHelpText('Only for event updates, such as the start time and the livestream link.')
     .setRequired(true).setValidation(FormApp.createTextValidation().requireTextIsEmail().build());
-  form.addMultipleChoiceItem().setTitle(Q.attend).setHelpText(joinHelp()).setRequired(true).setChoiceValues(joinChoices(false));
+  form.addCheckboxItem().setTitle(Q.join).setHelpText(joinHelp()).setRequired(true).setChoiceValues(joinChoices(false));
   form.addListItem().setTitle(Q.county).setHelpText(COUNTY_HELP)
     .setRequired(true).setChoiceValues(COUNTY_CHOICES);
   form.addParagraphTextItem().setTitle(Q.access).setRequired(false).setHelpText(ACCESS_HELP);
@@ -1058,13 +1092,12 @@ function seatPlan(rows) {
   var plan = { status: {}, place: {}, taken: 0, waitlist: 0, lecture: { status: {}, place: {}, taken: 0, waitlist: 0 } };
   var lec = plan.lecture;
   rows.forEach(function (r) {
-    var kind = joinKind(r.attend), wantsSeat = kind === 'panel' || kind === 'both', waiting = kind === 'waitlist';
-    if (wantsSeat && plan.taken < SEATS) { plan.taken++; plan.status[r.id] = 'seat'; }
-    else if (wantsSeat || waiting) { plan.waitlist++; plan.status[r.id] = 'waitlist'; plan.place[r.id] = plan.waitlist; }
+    var s = joinSet(r);
+    if (s.panel === 'want' && plan.taken < SEATS) { plan.taken++; plan.status[r.id] = 'seat'; }
+    else if (s.panel) { plan.waitlist++; plan.status[r.id] = 'waitlist'; plan.place[r.id] = plan.waitlist; }
     // The morning lecture keeps its own count (plan.lecture), so the panel's check-in list never picks it up.
-    var wantsLecture = kind === 'lecture' || kind === 'both';
-    if (wantsLecture && lec.taken < LECTURE_SEATS) { lec.taken++; lec.status[r.id] = 'seat'; }
-    else if (wantsLecture || kind === 'lectureWaitlist') { lec.waitlist++; lec.status[r.id] = 'waitlist'; lec.place[r.id] = lec.waitlist; }
+    if (s.lecture === 'want' && lec.taken < LECTURE_SEATS) { lec.taken++; lec.status[r.id] = 'seat'; }
+    else if (s.lecture) { lec.waitlist++; lec.status[r.id] = 'waitlist'; lec.place[r.id] = lec.waitlist; }
   });
   plan.left = Math.max(0, SEATS - plan.taken);
   lec.left = Math.max(0, LECTURE_SEATS - lec.taken);
@@ -1086,9 +1119,10 @@ function updateSeatChoices() {
   var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
   if (!formId) return 'No RSVP form yet.';
   var plan = seatPlan(readRsvps()), full = plan.left === 0, lecFull = plan.lecture.left === 0;
-  var item = FormApp.openById(formId).getItems(FormApp.ItemType.MULTIPLE_CHOICE).filter(function (it) { return it.getTitle() === Q.attend; })[0];
-  if (!item) return 'Could not find the "' + Q.attend + '" question.';
-  item.asMultipleChoiceItem().setChoiceValues(joinChoices(full, lecFull)).setHelpText(joinHelp(plan));
+  var item = FormApp.openById(formId).getItems().filter(function (it) { return it.getTitle() === Q.join; })[0];
+  // Before switchJoinToCheckboxes() has run, the old single-choice question is left as it is.
+  if (!item) return 'Could not find the "' + Q.join + '" question; run switchJoinToCheckboxes().';
+  item.asCheckboxItem().setChoiceValues(joinChoices(full, lecFull)).setHelpText(joinHelp(plan));
   return (full ? 'Panel full: the form now offers its waitlist (' + plan.waitlist + ' waiting).' : plan.left + ' of ' + SEATS + ' panel seats left.') + ' ' +
     (lecFull ? 'Lecture full: the form now offers its waitlist (' + plan.lecture.waitlist + ' waiting).' : plan.lecture.left + ' of ' + LECTURE_SEATS + ' lecture guest spots left.');
 }
@@ -1100,7 +1134,29 @@ function joinHelp(plan) {
     : 'The guest lecture is a class with room for ' + LECTURE_SEATS + ' guests' + (plan ? ' (' + lec.left + ' left)' : '') + '.';
   var panelPart = left === 0 ? 'All ' + SEATS + ' panel seats are taken; you can join the waitlist or watch online.'
     : 'The panel has ' + SEATS + ' seats' + (plan ? ' (' + left + ' left)' : '') + ', and the reception after it is for the same ' + SEATS + '.';
-  return 'Pick one. ' + lecPart + ' ' + panelPart + ' Spots go in the order people RSVP. Coming to both the lecture and the panel? Pick "Both".';
+  return 'Check everything you plan to come to. ' + lecPart + ' ' + panelPart + ' Spots go in the order people RSVP.';
+}
+
+/**
+ * Run once from the editor (Oct 14): swaps the single-choice "How will you join us?" for the "Which will you join?"
+ * checkboxes, in the same place on page 1. Answers already given stay in their column on the Sheet and still count.
+ * Running it again only refreshes the choices.
+ */
+function switchJoinToCheckboxes() {
+  var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
+  if (!formId) { Logger.log('No RSVP form yet.'); return; }
+  var form = FormApp.openById(formId), done = [];
+  function find(t) { return form.getItems().filter(function (it) { return it.getTitle() === t; })[0]; }
+  if (!find(Q.join)) {
+    var old = find(Q.attend), at = old ? old.getIndex() : 2;
+    var cb = form.addCheckboxItem().setTitle(Q.join).setRequired(true).setChoiceValues(joinChoices(false, false));
+    form.moveItem(cb.getIndex(), at);   // by index: moveItem won't take a typed item
+    done.push('checkbox question added');
+  }
+  if (find(Q.attend)) { form.deleteItem(find(Q.attend).getIndex()); done.push('old single-choice question removed (its answers stay on the Sheet)'); }
+  done.push(updateSeatChoices());
+  CacheService.getScriptCache().remove('map');
+  Logger.log(done.join('; '));
 }
 var COUNTY_HELP = 'People are joining from all over, in person and online. Pick your Bay Area county, or one of the choices after them if you live somewhere else. "Prefer not to say" is at the end.';
 var STORY_HELP = 'It can be anywhere in the world, in the Philippines or not: a storm, a flood, what your family did. A sentence or two is plenty. Share only what you are comfortable sharing.';
@@ -1161,8 +1217,9 @@ function shortenRsvpForm() {
   function find(t) { return form.getItems().filter(function (it) { return it.getTitle() === t; })[0]; }
   function pages(titles) { return form.getItems(FormApp.ItemType.PAGE_BREAK).filter(function (it) { return titles.indexOf(it.getTitle()) > -1; }); }
   function added(item) { var i = item.getIndex(); return form.getItems()[i]; }
-  var need = ['name', 'email', 'attend', 'county', 'access', 'diet', 'question', 'tie', 'prov1', 'story', 'consent', 'role', 'connect']
-    .filter(function (k) { return !find(Q[k]); });
+  function joinQ() { return find(Q.join) || find(Q.attend); }
+  var need = ['name', 'email', 'county', 'access', 'diet', 'question', 'tie', 'prov1', 'story', 'consent', 'role', 'connect']
+    .filter(function (k) { return !find(Q[k]); }).concat(joinQ() ? [] : ['join']);
   if (need.length) throw new Error('Could not find these questions, so nothing was changed: ' + need.join(', '));
   var tiePage = pages([SHORT_PAGES.tie])[0], connectPage = pages([SHORT_PAGES.connect])[0];
   if (!tiePage || !connectPage) throw new Error('Could not find the connection page or the Connect page, so nothing was changed.');
@@ -1188,7 +1245,7 @@ function shortenRsvpForm() {
   var moreQ = find(Q_MORE) || added(form.addMultipleChoiceItem().setTitle(Q_MORE));
 
   // Put everything in order, front to back. Anything not listed stays after these.
-  var order = [find(Q.name), find(Q.email), find(Q.attend), find(Q.county), find(Q.access), find(Q.diet), find(Q.question),
+  var order = [find(Q.name), find(Q.email), joinQ(), find(Q.county), find(Q.access), find(Q.diet), find(Q.question),
     find(SHORT_PAGES.tie), find(Q.tie), find(SHORT_PAGES.prov), find(Q.prov1), find(SHORT_PAGES.more), find(Q_MORE),
     find(SHORT_PAGES.extras), find(Q.story), find(Q.consent), find(Q.role), find(Q.connect), find(SHORT_PAGES.connect)];
   var moved = 0;
@@ -1234,12 +1291,15 @@ function publicMap() {
     bay: {}, ph: {}, links: {}, sets: {}, ties: {}, stories: [], updated: cell(new Date()) };
   rows.forEach(function (r) {
     var seat = plan.status[r.id];
-    var kind = joinKind(r.attend);
-    // Someone coming to both sessions counts once in each, so the per-session numbers stay right; total counts people.
+    var s = joinSet(r);
+    // Someone coming to several sessions counts once in each, so the per-session numbers stay right; total counts people.
+    // Online counts only people with no panel seat or waitlist place; "not sure" is an older answer that picked nothing.
     var lecSeat = plan.lecture.status[r.id];
     if (seat === 'seat') out.attend.inPerson++; else if (seat === 'waitlist') out.attend.waitlist++;
     if (lecSeat) out.attend[lecSeat === 'seat' ? 'lecture' : 'lectureWaitlist']++;
-    if (!seat && !lecSeat) { if (kind === 'stanford' || kind === 'online') out.attend[kind]++; else out.attend.unsure++; }
+    if (s.stanford) out.attend.stanford++;
+    if (s.online && !seat) out.attend.online++;
+    if (!seat && !lecSeat && !s.stanford && !s.online) out.attend.unsure++;
     var county = BAY_COUNTIES.indexOf(r.county) > -1 ? r.county : isAway(r.county) ? 'outside' : 'unsaid';
     out.bay[county] = (out.bay[county] || 0) + 1;
     var tie = TIES[r.tie] || 'unsaid';
@@ -1265,7 +1325,7 @@ function rsvpList() {
   var approvals = indexBy(readTable('Approvals')), rows = readRsvps(), plan = seatPlan(rows);
   return rows.map(function (r) {
     var a = approvals[r.id] || {};
-    return { id: r.id, at: r.at, name: r.name, role: r.role, attend: r.attend, seat: plan.status[r.id] || '', waitPlace: plan.place[r.id] || 0,
+    return { id: r.id, at: r.at, name: r.name, role: r.role, attend: r.join ? joinSummary(joinSet(r)) : r.attend, seat: plan.status[r.id] || '', waitPlace: plan.place[r.id] || 0,
       lectureSeat: plan.lecture.status[r.id] || '', lectureWaitPlace: plan.lecture.place[r.id] || 0, county: r.county, tie: TIES[r.tie] || '',
       prov1: r.prov1, prov2: r.prov2, story: r.story, consent: r.consent === CONSENT_YES, question: r.question, access: r.access, diet: r.diet,
       storyOk: a.story === 'yes', questionOk: a.question === 'yes' };
@@ -1548,7 +1608,7 @@ function sendConnectIntros(who) {
  */
 var EVENT_URL = 'https://gregor-posadas.github.io/lagmay-visit-hub/event/';
 /* For anyone who may not make it to Berkeley (waitlist, not sure yet): Stanford hosts its own talk on Nov 10. */
-var STANFORD_NOTE = '<p>Can\'t make it to Berkeley? Stanford is hosting a talk by Dr. Lagmay on <b>Tuesday, November 10</b>, with details to come. To join that one, fill in the RSVP form again and pick Stanford.</p>';
+var STANFORD_NOTE = '<p>Can\'t make it to Berkeley? Stanford is hosting a talk by Dr. Lagmay on <b>Tuesday, November 10</b>, with details to come. To join that one, fill in the RSVP form again and check Stanford.</p>';
 var RSVP_EVENTS = {
   panel: { uid: 'when-the-waters-rise-2026-11-09@gregor-posadas.github.io', title: 'When the Waters Rise: Dr. Mahar Lagmay at UC Berkeley',
     start: '20261110T000000Z', end: '20261110T010000Z', startIso: '2026-11-09T16:00:00-08:00', endIso: '2026-11-09T17:00:00-08:00',
@@ -1584,46 +1644,59 @@ function calLinks(ev) {
 /** The email for one RSVP. Pure (no Google services), so it can be tested. Returns { kind, subject, html, event } . */
 function rsvpConfirmation(r, plan) {
   var first = String(r.name || '').trim().split(/\s+/)[0] || 'there';
-  var kind = joinKind(r.attend), seat = plan.status[r.id];
-  if (kind === 'panel' && seat === 'waitlist') kind = 'waitlist';
-  if (kind === 'waitlist' && !seat) seat = 'waitlist';
-  var lec = plan.lecture || { status: {}, place: {} };
-  if ((kind === 'lecture' || kind === 'lectureWaitlist') && lec.status[r.id]) kind = lec.status[r.id] === 'seat' ? 'lecture' : 'lectureWaitlist';
+  // Each session they checked is a spot or a waitlist place on its own; with no plan entry, a waitlist pick stays a waitlist.
+  var s = joinSet(r), lec = plan.lecture || { status: {}, place: {} };
+  var panelSeat = s.panel ? (plan.status[r.id] || (s.panel === 'wait' ? 'waitlist' : 'seat')) : '';
+  var lecSeat = s.lecture ? (lec.status[r.id] || (s.lecture === 'wait' ? 'waitlist' : 'seat')) : '';
+  var sessions = (lecSeat ? 1 : 0) + (panelSeat ? 1 : 0) + (s.stanford ? 1 : 0);
+  var kind = lecSeat ? (lecSeat === 'seat' ? 'lecture' : 'lectureWaitlist') : panelSeat ? (panelSeat === 'seat' ? 'panel' : 'waitlist') :
+    s.stanford ? 'stanford' : s.online ? 'online' : 'unsure';
   var place = (kind === 'lectureWaitlist' ? lec.place[r.id] : plan.place[r.id]) || 0;
+  var stanNote = s.stanford ? '' : STANFORD_NOTE;   // no need to point them to Stanford if they already checked it
+  var onlineToo = '<p>You also asked for the livestream of the panel, <b>Monday, November 9, 4 to 5 PM Pacific</b>. We will email the link to this address before the event.</p>';
   var panelWhen = '<b>Monday, November 9, 4 to 5 PM Pacific</b>, in Banatao Auditorium (Room 310), Sutardja Dai Hall, UC Berkeley';
   var lines = {
     panel: { subject: 'Your seat is saved: When the Waters Rise, Nov 9',
       body: '<p>Your seat is saved for ' + panelWhen + '. Please arrive a few minutes early. Stay after to meet the speakers at a reception in B100 Blum Hall and its lobby, next door.</p>' },
     waitlist: { subject: "You're on the waitlist: When the Waters Rise, Nov 9",
       body: '<p>All ' + SEATS + ' seats in Banatao Auditorium are taken, so you are ' + (place ? '<b>number ' + place + '</b> ' : '') + 'on the waitlist. We will email you if a seat opens. ' +
-        'Either way, you can watch the livestream, and the link comes to this address before the event.</p><p>The panel is ' + panelWhen + '.</p>' + STANFORD_NOTE },
+        'Either way, you can watch the livestream, and the link comes to this address before the event.</p><p>The panel is ' + panelWhen + '.</p>' + stanNote },
     online: { subject: "You're on the list: When the Waters Rise livestream, Nov 9",
       body: '<p>You are joining the livestream of the panel on <b>Monday, November 9, 4 to 5 PM Pacific</b>. We will email the link to this address before the event.</p>' },
     lecture: { subject: "You're on the list: Dr. Lagmay's guest lecture, Nov 9",
       body: '<p>You are on the list for Dr. Lagmay\'s guest lecture on the UC Berkeley campus, <b>Monday, November 9, 11 AM to 12 PM Pacific</b>. We will email you the room before the day.</p>' +
-        '<p>The public panel is the same afternoon, 4 to 5 PM in Banatao Auditorium, if you would like to come to that too. To add it, fill in the RSVP form again and pick the panel.</p>' },
+        '<p>The public panel is the same afternoon, 4 to 5 PM in Banatao Auditorium, if you would like to come to that too. To add it, fill in the RSVP form again and check the panel.</p>' },
     lectureWaitlist: { subject: "You're on the waitlist: Dr. Lagmay's guest lecture, Nov 9",
       body: '<p>The guest lecture on the UC Berkeley campus, <b>Monday, November 9, 11 AM to 12 PM Pacific</b>, is a class session with room for ' + LECTURE_SEATS + ' guests, and those spots are taken. ' +
         'You are ' + (place ? '<b>number ' + place + '</b> ' : '') + 'on its waitlist, and we will email you if a spot opens.</p>' +
-        '<p>The public panel is the same afternoon, 4 to 5 PM in Banatao Auditorium, with ' + SEATS + ' seats and a reception after. To add it, fill in the RSVP form again and pick the panel.</p>' },
+        '<p>The public panel is the same afternoon, 4 to 5 PM in Banatao Auditorium, with ' + SEATS + ' seats and a reception after. To add it, fill in the RSVP form again and check the panel.</p>' },
     stanford: { subject: "You're on the list: Dr. Lagmay at Stanford, Nov 10",
       body: '<p>You are on the list for Dr. Lagmay\'s talk on the Stanford campus on <b>Tuesday, November 10</b>. The time and room are still being set, and we will email them to you as soon as they are.</p>' },
     unsure: { subject: 'Thanks for your RSVP: When the Waters Rise, Nov 9',
-      body: '<p>Thanks for letting us know you might come. The panel is ' + panelWhen + ', and it is also livestreamed. The calendar invite below saves the date. If your plans firm up, just reply to this email.</p>' + STANFORD_NOTE }
+      body: '<p>Thanks for letting us know you might come. The panel is ' + panelWhen + ', and it is also livestreamed. The calendar invite below saves the date. If your plans firm up, just reply to this email.</p>' + stanNote }
   };
   var l = lines[kind] || lines.unsure;
   var evs = kind === 'lecture' ? [RSVP_EVENTS.lecture] : kind === 'stanford' || kind === 'lectureWaitlist' ? [] : [RSVP_EVENTS.panel];
-  if (kind === 'both') {
-    // Each half is a spot or a waitlist place on its own. The panel invite goes either way (anyone can watch online); the lecture's only with a spot.
-    var lecSeat = lec.status[r.id] || 'seat', panelSeat = seat || 'seat';
-    var lecPart = lecSeat === 'seat' ? '<p><b>Morning guest lecture:</b> your spot is saved for <b>Monday, November 9, 11 AM to 12 PM Pacific</b>, on the UC Berkeley campus. We will email you the room before the day.</p>'
+  if (sessions === 1 && s.online && !panelSeat) {
+    // One session plus the livestream: the session's email, a line about the stream, and the panel in the invite.
+    l = { subject: l.subject, body: l.body + onlineToo };
+    evs = evs.concat([RSVP_EVENTS.panel]);
+  }
+  if (sessions > 1) {
+    // Several sessions: a short part for each. The panel invite goes either way (anyone can watch online); the lecture's only with a spot.
+    var lecPart = !lecSeat ? '' : lecSeat === 'seat' ? '<p><b>Morning guest lecture:</b> your spot is saved for <b>Monday, November 9, 11 AM to 12 PM Pacific</b>, on the UC Berkeley campus. We will email you the room before the day.</p>'
       : '<p><b>Morning guest lecture:</b> it is a class session with room for ' + LECTURE_SEATS + ' guests, and those spots are taken, so you are ' + (lec.place[r.id] ? '<b>number ' + lec.place[r.id] + '</b> ' : '') + 'on its waitlist. We will email you if a spot opens.</p>';
-    var panelPart = panelSeat === 'seat' ? '<p><b>Panel:</b> your seat is saved for ' + panelWhen + '. Please arrive a few minutes early, and stay after to meet the speakers at a reception in B100 Blum Hall and its lobby, next door.</p>'
-      : '<p><b>Panel:</b> all ' + SEATS + ' seats are taken, so you are ' + (plan.place[r.id] ? '<b>number ' + plan.place[r.id] + '</b> ' : '') + 'on its waitlist. We will email you if a seat opens, and you can watch the livestream either way. The panel is ' + panelWhen + '.</p>' + STANFORD_NOTE;
-    var allIn = lecSeat === 'seat' && panelSeat === 'seat';
-    l = { subject: allIn ? "You're on the list: Dr. Lagmay's lecture and the panel, Nov 9" : "Your RSVP for Dr. Lagmay's lecture and the panel, Nov 9",
-      body: '<p>You signed up for both of Dr. Lagmay\'s sessions at UC Berkeley on November 9.</p>' + lecPart + panelPart };
-    evs = lecSeat === 'seat' ? [RSVP_EVENTS.lecture, RSVP_EVENTS.panel] : [RSVP_EVENTS.panel];
+    var panelPart = !panelSeat ? '' : panelSeat === 'seat' ? '<p><b>Panel:</b> your seat is saved for ' + panelWhen + '. Please arrive a few minutes early, and stay after to meet the speakers at a reception in B100 Blum Hall and its lobby, next door.</p>'
+      : '<p><b>Panel:</b> all ' + SEATS + ' seats are taken, so you are ' + (plan.place[r.id] ? '<b>number ' + plan.place[r.id] + '</b> ' : '') + 'on its waitlist. We will email you if a seat opens, and you can watch the livestream either way. The panel is ' + panelWhen + '.</p>' + stanNote;
+    var stanPart = !s.stanford ? '' : '<p><b>Stanford:</b> you are on the list for Dr. Lagmay\'s talk on the Stanford campus on <b>Tuesday, November 10</b>. The time and room are still being set, and we will email them to you as soon as they are.</p>';
+    var allIn = lecSeat !== 'waitlist' && panelSeat !== 'waitlist';
+    kind = s.stanford ? 'multi' : 'both';
+    var signedUp = kind === 'both' ? 'both of Dr. Lagmay\'s sessions at UC Berkeley on November 9'
+      : (lecSeat ? 'Dr. Lagmay\'s guest lecture' + (panelSeat ? ' and the panel' : '') : 'the panel') + ' at UC Berkeley on November 9, and ' + (lecSeat ? 'his' : 'Dr. Lagmay\'s') + ' talk at Stanford on November 10';
+    l = { subject: kind === 'both' ? (allIn ? "You're on the list: Dr. Lagmay's lecture and the panel, Nov 9" : "Your RSVP for Dr. Lagmay's lecture and the panel, Nov 9")
+        : (allIn ? "You're on the list: Dr. Lagmay at UC Berkeley and Stanford, Nov 9 and 10" : "Your RSVP for Dr. Lagmay at UC Berkeley and Stanford, Nov 9 and 10"),
+      body: '<p>You signed up for ' + signedUp + '.</p>' + lecPart + panelPart + stanPart + (s.online && !panelSeat ? onlineToo : '') };
+    evs = (lecSeat === 'seat' ? [RSVP_EVENTS.lecture] : []).concat(panelSeat || s.online ? [RSVP_EVENTS.panel] : []);
   }
   var cal = '';
   if (evs.length) {

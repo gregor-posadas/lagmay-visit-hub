@@ -48,6 +48,26 @@ m = run('rsvpConfirmation')({ id: 'r11', name: 'Kai', email: 'k@x.org', attend: 
 assert.ok(m.html.includes('You said you would like to connect') && m.html.includes('connect/'));
 m = conf('Not sure yet', 'r7'); assert.ok(m.html.includes('Working on something in or for the Philippines')); assert.strictEqual(m.kind, 'unsure'); assert.ok(m.event);
 
+// Checkbox answers (Oct 14): any mix, one email with a part for each session.
+{
+  const J = (...xs) => xs.join(', '), seated = { status: { k: 'seat' }, place: {}, lecture: { status: { k: 'seat' }, place: {} } };
+  let x = run('rsvpConfirmation')({ id: 'k', name: 'Kim', join: J(L, P, S, O) }, seated);
+  assert.strictEqual(x.kind, 'multi'); assert.ok(/UC Berkeley and Stanford/.test(x.subject) && /^You're on the list/.test(x.subject), x.subject);
+  assert.ok(x.html.includes('Morning guest lecture:') && x.html.includes('<b>Panel:</b>') && x.html.includes('<b>Stanford:</b>'));
+  assert.ok(!/Stanford is hosting a talk/.test(x.html), 'no Stanford pointer for someone who checked Stanford');
+  assert.strictEqual(x.events.length, 2);
+  x = run('rsvpConfirmation')({ id: 'k', name: 'Kim', join: J(L, P) }, seated);
+  assert.strictEqual(x.kind, 'both'); assert.strictEqual(x.events.length, 2);
+  x = run('rsvpConfirmation')({ id: 'k', name: 'Kim', join: J(L, O) }, { status: {}, place: {}, lecture: { status: { k: 'seat' }, place: {} } });
+  assert.strictEqual(x.kind, 'lecture'); assert.ok(/You also asked for the livestream/.test(x.html)); assert.strictEqual(x.events.length, 2, 'lecture and the panel stream');
+  x = run('rsvpConfirmation')({ id: 'k', name: 'Kim', join: J(S, O) }, { status: {}, place: {}, lecture: { status: {}, place: {} } });
+  assert.strictEqual(x.kind, 'stanford'); assert.ok(/livestream/.test(x.html)); assert.strictEqual(x.events.length, 1);
+  x = run('rsvpConfirmation')({ id: 'k', name: 'Kim', join: J(P, S) }, { status: { k: 'waitlist' }, place: { k: 2 }, lecture: { status: {}, place: {} } });
+  assert.strictEqual(x.kind, 'multi'); assert.ok(/^Your RSVP/.test(x.subject) && x.html.includes('number 2') && x.html.includes('the panel at UC Berkeley'));
+  x = run('rsvpConfirmation')({ id: 'k', name: 'Kim', join: O }, { status: {}, place: {} });
+  assert.strictEqual(x.kind, 'online');
+}
+
 const ics = run('icsFor')(run('RSVP_EVENTS').panel, '20261008T060000Z');
 assert.ok(ics.startsWith('BEGIN:VCALENDAR') && ics.includes('\r\nDTSTART:20261110T000000Z\r\n') && ics.includes('DTEND:20261110T010000Z'));
 assert.ok(ics.includes('LOCATION:Banatao Auditorium (Room 310)\\, Sutardja Dai Hall'), 'commas escaped');

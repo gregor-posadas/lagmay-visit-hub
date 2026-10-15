@@ -16,13 +16,13 @@ function mk(type, title) {
     setTitle(t) { it.title = t; return it; }, setHelpText(h) { it.help = h; return it; }, getHelpText: () => it.help,
     setRequired(r) { it.required = r; return it; },
     createChoice: (v, to) => ({ v, to }), setChoices(c) { it.choices = c; return it; }, setChoiceValues(v) { it.choices = v.map(x => ({ v: x })); return it; },
-    asPageBreakItem: () => it, asMultipleChoiceItem: () => it, asParagraphTextItem: () => it, asListItem: () => it
+    asPageBreakItem: () => it, asMultipleChoiceItem: () => it, asCheckboxItem: () => it, asParagraphTextItem: () => it, asListItem: () => it
   };
   return it;
 }
 const page = t => mk('PAGE_BREAK', t), mc = t => mk('MULTIPLE_CHOICE', t), txt = t => mk('PARAGRAPH_TEXT', t);
 // The live form as built in October, with the food question added after access needs.
-const fresh = () => [txt(Q.name), txt(Q.email), mc(Q.role), mc(Q.attend), mk('LIST', Q.county),
+const fresh = () => [txt(Q.name), txt(Q.email), mc(Q.role), mk('CHECKBOX', Q.join), mk('LIST', Q.county),
   page('Your connection to the Philippines'), mc(Q.tie), page('Where in the Philippines'), mk('LIST', Q.prov1), mk('LIST', Q.prov2),
   page('Stories and questions'), txt(Q.story), mc(Q.consent), txt(Q.question), txt(Q.access), txt(Q.diet), mc(Q.connect), page('Connect with others at the event')];
 items = fresh();
@@ -49,7 +49,7 @@ run('readRsvps = function () { return []; }');
 
 function check(label) {
   const titles = items.map(i => i.type === 'PAGE_BREAK' ? '[' + i.title + ']' : i.title);
-  assert.deepStrictEqual(titles, [Q.name, Q.email, Q.attend, Q.county, Q.access, Q.diet, Q.question,
+  assert.deepStrictEqual(titles, [Q.name, Q.email, Q.join, Q.county, Q.access, Q.diet, Q.question,
     '[Your connection to the Philippines]', Q.tie,
     '[Where in the Philippines]', Q.prov1,
     '[Almost done]', run('Q_MORE'),
@@ -70,7 +70,7 @@ function check(label) {
   assert.ok(/Leave it blank if none/.test(byTitle(Q.access).help) && /Leave it blank if none/.test(byTitle(Q.diet).help));
   assert.ok(!items.some(i => i.title === Q.prov2), 'no second province');
   for (const p of ['Almost done', 'Where in the Philippines', 'A few optional extras']) assert.strictEqual(items.filter(i => i.title === p).length, 1, 'one ' + p);
-  assert.ok(byTitle(Q.attend).choices.every(c => c.v.length < 100), 'attendance choices are short');
+  assert.ok(byTitle(Q.join).choices.length === 4 && byTitle(Q.join).choices.every(c => c.v.length < 100), 'attendance choices are short');
 }
 
 // 1. From the form as first built.
@@ -81,7 +81,7 @@ run('shortenRsvpForm()');
 assert.strictEqual(items.map(i => i.title).join('|'), before, 'running it again changes nothing');
 
 // 2. From the half-done state the first, interrupted run left on Oct 13.
-items = [txt(Q.name), txt(Q.email), mc(Q.attend), mk('LIST', Q.county), txt(Q.access), txt(Q.diet),
+items = [txt(Q.name), txt(Q.email), mk('CHECKBOX', Q.join), mk('LIST', Q.county), txt(Q.access), txt(Q.diet),
   page('Your connection to the Philippines'), mc(Q.tie), page('Where in the Philippines'), mk('LIST', Q.prov1),
   page('A few optional extras'), txt(Q.question), txt(Q.story), mc(Q.consent), mc(Q.role), mc(Q.connect), page('Connect with others at the event'),
   page('Almost done')];
@@ -89,7 +89,7 @@ run('shortenRsvpForm()');
 check('half-done');
 
 // 3. From the earlier short version (province page after the connection, question on the extras page).
-items = [txt(Q.name), txt(Q.email), mc(Q.attend), mk('LIST', Q.county), txt(Q.access), txt(Q.diet),
+items = [txt(Q.name), txt(Q.email), mk('CHECKBOX', Q.join), mk('LIST', Q.county), txt(Q.access), txt(Q.diet),
   page('Your connection to the Philippines'), mc(Q.tie), page('Where in the Philippines'), mk('LIST', Q.prov1),
   page('Almost done'), mc(run('Q_MORE')),
   page('A few optional extras'), txt(Q.question), txt(Q.story), mc(Q.consent), mc(Q.role), mc(Q.connect), page('Connect with others at the event')];
@@ -100,7 +100,7 @@ run('shortenRsvpForm()');
 check('earlier short version');
 
 // 4. From the layout of the previous run (province in the extras, every connection answer to "Almost done").
-items = [txt(Q.name), txt(Q.email), mc(Q.attend), mk('LIST', Q.county), txt(Q.access), txt(Q.diet), txt(Q.question),
+items = [txt(Q.name), txt(Q.email), mk('CHECKBOX', Q.join), mk('LIST', Q.county), txt(Q.access), txt(Q.diet), txt(Q.question),
   page('Your connection to the Philippines'), mc(Q.tie), page('Almost done'), mc(run('Q_MORE')),
   page('A few optional extras'), mk('LIST', Q.prov1), txt(Q.story), mc(Q.consent), mc(Q.role), mc(Q.connect), page('Connect with others at the event')];
 items.find(i => i.title === run('Q_MORE')).choices = [{ v: 'No', to: SUBMIT }, { v: 'Yes', to: items.find(i => i.title === 'A few optional extras') }];
