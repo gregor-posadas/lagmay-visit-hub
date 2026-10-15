@@ -324,3 +324,11 @@ section[id], .ev-hero { scroll-margin-top: 16px; }
 .cn-filter select { min-height: var(--tap, 48px); padding: 6px 12px; border: 2px solid var(--rule-strong); background: var(--surface); color: var(--ink); font: inherit; font-weight: 400; max-width: 100%; }
 .cn-filter select:focus-visible { outline: 3px solid #E7B800; outline-offset: 2px; }
 .cn-filter select { width: auto; }
+
+/* Ask the speakers (Oct 14): one question box. The bot trap sits off screen and out of the tab order. */
+.ask-form { display: grid; gap: 16px; max-width: 40rem; }
+.ask-form textarea { min-height: 140px; }
+.ask-err { margin: 0; color: var(--st-late); font-weight: 700; }
+.ask-done { margin: 0; font-weight: 700; }
+.ask-done:empty { display: none; }
+.ask-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }

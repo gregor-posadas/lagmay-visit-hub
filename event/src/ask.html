@@ -1,0 +1,34 @@
+<!-- out: ask/index.html | title: Ask the speakers: When the Waters Rise | lang: en | nav: ask | desc: Send a question for Dr. Mahar Lagmay, Dr. Lisandro Claudio and Dr. Diana Martinez before the November 9 conversation on flooding in the Philippines at UC Berkeley. No name needed. | scripts: config.js, ask.js -->
+<main id="main" tabindex="-1">
+  <div class="wrap">
+    <header class="rd-head">
+      <p class="ev-kicker">When the Waters Rise · Monday, November 9 · 4 to 5 PM Pacific</p>
+      <h1>Ask the speakers</h1>
+      <p class="rd-lead">What would you like to ask Dr. Mahar Lagmay, Dr. Lisandro Claudio or Dr. Diana Martinez? The moderator will pick from these for the panel. No name needed, and you don't have to RSVP to ask.</p>
+    </header>
+
+    <section class="section" aria-labelledby="askf-h">
+      <h2 id="askf-h" class="sr">Your question</h2>
+      <form id="ask-form" class="ask-form" novalidate>
+        <div class="field">
+          <label for="ask-q">Your question</label>
+          <textarea id="ask-q" name="question" maxlength="600" required aria-describedby="ask-hint ask-err"></textarea>
+          <small id="ask-hint">A sentence or two is plenty, up to 600 characters. English or Filipino are both fine.</small>
+          <p class="ask-err" id="ask-err" hidden></p>
+        </div>
+        <div class="ask-hp" aria-hidden="true"><label for="ask-web">Leave this empty</label><input id="ask-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+        <div class="actions"><button type="submit" class="btn btn--solid" id="ask-send">Send question</button></div>
+        <p class="ask-done" id="ask-done" role="status"></p>
+      </form>
+    </section>
+
+    <section class="section" aria-labelledby="ask-how-h">
+      <h2 id="ask-how-h">What happens to your question</h2>
+      <ul class="list">
+        <li>A teammate reads every question. The moderator gets the ones we pick, and there may not be time for all of them.</li>
+        <li>Questions are never shown on this site, and never with a name.</li>
+        <li>Want to come? <a href="{R}rsvp/">RSVP here</a>. It takes under a minute.</li>
+      </ul>
+    </section>
+  </div>
+</main>

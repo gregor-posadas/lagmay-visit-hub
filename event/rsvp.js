@@ -12,6 +12,8 @@
     return;
   }
   links.forEach(function (a) { a.href = url; a.target = "_blank"; a.rel = "noopener"; });
+  // "Put yourself on the map" links: the separate map form (config.js mapUrl).
+  if (/^https:\/\//.test(cfg.mapUrl || "")) Array.prototype.forEach.call(document.querySelectorAll(".js-map"), function (a) { a.href = cfg.mapUrl; a.target = "_blank"; a.rel = "noopener"; });
   // Seats left, from the same anonymous counts the map uses.
   if (cfg.apiUrl && window.EV_SITE && window.EV_SITE.seats) {
     fetch(cfg.apiUrl + (cfg.apiUrl.indexOf("?") > -1 ? "&" : "?") + "action=map", { redirect: "follow" })

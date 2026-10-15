@@ -107,3 +107,10 @@ console.log('RSVP mail tests passed');
   assert.ok(!/Stanford is hosting a talk/.test(seated.html), 'seated email does not');
 }
 console.log('stanford note ok');
+
+// Every confirmation links the optional extras: the map form (once it exists) and the Ask the speakers page.
+{
+  const x = run('rsvpConfirmation')({ id: 'e1', name: 'Eli', join: run('JOIN_PANEL') }, { status: { e1: 'seat' }, place: {}, lecture: { status: {}, place: {} } });
+  assert.ok(x.html.includes('event/ask/') && /send a question for the speakers/.test(x.html), 'ask link');
+}
+console.log('extras ok');

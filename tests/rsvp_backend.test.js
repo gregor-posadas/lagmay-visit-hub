@@ -71,14 +71,17 @@ const item = { getTitle: () => Q.join, asCheckboxItem: () => ({ setChoiceValues(
 ctx.FormApp = { ItemType: { MULTIPLE_CHOICE: 'mc' }, openById: () => ({ getItems: () => [item] }) };
 ctx.PropertiesService = { getScriptProperties: () => ({ getProperty: k => k === 'RSVP_FORM_ID' ? 'F1' : null, setProperty() {} }) };
 let said = vm.runInContext('updateSeatChoices()', ctx);
-assert.ok(/^DevEng 203 Guest Lecture/.test(choices[0]) && /^Waitlist: Discussion Panel/.test(choices[1]) && choices.length === 4 && /taken/.test(help), said);
+assert.ok(/^\[Blum Hall B100\] DevEng 203 Guest Lecture/.test(choices[0]) && /^\[Banatao Auditorium\] Waitlist: Discussion Panel/.test(choices[1]) && choices.length === 4 && /taken/.test(help), said);
 vm.runInContext('SEATS = 149', ctx);
 said = vm.runInContext('updateSeatChoices()', ctx);
 // Each checkbox is found on its own, alone or comma-joined with the others as the Sheet stores them.
 const C0 = n => vm.runInContext(n, ctx);
 const jset = c => JSON.parse(JSON.stringify(vm.runInContext('joinSet', ctx)({ join: c })));
-assert.deepStrictEqual(JSON.parse(JSON.stringify(choices)), ['DevEng 203 Guest Lecture [11AM to 12PM] [Blum Hall B100]', 'Discussion Panel [4PM to 5PM] [Banatao Auditorium]',
-  'Discussion Panel [4PM to 5PM] [Online]', 'Reception and Networking [5PM onwards] [Blum Hall B100]'], 'the boxes as Gregor worded them; no Stanford');
+assert.deepStrictEqual(JSON.parse(JSON.stringify(choices)), ['[Blum Hall B100] DevEng 203 Guest Lecture, 11AM to 12PM', '[Banatao Auditorium] Discussion Panel, 4PM to 5PM',
+  '[Online] Discussion Panel, 4PM to 5PM', '[Blum Hall B100] Reception and Networking, 5PM onwards'], 'the boxes as Gregor worded them; no Stanford');
+// The bracket-last labels that were live for a few minutes still count.
+assert.deepStrictEqual(JSON.parse(JSON.stringify(jset(['DevEng 203 Guest Lecture [11AM to 12PM] [Blum Hall B100]', 'Discussion Panel [4PM to 5PM] [Banatao Auditorium]',
+  'Discussion Panel [4PM to 5PM] [Online]', 'Reception and Networking [5PM onwards] [Blum Hall B100]'].join(', ')))), { lecture: 'want', panel: 'want', stanford: false, online: true, reception: true });
 const none = { lecture: '', panel: '', stanford: false, online: false, reception: false };
 assert.deepStrictEqual(JSON.parse(JSON.stringify(choices.map(jset))), [{ ...none, lecture: 'want' }, { ...none, panel: 'want' }, { ...none, online: true }, { ...none, reception: true }]);
 assert.deepStrictEqual(JSON.parse(JSON.stringify(jset(choices.join(', ')))), { lecture: 'want', panel: 'want', stanford: false, online: true, reception: true });
@@ -105,7 +108,7 @@ const l3 = JSON.parse(JSON.stringify(vm.runInContext('rsvpList()', ctx)));
 assert.deepStrictEqual(l3.filter(r => r.lectureSeat).map(r => r.name + ':' + r.lectureSeat + (r.lectureWaitPlace ? '#' + r.lectureWaitPlace : '') + ':' + r.seat),
   ['Fe:seat:', 'Hal:waitlist#1:', 'Ivy:waitlist#2:'], 'lecture spots never touch the panel seats');
 said = vm.runInContext('updateSeatChoices()', ctx);
-assert.ok(/^Waitlist: DevEng 203/.test(choices[0]) && jset(choices[0]).lecture === 'wait' && /Lecture full/.test(said) && /guest spots for the lecture are taken/.test(help), said);
+assert.ok(/^\[Blum Hall B100\] Waitlist: DevEng 203/.test(choices[0]) && jset(choices[0]).lecture === 'wait' && /Lecture full/.test(said) && /guest spots for the lecture are taken/.test(help), said);
 const plan3 = vm.runInContext('seatPlan(readRsvps())', ctx);
 assert.ok(!Object.keys(plan3.status).some(id => plan3.lecture.status[id]), 'the panel check-in list never includes lecture RSVPs');
 vm.runInContext('LECTURE_SEATS = 20', ctx);
@@ -121,7 +124,7 @@ vm.runInContext('LECTURE_SEATS = 2', ctx);
 const plan5 = vm.runInContext('seatPlan(readRsvps())', ctx);
 assert.strictEqual(plan5.status[jo], 'seat'); assert.strictEqual(plan5.lecture.status[jo], 'waitlist', 'lecture full: Both keeps the panel seat and waits for the lecture');
 said = vm.runInContext('updateSeatChoices()', ctx);
-assert.ok(/^Waitlist: DevEng 203/.test(choices[0]) && choices.length === 4, choices[0]);
+assert.ok(/^\[Blum Hall B100\] Waitlist: DevEng 203/.test(choices[0]) && choices.length === 4, choices[0]);
 vm.runInContext('LECTURE_SEATS = 20', ctx);
 said = vm.runInContext('updateSeatChoices()', ctx);
 assert.strictEqual(choices[2], vm.runInContext('JOIN_ONLINE', ctx)); assert.strictEqual(choices[0], vm.runInContext('JOIN_LECTURE', ctx));
@@ -147,6 +150,38 @@ const l6 = JSON.parse(JSON.stringify(vm.runInContext('rsvpList()', ctx)));
 assert.strictEqual(l6.find(r => r.name === 'Kim').attend, 'Morning lecture + Panel + Livestream + Reception + Stanford, Nov 10');
 assert.strictEqual(l6.find(r => r.name === 'Nia').attend, 'Livestream + Reception');
 assert.strictEqual(l6.find(r => r.name === 'Ana').attend, 'In person at Banatao Auditorium', 'older answers show as given');
+// The map form (Oct 14): anonymous answers in their own tab count on the map with the older RSVP answers; new RSVPs
+// (no county asked) don't add "not said" people.
+{
+  delete cache.map;
+  const before = JSON.parse(JSON.stringify(vm.runInContext('publicMap()', ctx)));
+  const bayTotal = o => Object.values(o.bay).reduce((a, b) => a + b, 0);
+  mkSheet('Map responses', [['Timestamp', Q.county, Q.tie, Q.prov1, Q.story, Q.consent],
+    [new Date(), 'Alameda', 'My parents are from there', 'Iloilo', 'Frank in 2008', 'Yes, you may share it without my name'],
+    [new Date(), 'San Francisco', 'No connection, just interested (everyone is welcome)', '', '', '']]);
+  delete cache.map;
+  const mm = JSON.parse(JSON.stringify(vm.runInContext('publicMap()', ctx)));
+  assert.strictEqual(mm.total, before.total, 'the map form is not an RSVP');
+  assert.strictEqual(mm.mapEntries, 2); assert.strictEqual(bayTotal(mm), bayTotal(before) + 2);
+  assert.strictEqual(mm.ph.Iloilo, 1); assert.strictEqual(mm.ties.none, (before.ties.none || 0) + 1);
+  assert.ok(!mm.stories.some(x => x.text === 'Frank in 2008'), 'not before approval');
+  vm.runInContext("setApproval('m2','story',true,'gregor')", ctx);
+  const m3 = JSON.parse(JSON.stringify(vm.runInContext('publicMap()', ctx)));
+  assert.ok(m3.stories.some(x => x.text === 'Frank in 2008' && x.province === 'Iloilo'));
+  const rows = JSON.parse(JSON.stringify(vm.runInContext('rsvpList()', ctx)));
+  assert.ok(rows.every(r => /^r/.test(r.id)), 'the RSVP list stays RSVPs only');
+}
+// Questions from the Ask the speakers page: saved once, bots and repeats dropped, nothing too short or too long.
+{
+  let n = 0;
+  Object.assign(ctx.Utilities, { getUuid: () => 'abcdef12-3456-7890-' + (n++), computeDigest: (a, t) => Array.from(Buffer.from(t)), base64EncodeWebSafe: b => Buffer.from(b).toString('base64'), DigestAlgorithm: { MD5: 'md5' } });
+  vm.runInContext("addAsk({ question: 'How can students here help NOAH?' }); addAsk({ question: 'how can students here help NOAH?' }); addAsk({ question: 'Buy cheap pills', website: 'spam.example' })", ctx);
+  const asks = sheets.Asks.rows.slice(1);
+  assert.strictEqual(asks.length, 1, 'one saved: the repeat and the bot are dropped'); assert.strictEqual(asks[0][2], 'How can students here help NOAH?');
+  assert.throws(() => vm.runInContext("addAsk({ question: 'hi' })", ctx), /write your question/);
+  assert.throws(() => vm.runInContext("addAsk({ question: 'x'.repeat(700) })", ctx), /under 600/);
+  vm.runInContext("setApproval('" + asks[0][0] + "','question',true,'gregor')", ctx);
+}
 // The Connect question: "Yes" leads to the page with the link; "Not right now" and the page's linear default both submit.
 const made = [];
 const fakeForm = {

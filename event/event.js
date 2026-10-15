@@ -261,13 +261,14 @@
     if (!d.total) return W.none;
     if (FIL) {
       var t = n2w(d.total) + " na ang nag-RSVP: " + joining(d, [["inPerson", " sa panel nang personal"], ["online", " online"], ["waitlist", " sa waitlist ng panel"], ["lecture", " sa lecture sa umaga"], ["lectureWaitlist", " sa waitlist ng lecture"], ["reception", " sa resepsiyon"], ["stanford", " sa Stanford sa Nob 10"], ["unsure", " ang hindi pa sigurado"]]) + ". ";
-      if (f.withTies) t += f.withTies + " sa kanila ang may ugnayan sa " + f.provs.length + " lalawigan sa Pilipinas, pinakamadalas ang " + list(f.provs.slice(0, 3)) + ".";
-      if (f.noTies) t += " " + f.noTies + " ang darating nang walang ugnayan sa Pilipinas, at malugod din silang tinatanggap.";
+      // Since Oct 14 the map is filled in separately from the RSVP, so these are people on the map, not "of them".
+      if (f.withTies) t += "Sa mapa, " + f.withTies + " ang may ugnayan sa " + f.provs.length + " lalawigan sa Pilipinas, pinakamadalas ang " + list(f.provs.slice(0, 3)) + ".";
+      if (f.noTies) t += " " + f.noTies + " sa mapa ang walang ugnayan sa Pilipinas, at malugod din silang tinatanggap.";
       return t;
     }
     var s = n2w(d.total) + (d.total === 1 ? " has" : " have") + " RSVPed: " + joining(d, [["inPerson", " at the panel in person"], ["online", " online"], ["waitlist", " on the panel waitlist"], ["lecture", " at the morning lecture"], ["lectureWaitlist", " on the lecture waitlist"], ["reception", " at the reception"], ["stanford", " at Stanford on Nov 10"], ["unsure", " not sure yet"]]) + ". ";
-    if (f.withTies) s += f.withTies + " of them have ties to " + f.provs.length + (f.provs.length === 1 ? " province" : " provinces") + " in the Philippines, most often " + list(f.provs.slice(0, 3)) + ".";
-    if (f.noTies) s += " " + f.noTies + (f.noTies === 1 ? " is" : " are") + " coming with no ties to the Philippines at all, and are just as welcome.";
+    if (f.withTies) s += "On the map, " + f.withTies + (f.withTies === 1 ? " person has" : " people have") + " ties to " + f.provs.length + (f.provs.length === 1 ? " province" : " provinces") + " in the Philippines, most often " + list(f.provs.slice(0, 3)) + ".";
+    if (f.noTies) s += " " + f.noTies + " on the map " + (f.noTies === 1 ? "has" : "have") + " no ties to the Philippines at all, and " + (f.noTies === 1 ? "is" : "are") + " just as welcome.";
     return s;
   }
   function table(d) {
@@ -310,8 +311,15 @@
   function loadData() {
     if (SAMPLE) return Promise.resolve(sampleData());
     var u = cfg.apiUrl + (cfg.apiUrl.indexOf("?") > -1 ? "&" : "?") + "action=map";
-    return fetch(u, { redirect: "follow" }).then(function (r) { return r.json(); }).then(function (j) { if (!j.ok) throw new Error(j.error || "No data"); j.data.sets = j.data.sets || {}; return j.data; });
+    return fetch(u, { redirect: "follow" }).then(function (r) { return r.json(); }).then(function (j) { if (!j.ok) throw new Error(j.error || "No data"); j.data.sets = j.data.sets || {}; wireMapLinks(j.data.mapFormUrl); return j.data; });
   }
+  /* "Put yourself on the map" links: the map form from config.js, or else the one the backend reports. */
+  function wireMapLinks(url) {
+    url = cfg.mapUrl || url || "";
+    if (!/^https:\/\//.test(url)) return;
+    Array.prototype.forEach.call(document.querySelectorAll(".js-map"), function (a) { a.href = url; a.target = "_blank"; a.rel = "noopener"; });
+  }
+  wireMapLinks();
   function refresh() {
     return loadData().then(function (d) { data = d; if (PRESENT) { buildSteps(); show(stepIndex); } else renderPage(); })
       .catch(function () { if (!data) $("who-summary").textContent = W.fail; });

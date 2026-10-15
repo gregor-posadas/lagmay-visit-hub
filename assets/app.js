@@ -1091,22 +1091,23 @@
       if (r.lectureSeat === "waitlist") marks.push("<b>Lecture waitlist #" + esc(String(r.lectureWaitPlace || "")) + "</b>");
       return marks.length ? marks.join("<br>") + "<br><small>" + esc(r.attend.replace(/ \(.*$/, "")) + "</small>" : esc(r.attend);
     };
-    var stories = list.filter(function (r) { return r.story; }), questions = list.filter(function (r) { return r.question; }), needs = list.filter(function (r) { return r.access; }), food = list.filter(function (r) { return r.diet; });
+    // Since Oct 14, stories also come from the map form and questions from the site's Ask the speakers page.
+    var stories = list.filter(function (r) { return r.story; }).concat(state.data.mapStories || []), questions = list.filter(function (r) { return r.question; }).concat(state.data.asks || []), needs = list.filter(function (r) { return r.access; }), food = list.filter(function (r) { return r.diet; });
     var shownStories = stories.filter(function (r) { return r.storyOk; }).length, picked = questions.filter(function (r) { return r.questionOk; }).length;
     var place = function (r) { return [r.prov1, r.prov2].filter(function (p) { return p && p !== "Not sure" && p !== "Prefer not to say"; }).join(" and "); };
     var storyRows = stories.map(function (r) {
-      return '<li class="rsvp-item"><blockquote>' + esc(r.story) + "</blockquote><p class=\"row__meta\">" + (place(r) ? "<span>Family in " + esc(place(r)) + "</span>" : "") + "<span>" + esc(first(r.name)) + "</span>" + (r.consent ? "" : '<span class="st">' + shape("no") + "Asked to keep it private</span>") + "</p>" +
+      return '<li class="rsvp-item"><blockquote>' + esc(r.story) + "</blockquote><p class=\"row__meta\">" + (place(r) ? "<span>Family in " + esc(place(r)) + "</span>" : "") + "<span>" + (r.from === "map" ? "From the map form" : esc(first(r.name))) + "</span>" + (r.consent ? "" : '<span class="st">' + shape("no") + "Asked to keep it private</span>") + "</p>" +
         approvalBox(r, "story", "Show at the event, without their name", !r.consent, r.consent ? "" : "They said no, so it can't be shown.") + "</li>";
     }).join("");
     var questionRows = questions.map(function (r) {
-      return '<li class="rsvp-item"><blockquote>' + esc(r.question) + '</blockquote><p class="row__meta"><span>' + esc(first(r.name)) + "</span>" + (r.role ? "<span>" + esc(r.role) + "</span>" : "") + "</p>" + approvalBox(r, "question", "Picked for the moderator") + "</li>";
+      return '<li class="rsvp-item"><blockquote>' + esc(r.question) + '</blockquote><p class="row__meta"><span>' + (r.from === "ask" ? "From the Ask page" + (r.lang === "fil" ? ", in Filipino" : "") : esc(first(r.name))) + "</span>" + (r.role ? "<span>" + esc(r.role) + "</span>" : "") + "</p>" + approvalBox(r, "question", "Picked for the moderator") + "</li>";
     }).join("");
     var all = list.map(function (r) {
       return "<tr><td class=\"t\">" + esc(r.name) + "<br><small>" + esc(r.role || "") + "</small></td><td>" + joinCell(r) + "</td><td>" + esc(r.county) + "</td><td>" + esc(TIE_WORD[r.tie] || "") + (place(r) ? "<br><small>" + esc(place(r)) + "</small>" : "") + "</td></tr>";
     }).join("");
     return '<div class="wrap"><div class="head"><h1 tabindex="-1">RSVPs</h1><p>' + (list.length ? list.length + (list.length === 1 ? " person has" : " people have") + " RSVPed, " + inPerson + " of 149 panel seats taken" + (waiting ? ", " + waiting + " on the waitlist" : "") + ", " + lecture + " of 20 lecture guest spots taken" + (lecWaiting ? ", " + lecWaiting + " on the lecture waitlist" : "") + ". " : "No RSVPs yet. ") +
       "Stories appear on the event page and in the opening only after someone here ticks them, and only if the person said yes to sharing.</p>" +
-      '<div class="actions">' + (form ? extLink(form, "Open the RSVP form", "btn btn--solid") : "") + (safeUrl(state.data.checkinUrl) ? extLink(safeUrl(state.data.checkinUrl), "Door check-in sheet", "btn") : "") +
+      '<div class="actions">' + (form ? extLink(form, "Open the RSVP form", "btn btn--solid") : "") + (safeUrl(state.data.mapFormUrl) ? extLink(safeUrl(state.data.mapFormUrl), "Open the map form", "btn") : "") + (safeUrl(state.data.checkinUrl) ? extLink(safeUrl(state.data.checkinUrl), "Door check-in sheet", "btn") : "") +
       '<a class="btn" href="' + esc(eventUrl()) + '" target="_blank" rel="noopener">Event page<span class="sr"> (opens in a new tab)</span></a>' +
       '<a class="btn" href="' + esc(eventUrl("?present")) + '" target="_blank" rel="noopener">Opening for Nov 9<span class="sr"> (opens in a new tab)</span></a>' +
       '<a class="btn btn--quiet" href="' + esc(eventUrl("?sample&present")) + '" target="_blank" rel="noopener">Rehearse with sample people<span class="sr"> (opens in a new tab)</span></a></div>' +
@@ -1164,7 +1165,7 @@
     }).catch(function (e) { toast("Couldn't check: " + e.message); });
   }
   function setApproval(id, field, value) {
-    var r = byId(state.data.rsvps, id); if (!r) return;
+    var r = byId(state.data.rsvps, id) || byId(state.data.mapStories || [], id) || byId(state.data.asks || [], id); if (!r) return;
     var key = field === "story" ? "storyOk" : "questionOk", prev = r[key];
     r[key] = value; route();
     apiPost({ action: "setApproval", id: id, field: field, value: value }).then(function (res) {
@@ -1708,7 +1709,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261015051955";
+  var BUILD = "20261015053658";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp

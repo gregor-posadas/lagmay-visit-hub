@@ -33,6 +33,7 @@ var TABS = {
   Approvals: ['id', 'story', 'question', 'updatedAt', 'updatedBy'],
   ConnectReview: ['id', 'card', 'introSentAt', 'updatedAt', 'updatedBy'],
   RsvpMail: ['id', 'sentAt', 'kind'],
+  Asks: ['id', 'at', 'question', 'lang'],
   Log: ['timestamp', 'who', 'action', 'detail']
 };
 
@@ -152,6 +153,8 @@ function doPost(e) {
     lock.waitLock(20000);
     var who = String(b.who || '');
     switch (b.action) {
+      // Anyone (the site's Ask the speakers page)
+      case 'ask': return json(addAsk(b));
       // Anyone on the team
       case 'setStatus': checkCode(b.code, 'team'); return json(setStatus(b.id, b.status, who));
       case 'setProjectStatus': checkCode(b.code, 'team'); return json(setProjectStatus(b.id, b.status, who));
@@ -269,6 +272,9 @@ function payload() {
     rules: readTable('Rules'),
     rsvps: rsvpList(),
     rsvpFormUrl: setting('RSVP_FORM_URL'),
+    mapStories: mapStoryList(),
+    mapFormUrl: mapFormUrl(),
+    asks: askList(),
     connect: connectList(),
     connectFormUrl: setting('CONNECT_FORM_URL'),
     checkinUrl: setting('CHECKIN_SHEET_ID') ? 'https://docs.google.com/spreadsheets/d/' + setting('CHECKIN_SHEET_ID') + '/edit' : '',
@@ -929,12 +935,13 @@ function bothChoice(full, lectureFull) {
 /* Oct 14, later: Gregor's wording. Four boxes: the DevEng 203 lecture, the panel in person, the panel online, and the
    reception (now its own box, counted but not capped). Stanford is off the form on purpose; earlier Stanford answers still count.
    The labels above (LECTURE, PANEL, ...) are kept so answers given under them keep counting. */
-var JOIN_LECTURE = 'DevEng 203 Guest Lecture [11AM to 12PM] [Blum Hall B100]';
-var JOIN_PANEL = 'Discussion Panel [4PM to 5PM] [Banatao Auditorium]';
-var JOIN_ONLINE = 'Discussion Panel [4PM to 5PM] [Online]';
-var JOIN_RECEPTION = 'Reception and Networking [5PM onwards] [Blum Hall B100]';
-var JOIN_LECTURE_WAIT = 'Waitlist: DevEng 203 Guest Lecture [11AM to 12PM] [Blum Hall B100] (full; we will email you if a spot opens)';
-var JOIN_PANEL_WAIT = 'Waitlist: Discussion Panel [4PM to 5PM] [Banatao Auditorium] (full; we will email you if a seat opens)';
+/* Later still: the place first, in brackets ("[Blum Hall B100] DevEng 203 Guest Lecture, 11AM to 12PM"). */
+var JOIN_LECTURE = '[Blum Hall B100] DevEng 203 Guest Lecture, 11AM to 12PM';
+var JOIN_PANEL = '[Banatao Auditorium] Discussion Panel, 4PM to 5PM';
+var JOIN_ONLINE = '[Online] Discussion Panel, 4PM to 5PM';
+var JOIN_RECEPTION = '[Blum Hall B100] Reception and Networking, 5PM onwards';
+var JOIN_LECTURE_WAIT = '[Blum Hall B100] Waitlist: DevEng 203 Guest Lecture, 11AM to 12PM (full; we will email you if a spot opens)';
+var JOIN_PANEL_WAIT = '[Banatao Auditorium] Waitlist: Discussion Panel, 4PM to 5PM (full; we will email you if a seat opens)';
 function joinChoices(full, lectureFull) { return [lectureFull ? JOIN_LECTURE_WAIT : JOIN_LECTURE, full ? JOIN_PANEL_WAIT : JOIN_PANEL, JOIN_ONLINE, JOIN_RECEPTION]; }
 /* What one RSVP signed up for: lecture and panel are 'want' (take a spot if one is left, in RSVP order) or 'wait' (they
    picked the waitlist because it was full); stanford, online and reception are true or false. Reads the checkboxes, or
@@ -944,7 +951,7 @@ function joinSet(r) {
   var s = { lecture: '', panel: '', stanford: false, online: false, reception: false }, a = String(r.join || '');
   if (a) {
     s.lecture = /Waitlist for the Nov 9 guest lecture|Waitlist: DevEng 203/.test(a) ? 'wait' : /guest lecture on the UC Berkeley campus|DevEng 203 Guest Lecture/i.test(a) ? 'want' : '';
-    s.panel = /Waitlist for the Nov 9 panel|Waitlist: Discussion Panel/.test(a) ? 'wait' : /Panel and reception|Discussion Panel \[4PM to 5PM\] \[Banatao/.test(a) ? 'want' : '';
+    s.panel = /Waitlist for the Nov 9 panel|Waitlist: Discussion Panel/.test(a) ? 'wait' : /Panel and reception|Discussion Panel \[4PM to 5PM\] \[Banatao|\[Banatao Auditorium\] Discussion Panel/.test(a) ? 'want' : '';
     s.stanford = /Stanford campus/.test(a);
     s.online = /livestream|\[Online\]/.test(a);
     s.reception = /Reception and Networking|Panel and reception/.test(a);
@@ -1023,40 +1030,17 @@ function createRsvpForm() {
   var appUrl = setting('APP_URL'), eventUrl = appUrl ? appUrl.replace(/\/?$/, '/') + 'event/' : '';
   var form = FormApp.create('RSVP: When the Waters Rise, with Dr. Mahar Lagmay');
   form.setDescription(rsvpDescription());
-  form.setConfirmationMessage("Thank you, you're on the list. " + (eventUrl ? 'See who is coming: ' + eventUrl : 'See you on November 9.'));
+  form.setConfirmationMessage(rsvpThanks());
   form.setShowLinkToRespondAgain(false);
   try { form.setRequireLogin(false); } catch (e) { /* not a Workspace setting on this account */ }
   try { form.setCollectEmail(false); } catch (e) { /* ignore */ }
 
-  form.addTextItem().setTitle(Q.name).setHelpText('For the RSVP list only. Never shown.').setRequired(true);
+  // Oct 14: just three questions. Where people live, their connection to the Philippines and flood stories moved to the
+  // separate map form (createMapForm); questions for the speakers moved to the Ask the speakers page on the site.
+  form.addTextItem().setTitle(Q.name).setRequired(true);
   form.addTextItem().setTitle(Q.email).setHelpText('Only for event updates, such as the start time and the livestream link.')
     .setRequired(true).setValidation(FormApp.createTextValidation().requireTextIsEmail().build());
   form.addCheckboxItem().setTitle(Q.join).setHelpText(joinHelp()).setRequired(true).setChoiceValues(joinChoices(false));
-  form.addListItem().setTitle(Q.county).setHelpText(COUNTY_HELP)
-    .setRequired(true).setChoiceValues(COUNTY_CHOICES);
-  form.addParagraphTextItem().setTitle(Q.question).setRequired(false).setHelpText(QUESTION_HELP);
-
-  // Page 2: the connection. Family ties and the like go on to the province; a friend or no connection skip to "Almost done".
-  form.addPageBreakItem().setTitle(SHORT_PAGES.tie).setHelpText('There is no wrong answer here, and no connection is needed to come.');
-  var tie = form.addMultipleChoiceItem().setTitle(Q.tie).setRequired(false);
-  var provPage = form.addPageBreakItem().setTitle(SHORT_PAGES.prov);
-  form.addListItem().setTitle(Q.prov1).setRequired(false).setHelpText(PROV_HELP).setChoiceValues([NOT_SURE].concat(PROVINCES).concat([NO_SAY]));
-  var exitPage = form.addPageBreakItem().setTitle(SHORT_PAGES.more);
-  var more = form.addMultipleChoiceItem().setTitle(Q_MORE).setHelpText(MORE_HELP).setRequired(true);
-  var extras = form.addPageBreakItem().setTitle(SHORT_PAGES.extras).setHelpText('All optional. Skip any you like.');
-  tie.setChoices(Object.keys(TIES).map(function (label) {
-    return tie.createChoice(label, NO_PROVINCE_TIES.indexOf(TIES[label]) > -1 ? exitPage : provPage);
-  }));
-  more.setChoices([more.createChoice(MORE_NO, FormApp.PageNavigationType.SUBMIT), more.createChoice(MORE_YES, extras)]);
-  form.addParagraphTextItem().setTitle(Q.story).setRequired(false)
-    .setHelpText(STORY_HELP);
-  form.addMultipleChoiceItem().setTitle(Q.consent).setRequired(false)
-    .setHelpText('A few answers may be read aloud or shown on screen at the start of the event, never with a name. A teammate reads every answer first.')
-    .setChoiceValues([CONSENT_YES, 'No, please keep it private']);
-  form.addMultipleChoiceItem().setTitle(Q.role).setRequired(false).setChoiceValues([
-    'UC Berkeley student', 'UC Berkeley faculty or staff', 'Stanford student, faculty or staff', 'Student at another school',
-    'Community member', NO_SAY]).showOtherOption(true);
-  addConnectQuestion(form);
 
   // Answers go to this Sheet, in a tab we rename so the code can find it.
   var ss = spreadsheet();
@@ -1145,6 +1129,134 @@ function joinHelp(plan) {
     (full ? ' All ' + SEATS + ' seats in Banatao Auditorium are taken, so its box adds you to the waitlist. You can still watch online.' : '');
 }
 
+/* ------------------------------------------------------------------ Oct 14: a short RSVP, a separate map form, and questions on the site */
+/*
+ * People found the RSVP too long, mostly because of the connection-to-the-Philippines pages. So:
+ *   - The RSVP form asks only name, email and "Which will you join?" (slimRsvpForm).
+ *   - Where you live, your connection, province and a flood story go on a separate, optional, anonymous form,
+ *     "Put yourself on the map" (createMapForm). The map counts those answers and the RSVP answers given before the change.
+ *   - Questions for the speakers come from the site's Ask the speakers page (addAsk), into the Asks tab.
+ * The RSVP's thank-you screen and confirmation email point to both.
+ */
+var MAP_TAB = 'Map responses';
+var ASK_URL = EVENT_URL_BASE() + 'ask/';
+function EVENT_URL_BASE() { return 'https://gregor-posadas.github.io/lagmay-visit-hub/event/'; }
+function mapFormUrl() { return PropertiesService.getScriptProperties().getProperty('MAP_FORM_URL') || ''; }
+
+/* The RSVP form's thank-you screen. */
+function rsvpThanks() {
+  var map = mapFormUrl();
+  return "Thank you, you're on the list. A confirmation email is on its way.\n\n" +
+    (map ? 'Want to show where you are joining from? Put yourself on the map (under a minute, no name needed): ' + map + '\n\n' : '') +
+    'Have a question for the speakers? Send it here: ' + ASK_URL;
+}
+
+/**
+ * Run once from the editor (Oct 14): cuts the live RSVP form down to name, email and "Which will you join?", makes the
+ * map form if there isn't one yet, and sets the thank-you screen. Answers already given stay on the Sheet and still count.
+ */
+function slimRsvpForm() {
+  var formId = PropertiesService.getScriptProperties().getProperty('RSVP_FORM_ID');
+  if (!formId) { Logger.log('No RSVP form yet.'); return; }
+  var form = FormApp.openById(formId), done = [];
+  function find(t) { return form.getItems().filter(function (it) { return it.getTitle() === t; })[0]; }
+  if (!find(Q.join)) throw new Error('Run switchJoinToCheckboxes() first.');
+  if (!mapFormUrl()) { createMapForm(); done.push('map form made'); }
+  // Clear every page jump first: Forms won't delete a page that a choice still jumps to.
+  if (find(Q.tie)) find(Q.tie).asMultipleChoiceItem().setChoiceValues(Object.keys(TIES));
+  if (find(Q_MORE)) find(Q_MORE).asMultipleChoiceItem().setChoiceValues([MORE_NO, MORE_YES]);
+  if (find(Q.connect)) find(Q.connect).asMultipleChoiceItem().setChoiceValues([CONNECT_YES, CONNECT_NO]);
+  // Then delete everything else, back to front so the indexes ahead stay put.
+  var keep = [Q.name, Q.email, Q.join], items = form.getItems(), gone = 0;
+  for (var i = items.length - 1; i >= 0; i--) {
+    if (keep.indexOf(items[i].getTitle()) < 0) { form.deleteItem(i); gone++; }
+  }
+  if (gone) done.push(gone + ' questions and pages removed');
+  find(Q.name).setHelpText('');
+  form.setDescription(rsvpDescription());
+  form.setConfirmationMessage(rsvpThanks());
+  done.push(updateSeatChoices());
+  CacheService.getScriptCache().remove('map');
+  Logger.log(done.join('; ') + '. Map form: ' + mapFormUrl());
+}
+
+/**
+ * Makes the "Put yourself on the map" form (once), sends its answers to the "Map responses" tab, and logs its links.
+ * Anonymous: no name or email. Page 1 asks where you live and your connection; family ties, having lived there and
+ * "another connection" go on to the province; everyone then gets the optional flood story.
+ */
+function createMapForm() {
+  var props = PropertiesService.getScriptProperties();
+  if (props.getProperty('MAP_FORM_ID')) { Logger.log('The map form already exists: ' + props.getProperty('MAP_FORM_URL')); return; }
+  var form = FormApp.create('Put yourself on the map: When the Waters Rise');
+  form.setDescription(mapFormDescription());
+  form.setConfirmationMessage('Thank you, you are on the map. It updates about once a minute: ' + EVENT_URL_BASE() + '#who');
+  form.setShowLinkToRespondAgain(false);
+  try { form.setRequireLogin(false); } catch (e) { /* not a Workspace setting on this account */ }
+  try { form.setCollectEmail(false); } catch (e) { /* ignore */ }
+  form.addListItem().setTitle(Q.county).setHelpText(COUNTY_HELP).setRequired(true).setChoiceValues(COUNTY_CHOICES);
+  var tie = form.addMultipleChoiceItem().setTitle(Q.tie).setHelpText('There is no wrong answer here, and no connection is needed to come.').setRequired(false);
+  var provPage = form.addPageBreakItem().setTitle(SHORT_PAGES.prov);
+  form.addListItem().setTitle(Q.prov1).setRequired(false).setHelpText(PROV_HELP).setChoiceValues([NOT_SURE].concat(PROVINCES).concat([NO_SAY]));
+  var storyPage = form.addPageBreakItem().setTitle('A flood story (optional)').setHelpText('Skip this page if you like, and press Submit.');
+  form.addParagraphTextItem().setTitle(Q.story).setRequired(false).setHelpText(STORY_HELP);
+  form.addMultipleChoiceItem().setTitle(Q.consent).setRequired(false)
+    .setHelpText('A few answers may be read aloud or shown on screen at the start of the event, never with a name. A teammate reads every answer first.')
+    .setChoiceValues([CONSENT_YES, 'No, please keep it private']);
+  tie.setChoices(Object.keys(TIES).map(function (label) {
+    return tie.createChoice(label, NO_PROVINCE_TIES.indexOf(TIES[label]) > -1 ? storyPage : provPage);
+  }));
+  var ss = spreadsheet();
+  form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+  SpreadsheetApp.flush();
+  var url = form.getEditUrl().replace(/\/edit.*$/, '');
+  ss.getSheets().forEach(function (sh) {
+    var f = sh.getFormUrl();
+    if (f && f.replace(/\/(edit|viewform).*$/, '') === url && sh.getName() !== MAP_TAB) sh.setName(MAP_TAB);
+  });
+  props.setProperty('MAP_FORM_ID', form.getId());
+  props.setProperty('MAP_FORM_URL', form.getPublishedUrl());
+  props.setProperty('MAP_EDIT_URL', form.getEditUrl());
+  Logger.log('Map form ready. Share: ' + form.getPublishedUrl() + '  Edit: ' + form.getEditUrl());
+}
+function mapFormDescription() {
+  return 'Optional, anonymous, and under a minute. Show where you are joining When the Waters Rise from (Monday, November 9, 2026, UC Berkeley and online). ' +
+    'Your answers appear only as counts on the map of who is coming: ' + EVENT_URL_BASE() + '#who\n\n' +
+    'No name or email is asked. Flood stories are read by a teammate first, and only shared if you say yes.';
+}
+
+/** Answers from the map form, keyed like Q, with ids "m<row>". */
+function readMapRows() {
+  var sh = spreadsheet().getSheetByName(MAP_TAB);
+  if (!sh || sh.getLastRow() < 2) return [];
+  var values = sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues();
+  var head = values.shift().map(function (h) { return String(h).trim(); });
+  var tsCol = head.indexOf('Timestamp');
+  return values.map(function (r, i) {
+    var o = { id: 'm' + (i + 2), at: tsCol > -1 ? cell(r[tsCol]) : '' };
+    ['county', 'tie', 'prov1', 'prov2', 'story', 'consent'].forEach(function (k) { var c = head.indexOf(Q[k]); o[k] = c > -1 ? String(r[c] == null ? '' : r[c]).trim() : ''; });
+    return o;
+  }).filter(function (o) { return o.county || o.tie || o.story; });
+}
+
+/* Questions for the speakers from the site's Ask the speakers page. Public, so: a hidden field bots fill in, a length
+   limit, no repeats, and at most ASK_LIMIT in ten minutes. Never shown publicly; the team picks them in the hub. */
+var ASK_TAB = 'Asks', ASK_LIMIT = 30, ASK_MAX = 600;
+function addAsk(b) {
+  var text = String(b.question || '').replace(/\s+/g, ' ').trim();
+  if (String(b.website || '')) return { ok: true };            // the hidden field: quietly drop it
+  if (text.length < 5) throw new Error('Please write your question.');
+  if (text.length > ASK_MAX) throw new Error('Please keep it under ' + ASK_MAX + ' characters.');
+  var cache = CacheService.getScriptCache(), n = Number(cache.get('ask-count') || 0);
+  if (n >= ASK_LIMIT) throw new Error('A lot of questions just came in. Please try again in a few minutes.');
+  var key = 'ask-' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, text.toLowerCase())).slice(0, 22);
+  if (cache.get(key)) return { ok: true };                     // the same question twice: keep one
+  var row = { id: 'q' + Utilities.getUuid().slice(0, 13), at: cell(new Date()), question: text, lang: b.lang === 'fil' ? 'fil' : 'en' };
+  writeRow(ASK_TAB, row);
+  cache.put('ask-count', String(n + 1), 600); cache.put(key, '1', 21600);
+  return { ok: true };
+}
+
 /**
  * Run once from the editor (Oct 14): swaps the single-choice "How will you join us?" for the "Which will you join?"
  * checkboxes, in the same place on page 1. Answers already given stay in their column on the Sheet and still count.
@@ -1197,8 +1309,6 @@ function reviseRsvpForm() {
     var it = form.getItems().filter(function (x) { return x.getTitle() === t; })[0];
     if (it) { form.deleteItem(it.getIndex()); done.push('"' + t + '" removed'); }
   });
-  // A fresh list: the snapshot in items still holds the questions just deleted.
-  if (!form.getItems().some(function (it) { return it.getTitle() === Q.connect; })) { addConnectQuestion(form); done.push('Connect question and page added'); }
   CacheService.getScriptCache().remove('map');
   Logger.log(done.join('; '));
 }
@@ -1307,6 +1417,12 @@ function publicMap() {
     if (s.online && !seat) out.attend.online++;
     if (s.reception) out.attend.reception++;   // a headcount for food and the room; not capped
     if (!seat && !lecSeat && !s.stanford && !s.online && !s.reception) out.attend.unsure++;
+  });
+  // Where people live, their ties and stories: the RSVPs from before Oct 14 that answered these (newer RSVPs aren't asked),
+  // plus the map form. mapFormUrl lets the site link to that form without a config change.
+  out.mapEntries = 0; out.mapFormUrl = mapFormUrl();
+  rows.filter(function (r) { return r.county; }).concat(readMapRows()).forEach(function (r) {
+    if (/^m/.test(r.id)) out.mapEntries++;
     var county = BAY_COUNTIES.indexOf(r.county) > -1 ? r.county : isAway(r.county) ? 'outside' : 'unsaid';
     out.bay[county] = (out.bay[county] || 0) + 1;
     var tie = TIES[r.tie] || 'unsaid';
@@ -1339,9 +1455,22 @@ function rsvpList() {
   });
 }
 
+/** For the team hub: flood stories from the map form, and questions from the Ask the speakers page, with approval marks. */
+function mapStoryList() {
+  var approvals = indexBy(readTable('Approvals'));
+  return readMapRows().filter(function (r) { return r.story; }).map(function (r) {
+    return { id: r.id, at: r.at, name: '', county: r.county, tie: TIES[r.tie] || '', prov1: r.prov1, prov2: r.prov2, story: r.story,
+      consent: r.consent === CONSENT_YES, storyOk: (approvals[r.id] || {}).story === 'yes', from: 'map' };
+  });
+}
+function askList() {
+  var approvals = indexBy(readTable('Approvals'));
+  return readTable(ASK_TAB).map(function (q) { return { id: q.id, at: q.at, name: '', question: q.question, lang: q.lang, questionOk: (approvals[q.id] || {}).question === 'yes', from: 'ask' }; });
+}
+
 /** A teammate approves a story for the screen, or picks a question for the moderator. */
 function setApproval(id, field, value, who) {
-  if (!/^r\d+$/.test(String(id || ''))) throw new Error('Unknown RSVP.');
+  if (!/^(r|m)\d+$|^q[0-9a-f-]{8,40}$/.test(String(id || ''))) throw new Error('Unknown RSVP.');
   if (['story', 'question'].indexOf(field) < 0) throw new Error('Unknown field.');
   var a = indexBy(readTable('Approvals'))[id] || { id: id, story: '', question: '' };
   a[field] = value ? 'yes' : '';
@@ -1721,12 +1850,19 @@ function rsvpConfirmation(r, plan) {
       }).join('; ') + '.</p>';
   }
   var body = '<p>Thank you for your RSVP to <b>When the Waters Rise</b>, a free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Dr. Lisandro Claudio and Dr. Diana Martinez, co-hosted with PhilDev.</p>' +
-    l.body + cal +
+    l.body + cal + extrasLine() +
     (/^Yes/.test(r.connect || '') ? '<p><b>You said you would like to connect with others.</b> If you haven\'t added your card yet, you can do it any time from the <a href="' + EVENT_URL + 'connect/">Connect page</a>.</p>'
       : '<p>Working on something in or for the Philippines? Add a card on the <a href="' + EVENT_URL + 'connect/">Connect page</a> so others at the event can find you.</p>') +
     '<p>Details, directions and the live map of who is coming: <a href="' + EVENT_URL + '">' + EVENT_URL.replace(/^https:\/\//, '') + '</a></p>';
   return { kind: kind, subject: l.subject, event: evs[0] || null, events: evs,
     html: emailShell('Hi ' + first + ',', body, 'Questions, or need to change your RSVP? Just reply to this email. Gregor, Noam and Veronica, UC Berkeley') };
+}
+
+/* Since Oct 14 the RSVP is short; the map and the questions are optional extras, linked from every confirmation. */
+function extrasLine() {
+  var map = ''; try { map = mapFormUrl(); } catch (e) { /* no properties in tests */ }
+  return '<p><b>Two optional extras:</b> ' + (map ? '<a href="' + esc(map) + '">put yourself on the map</a> of where people are joining from (under a minute, no name needed), and ' : '') +
+    '<a href="' + ASK_URL + '">send a question for the speakers</a>.</p>';
 }
 
 /** Sends the confirmation to every RSVP that hasn't had one. Run by the form trigger; safe to run by hand. Returns how many went out. */
