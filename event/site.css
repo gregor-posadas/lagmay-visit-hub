@@ -212,6 +212,8 @@
 .ev-room__fig figcaption { font-size: var(--f1); color: var(--ink-2); margin-top: 6px; }
 .ev-room { margin-top: 40px; }
 .ev-logos__sq img { max-height: 84px; }
+/* Logos printed on their own solid block of colour (Goldman) read small at the usual height, so they get more room. */
+.ev-logos__block img { max-height: 84px; }
 /* The seats bar: a compact version of the funding gauge */
 .ev-seats__g { margin: 10px 0 0; }
 .ev-seats__g .gauge__nums { gap: 2px 20px; margin-bottom: 6px; color: var(--ink); }
@@ -278,6 +280,7 @@
   .ev-logos > li.ev-logos__cohost, .ev-logos > li.ev-logos__xwide, .ev-logos > li:has(.ev-logos__named) { grid-column: 1 / -1; }
   .ev-logos a { min-height: 88px; padding: 12px; }
   .ev-logos img { max-height: 52px; }
+  .ev-logos__block img { max-height: 64px; }
 }
 
 /* Buttons in the page body: full width and centred on phones, so labels don't wrap mid-phrase and the taps are easy. */
