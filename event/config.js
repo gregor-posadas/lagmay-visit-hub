@@ -7,6 +7,8 @@ window.EV_CONFIG = {
   // connectUrl: the Connect form's share link, logged by createConnectForm() in Apps Script. Until it is set, the button says sign-up opens soon.
   connectUrl: "https://docs.google.com/forms/d/1Str71D7TAyfwVl0y28jKZjIgZUtvz2aI7lxu96fg5UU/viewform",
   rsvpUrl: "https://docs.google.com/forms/d/e/1FAIpQLSep5CC-7wR6JnsLgJwK2Sqd3Uy3FxqaIgfCPndmfU0bHdDDew/viewform",
+  // mapUrl: the separate, anonymous "Put yourself on the map" form (createMapForm in Apps Script, Oct 14). "Put yourself on the map" links open it.
+  mapUrl: "https://docs.google.com/forms/d/e/1FAIpQLSflzcU9m6eU_jE170AO_HIm7aR3I32bHBrXF5f8RMsFfMjy9Q/viewform",
   timeText: "4 to 5 PM Pacific",
   // Start and end in Pacific time, 24-hour. Add to calendar and the countdown use these. If either is left blank,
   // the calendar event becomes all-day on Nov 9 and says the time is to be announced.
