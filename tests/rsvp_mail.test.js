@@ -66,6 +66,18 @@ m = conf('Not sure yet', 'r7'); assert.ok(m.html.includes('Working on something 
   assert.strictEqual(x.kind, 'multi'); assert.ok(/^Your RSVP/.test(x.subject) && x.html.includes('number 2') && x.html.includes('the panel at UC Berkeley'));
   x = run('rsvpConfirmation')({ id: 'k', name: 'Kim', join: O }, { status: {}, place: {} });
   assert.strictEqual(x.kind, 'online');
+  // The current boxes: the reception is its own choice, and the lecture room is known.
+  const JL = run('JOIN_LECTURE'), JP = run('JOIN_PANEL'), JO = run('JOIN_ONLINE'), JR = run('JOIN_RECEPTION');
+  x = run('rsvpConfirmation')({ id: 'k', name: 'Kim', join: J(JP, JR) }, { status: { k: 'seat' }, place: {}, lecture: { status: {}, place: {} } });
+  assert.strictEqual(x.kind, 'panel'); assert.ok(x.html.includes('Reception and networking:') && x.html.includes('5 PM in B100 Blum Hall'));
+  x = run('rsvpConfirmation')({ id: 'k', name: 'Kim', join: JP }, { status: { k: 'seat' }, place: {}, lecture: { status: {}, place: {} } });
+  assert.ok(!x.html.includes('Reception and networking:'), 'no reception unless they checked it');
+  x = run('rsvpConfirmation')({ id: 'k', name: 'Kim', join: JR }, { status: {}, place: {}, lecture: { status: {}, place: {} } });
+  assert.strictEqual(x.kind, 'reception'); assert.strictEqual(x.events.length, 0); assert.ok(/reception/.test(x.subject));
+  x = run('rsvpConfirmation')({ id: 'k', name: 'Kim', join: J(JL, JO, JR) }, { status: {}, place: {}, lecture: { status: { k: 'seat' }, place: {} } });
+  assert.strictEqual(x.kind, 'lecture'); assert.ok(x.html.includes('B100 Blum Hall') && /livestream/.test(x.html) && x.html.includes('Reception and networking:'));
+  assert.strictEqual(x.events[0].where, 'B100 Blum Hall, UC Berkeley, Berkeley, CA');
+  assert.ok(!/check Stanford/.test(run('STANFORD_NOTE')), 'Stanford is off the form, so the note no longer says to pick it');
 }
 
 const ics = run('icsFor')(run('RSVP_EVENTS').panel, '20261008T060000Z');
