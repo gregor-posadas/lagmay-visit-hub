@@ -1180,6 +1180,15 @@ function slimRsvpForm() {
   Logger.log(done.join('; ') + '. Map form: ' + mapFormUrl());
 }
 
+/** Run once (Oct 14): Connect has ended. Closes its form with a short note; the cards stay in the Sheet. */
+function closeConnectForm() {
+  var id = PropertiesService.getScriptProperties().getProperty('CONNECT_FORM_ID');
+  if (!id) { Logger.log('No Connect form.'); return; }
+  FormApp.openById(id).setAcceptingResponses(false)
+    .setCustomClosedFormMessage('Connect has ended. Thank you to everyone who added a card. The event page: ' + EVENT_URL_BASE());
+  Logger.log('Connect form closed.');
+}
+
 /**
  * Makes the "Put yourself on the map" form (once), sends its answers to the "Map responses" tab, and logs its links.
  * Anonymous: no name or email. Page 1 asks where you live and your connection; family ties, having lived there and
@@ -1850,9 +1859,7 @@ function rsvpConfirmation(r, plan) {
       }).join('; ') + '.</p>';
   }
   var body = '<p>Thank you for your RSVP to <b>When the Waters Rise</b>, a free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Dr. Lisandro Claudio and Dr. Diana Martinez, co-hosted with PhilDev.</p>' +
-    l.body + cal + extrasLine() +
-    (/^Yes/.test(r.connect || '') ? '<p><b>You said you would like to connect with others.</b> If you haven\'t added your card yet, you can do it any time from the <a href="' + EVENT_URL + 'connect/">Connect page</a>.</p>'
-      : '<p>Working on something in or for the Philippines? Add a card on the <a href="' + EVENT_URL + 'connect/">Connect page</a> so others at the event can find you.</p>') +
+    l.body + cal + extrasLine() +   // Connect ended Oct 14, so the email no longer points to it
     '<p>Details, directions and the live map of who is coming: <a href="' + EVENT_URL + '">' + EVENT_URL.replace(/^https:\/\//, '') + '</a></p>';
   return { kind: kind, subject: l.subject, event: evs[0] || null, events: evs,
     html: emailShell('Hi ' + first + ',', body, 'Questions, or need to change your RSVP? Just reply to this email. Gregor, Noam and Veronica, UC Berkeley') };

@@ -19,7 +19,7 @@ const conf = (attend, id) => run('rsvpConfirmation')({ id, name: 'Ana Reyes', em
 
 let m = conf(P, 'r2');
 assert.strictEqual(m.kind, 'panel'); assert.ok(/seat is saved/i.test(m.subject)); assert.ok(m.html.includes('Hi Ana,'));
-assert.ok(m.html.includes('B100 Blum Hall') && m.html.includes('calendar.google.com') && m.html.includes('connect/'));
+assert.ok(m.html.includes('B100 Blum Hall') && m.html.includes('calendar.google.com') && !m.html.includes('connect/'), 'Connect ended: no link');
 assert.strictEqual(m.event.start, '20261110T000000Z', '4 PM Pacific on Nov 9 is midnight UTC on Nov 10');
 
 m = conf(P, 'r3');
@@ -45,8 +45,8 @@ assert.ok(run('icsFor')(m.events, 'X').split('BEGIN:VEVENT').length === 3, 'two 
 m = run('rsvpConfirmation')({ id: 'r10', name: 'Jo', email: 'j@x.org', attend: B }, { status: { r10: 'seat' }, place: {}, lecture: { status: { r10: 'waitlist' }, place: { r10: 1 } } });
 assert.strictEqual(m.events.length, 1); assert.strictEqual(m.events[0].uid, run('RSVP_EVENTS').panel.uid); assert.ok(m.html.includes('number 1') && /Your RSVP/.test(m.subject));
 m = run('rsvpConfirmation')({ id: 'r11', name: 'Kai', email: 'k@x.org', attend: O, connect: run('CONNECT_YES') }, plan);
-assert.ok(m.html.includes('You said you would like to connect') && m.html.includes('connect/'));
-m = conf('Not sure yet', 'r7'); assert.ok(m.html.includes('Working on something in or for the Philippines')); assert.strictEqual(m.kind, 'unsure'); assert.ok(m.event);
+assert.ok(!m.html.includes('connect/'), 'no Connect line, even for people who said yes before it ended');
+m = conf('Not sure yet', 'r7'); assert.strictEqual(m.kind, 'unsure'); assert.ok(m.event);
 
 // Checkbox answers (Oct 14): any mix, one email with a part for each session.
 {

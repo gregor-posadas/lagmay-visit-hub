@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Makipag-ugnayan: When the Waters Rise</title>
-<meta name="description" content="Mga taong may ginagawa, o gustong gawin, para sa Pilipinas. Magdagdag ng maikling card para mahanap ka ng ibang dadalo sa talakayan sa Nobyembre 9, nanonood online o nasa Pilipinas.">
+<meta name="description" content="Tapos na ang Makipag-ugnayan. Salamat sa lahat ng nagdagdag ng card.">
 <meta name="color-scheme" content="light dark">
 <link rel="preload" href="../../../fonts/AtkinsonHyperlegibleNext-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../../../fonts/AtkinsonHyperlegibleNext-Bold.woff2" as="font" type="font/woff2" crossorigin>
@@ -12,7 +12,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="When the Waters Rise">
 <meta property="og:title" content="Makipag-ugnayan: When the Waters Rise">
-<meta property="og:description" content="Mga taong may ginagawa, o gustong gawin, para sa Pilipinas. Magdagdag ng maikling card para mahanap ka ng ibang dadalo sa talakayan sa Nobyembre 9, nanonood online o nasa Pilipinas.">
+<meta property="og:description" content="Tapos na ang Makipag-ugnayan. Salamat sa lahat ng nagdagdag ng card.">
 <meta property="og:url" content="https://gregor-posadas.github.io/lagmay-visit-hub/event/fil/connect/">
 <meta property="og:image" content="https://gregor-posadas.github.io/lagmay-visit-hub/event/img/share/og.jpg">
 <meta property="og:image:width" content="1200">
@@ -20,12 +20,12 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" hreflang="en" href="https://gregor-posadas.github.io/lagmay-visit-hub/event/">
 <link rel="alternate" hreflang="fil" href="https://gregor-posadas.github.io/lagmay-visit-hub/event/fil/">
-<link rel="stylesheet" href="../../../assets/styles.css?v=20261015055436">
-<link rel="stylesheet" href="../../site.css?v=20261015055436">
-<link rel="stylesheet" href="../../event.css?v=20261015055436">
+<link rel="stylesheet" href="../../../assets/styles.css?v=20261015055942">
+<link rel="stylesheet" href="../../site.css?v=20261015055942">
+<link rel="stylesheet" href="../../event.css?v=20261015055942">
 <script>try { var t = localStorage.getItem("lv.theme"); if (t) document.documentElement.setAttribute("data-theme", t); if (/[?&#]present/.test(location.href)) document.documentElement.setAttribute("data-theme", /[?&#]light/.test(location.href) ? "light" : "dark"); } catch (e) {}</script>
 </head>
-<body class="ev-page ev-page--connect">
+<body class="ev-page ev-page--event">
 <!-- Built by tools/build_event_pages.py from event/src/connect-fil.html. Edit that file, not this one. -->
 <a class="skip" href="#main">Lumaktaw sa nilalaman</a>
 <header class="band" role="banner">
@@ -35,14 +35,12 @@
       <span class="brand__sub">Baha sa Pilipinas, isang pampublikong talakayan</span>
     </a>
     <nav class="nav" aria-label="Mga pahina">
-      <a href="../../fil/">Pagtitipon</a>
+      <a href="../../fil/" aria-current="page">Pagtitipon</a>
       <a href="../../fil/rsvp/" class="nav__rsvp">Mag-RSVP</a>
       <a href="../../fil/ask/" class="nav__ask">Magtanong</a>
       <a href="../../fil/story/">Ibahagi ang kuwento</a>
-      <a href="../../fil/connect/" aria-current="page">Makipag-ugnayan</a>
       <a href="../../fil/about/">Tungkol</a>
       <a href="../../history/">Kasaysayan</a>
-      <a href="../../faq/">Mga FAQ</a>
       <a href="../../fil/directions/">Direksyon</a>
     </nav>
     <div class="band__tools">
@@ -56,35 +54,14 @@
 <main id="main" tabindex="-1">
   <div class="wrap">
     <header class="rd-head">
-      <h1>Makipag-ugnayan sa mga proyekto sa Pilipinas</h1>
-      <p class="rd-lead">Mga taong may ginagawa, o gustong gawin, sa o para sa Pilipinas. Idagdag ang sa iyo para mahanap ka ng ibang dadalo, nanonood online o nasa Pilipinas.</p>
-      <div class="actions"><a class="btn btn--solid" id="cn-add" href="#cards">Idagdag ang card mo<span class="sr"> (magbubukas ng Google Form sa bagong tab, nasa Ingles)</span></a></div>
+      <h1>Makipag-ugnayan</h1>
+      <p class="rd-lead">Tapos na ang Makipag-ugnayan. Salamat sa lahat ng nagdagdag ng card. <a href="../../fil/">Pumunta sa pahina ng pagtitipon.</a></p>
     </header>
-
-    <section class="section cn-first" id="cards" aria-labelledby="cards-h">
-      <h2 id="cards-h" class="sr">Ang mga card</h2>
-      <p class="cn-sample" id="cn-sample" hidden><b>Halimbawang card.</b> Gawa-gawa lang ang mga taong ito, para ipakita ang itsura ng mga card.</p>
-      <div class="cn-filter" id="cn-filter" hidden></div>
-      <p class="cn-count" id="cn-count" aria-live="polite"></p>
-      <ul class="cn-cards" id="cn-cards"></ul>
-      <div class="actions" id="cn-more-wrap" hidden><button type="button" class="btn" id="cn-more"></button></div>
-    </section>
-
-    <section class="section" aria-labelledby="how-h">
-      <h2 id="how-h">Paano ito gumagana</h2>
-      <ol class="list">
-        <li><b>Magdagdag ng card.</b> Itatanong ng maikling form kung ano ang ginagawa mo, ano ang hinahanap mo, at kung ipapakita ba ang card mo rito o gagamitin lang sa mga pagpapakilala. Mga tatlong minuto lang ito.</li>
-        <li><b>Babasahin ito ng isang organizer.</b> Binabasa ang bawat card bago ito lumabas. Hindi kailanman ipinapakita ang email mo sa pahinang ito.</li>
-        <li><b>Hanapin ang isa't isa.</b> Lalabas sa itaas ng pahinang ito ang mga naaprubahang card. Kung humiling ka ng pagpapakilala, makatatanggap ka ng email bago ang Nobyembre 9 na may mga taong kapareho mo ng interes na humiling din ng pagpapakilala.</li>
-      </ol>
-      <p class="section__note">Bukas ito sa lahat, at hindi kailangang mag-RSVP sa talakayan para magdagdag ng card. Para baguhin o alisin ang card mo, mag-email sa <a href="mailto:gregorposadas@berkeley.edu">gregorposadas@berkeley.edu</a>.</p>
-    </section>
   </div>
 </main>
-<footer class="foot"><p>Inorganisa nina Gregor Posadas, Noam Anglo at Veronica Sison sa UC Berkeley, kasama si Rapha Felipe sa Stanford, at katuwang na host ang <a href="https://www.phildev.org/">PhilDev</a> (Philippine Development Foundation). May tanong? Tingnan ang <a href="../../faq/">Mga FAQ</a>, lapitan kami sa mismong araw, o sumagot sa email ng iyong RSVP.</p></footer>
+<script>location.replace("../../fil/");</script>
+<footer class="foot"><p>Inorganisa nina Gregor Posadas, Noam Anglo at Veronica Sison sa UC Berkeley, kasama si Rapha Felipe sa Stanford, at katuwang na host ang <a href="https://www.phildev.org/">PhilDev</a> (Philippine Development Foundation). May tanong? Tingnan ang <a href="../../about/#faq">mga FAQ</a> (sa Ingles), lapitan kami sa mismong araw, o sumagot sa email ng iyong RSVP.</p></footer>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script src="../../site.js?v=20261015055436"></script>
-<script src="../../config.js?v=20261015055436"></script>
-<script src="../../connect.js?v=0"></script>
+<script src="../../site.js?v=20261015055942"></script>
 </body>
 </html>
