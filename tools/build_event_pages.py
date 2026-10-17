@@ -19,8 +19,8 @@ MARK = ('<svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusab
 NAV = {
     # Oct 14: "Support us" and "Accessibility" are off the menu (the pages still exist and are linked where relevant).
     # Later Oct 14: the FAQs moved into About, and Connect ended; their old addresses forward.
-    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("ask", "ask/", "Ask the speakers"), ("story", "story/", "Share your story"), ("directions", "directions/", "Directions"), ("about", "about/", "About"), ("contact", "contact/", "Contact us")],
-    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("ask", "fil/ask/", "Magtanong"), ("story", "fil/story/", "Ibahagi ang kuwento"), ("directions", "fil/directions/", "Direksyon"), ("about", "fil/about/", "Tungkol"), ("contact", "fil/contact/", "Makipag-ugnayan")],
+    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("ask", "ask/", "Ask the speakers"), ("story", "story/", "Share your story"), ("donate", "donate/", "Donate"), ("directions", "directions/", "Directions"), ("about", "about/", "About"), ("contact", "contact/", "Contact us")],
+    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("ask", "fil/ask/", "Magtanong"), ("story", "fil/story/", "Ibahagi ang kuwento"), ("donate", "donate/", "Mag-donate"), ("directions", "fil/directions/", "Direksyon"), ("about", "fil/about/", "Tungkol"), ("contact", "fil/contact/", "Makipag-ugnayan")],
 }
 # The language link goes to the same page in the other language where there is one, else to the other language's event page.
 OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "rsvp/": "fil/rsvp/", "connect/": "fil/connect/", "ask/": "fil/ask/", "story/": "fil/story/", "contact/": "fil/contact/",
@@ -55,7 +55,7 @@ def build(src):
         cur = ' aria-current="page"' if key == meta.get("nav") else ""
         lng = ' lang="fil" hreflang="fil"' if key == "fil" else (' lang="en" hreflang="en"' if key == "en" else "")
         # Three levels: RSVP is a filled blue box (the thing to do), Ask the speakers is outlined, Share your story is tinted.
-        cta = {"rsvp": ' class="nav__rsvp"', "ask": ' class="nav__ask"', "story": ' class="nav__story"'}.get(key, "")
+        cta = {"rsvp": ' class="nav__rsvp"', "ask": ' class="nav__ask"', "story": ' class="nav__story"', "donate": ' class="nav__donate"'}.get(key, "")
         links.append(f'      <a href="{(R + href) or "./"}"{cta}{cur}{lng}>{label}</a>')
     nav = "\n".join(links)
     nav = nav.replace(f'href="{R}"', f'href="{R or "./"}"')
