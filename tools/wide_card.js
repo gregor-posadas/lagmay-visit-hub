@@ -33,8 +33,8 @@ h1 { font-size: 88px; line-height: 1.04; margin-top: 14px; }
 <div class="top"><p class="brand"><svg width="44" height="44" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#385F96"/><path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>When the Waters Rise</p></div>
 <div class="co"><span>Co-hosted with</span><img src="${B}event/img/logos/logo-phildev.png" alt=""></div>
 <p class="k">Free public talk · Mon, Nov 9 · UC Berkeley</p>
-<h1>Dr. Mahar Lagmay at UC Berkeley</h1>
-<p class="b">The scientist behind Project NOAH's national flood maps, in conversation with UC Berkeley scholars Dr. Lisandro Claudio and Dr. Diana Martinez. Everyone welcome.</p>
+<h1>Why does the Philippines keep flooding?</h1>
+<p class="b">A free panel with Dr. Lisandro Claudio, Dr. Mahar Lagmay and Dr. Diana Martinez, then a reception to share stories, connect and learn from each other. Everyone welcome.</p>
 <div class="facts"><div><b>4 to 5 PM</b><span>Monday, November 9</span></div><div><b>Banatao Auditorium</b><span>Sutardja Dai Hall</span></div><div><b>Free</b><span>Livestreamed too</span></div></div>
 <div class="foot"><div class="cta"><img src="${B}event/img/qr-event.svg" alt=""><div><b>RSVP</b><span>gregor-posadas.github.io/lagmay-visit-hub/event</span></div></div></div>
 </div></body></html>`, { waitUntil: 'networkidle' });

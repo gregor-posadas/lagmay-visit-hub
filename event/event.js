@@ -589,7 +589,7 @@
     var events = [
       { id: "panel", file: "when-the-waters-rise.ics", start: panelStart, end: panelEnd, uid: "when-the-waters-rise-2026-11-09@gregor-posadas.github.io",
         label: FIL ? "Ang panel, 4 hanggang 5 ng hapon, at ang resepsiyon" : "The panel, 4 to 5 PM, and the reception",
-        title: "When the Waters Rise: Dr. Mahar Lagmay at UC Berkeley",
+        title: "When the Waters Rise: Flooding in the Philippines at UC Berkeley",
         where: "Banatao Auditorium, Sutardja Dai Hall, UC Berkeley, Berkeley, CA",
         about: FIL ? "Libreng pampublikong talakayan tungkol sa baha sa Pilipinas, kasama sina Dr. Mahar Lagmay, Dr. Lisandro Claudio at Dr. Diana Martinez. Pagkatapos, resepsiyon sa B100 Blum Hall at sa lobby nito."
                    : "A free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Dr. Lisandro Claudio and Dr. Diana Martinez. Reception after in B100 Blum Hall and its lobby." },
