@@ -169,11 +169,14 @@
                 : { h: "Share the event", story: "Share to Instagram story", dl: "Download story image", link: "Other apps", copy: "Copy link", copied: "Link copied.", nocopy: "Could not copy. Select and copy the link above.", close: "Close", alt: "Story card for the event", urlLabel: "Link to this page", on: "Share on", note: "Pick Instagram, then Story. The link is copied too, so you can add it with a Link sticker.", noteDesk: "For Instagram Stories: download the image, post it from your phone, and add a Link sticker with the link above.", toast: "Link copied. Add it with a Link sticker in Instagram.", newtab: " (opens in a new tab)", post: "Suggested post", postNote: "LinkedIn and WhatsApp open with this already filled in. For Facebook, we copy it so you can paste it.", copyPost: "Copy post text", postCopied: "Post text copied.", fbToast: "Post text copied. Paste it into your Facebook post.", preparing: "Preparing the story image…", sharePost: "Share the post to an app", postNoteMobile: "Pick LinkedIn, Facebook, WhatsApp or any other app. The post text is copied too, so you can paste it if an app leaves it out.", postShared: "The post text is copied too, in case you need to paste it." };
     // Ready-made words for the post, so sharing takes one click. Edit them in the dialog before posting.
     var SUPPORT = /\/support\/?$/.test(btn.getAttribute("data-url") || "");
+    var DONATE = /\/donate\/?$/.test(btn.getAttribute("data-url") || "");
     var POST = FIL
-      ? "Sa Lunes, Nobyembre 9, darating sa UC Berkeley si Dr. Mahar Lagmay, ang siyentipiko sa likod ng pambansang flood hazard maps ng Pilipinas (Project NOAH), para sa isang libreng pampublikong talakayan kasama ang mga historyador na sina Dr. Lisandro Claudio at Dr. Diana Martinez. Bakit paulit-ulit na binabaha ang Pilipinas, sino ang nagbabayad, at ano ang magagawa natin dito sa Bay Area? Sa Banatao Auditorium, at may livestream. Bukas sa lahat. Mag-RSVP dito"
+      ? "Bakit laging bumabaha sa Pilipinas? Sa Lunes, Nobyembre 9, sa UC Berkeley, isang libreng talakayan kasama sina Dr. Lisandro Claudio, Dr. Mahar Lagmay (Project NOAH) at Dr. Diana Martinez, at pagkatapos ay salu-salo para magbahagi ng kuwento at magkakilala. Nangangalap din kami ng tulong para sa Bayanihan Response for Disaster Relief ng NAFCON. Bukas sa lahat. Mag-RSVP dito"
       : SUPPORT
-      ? "We're bringing Dr. Mahar Lagmay, who leads the Philippines' national flood mapping program (Project NOAH), to UC Berkeley on November 9 for a free public conversation on why the Philippines keeps flooding, with historians Dr. Lisandro Claudio and Dr. Diana Martinez. The talk is free for everyone. His flight, the room and the reception are covered, and it still needs sponsors for the speakers' honoraria and his rides around the Bay Area. If your organization can help, here is how"
-      : "On Monday, November 9, Dr. Mahar Lagmay, the scientist behind the Philippines' national flood hazard maps (Project NOAH), comes to UC Berkeley for a free public conversation with historians Dr. Lisandro Claudio and Dr. Diana Martinez. Why does the Philippines keep flooding, who pays for it, and what can we in the Bay Area do? In Banatao Auditorium and livestreamed. Everyone is welcome. RSVP here";
+      ? "When the Waters Rise is a free public conversation at UC Berkeley on November 9 on why the Philippines keeps flooding, with Dr. Lisandro Claudio, Dr. Mahar Lagmay (Project NOAH) and Dr. Diana Martinez. The talk is free for everyone, and sponsors help cover the rest. If your organization can help, here is how"
+      : DONATE
+      ? "Alongside When the Waters Rise at UC Berkeley on November 9, we're raising funds for NAFCON's Bayanihan Response for Disaster Relief, for families in the Philippines hit by Typhoon Tino and Super Typhoon Uwan. Any amount helps. Give here"
+      : "Why does the Philippines keep flooding? On Monday, November 9 at UC Berkeley, join Dr. Lisandro Claudio, Dr. Mahar Lagmay (Project NOAH) and Dr. Diana Martinez for a free panel, then stay for a reception to share stories, connect and learn from each other. We're also raising funds for NAFCON's Bayanihan Response for Disaster Relief. Everyone is welcome. RSVP here";
     var TAGS = "#Philippines #Flooding #ClimateAdaptation #DisasterResilience #UCBerkeley #FilipinoAmerican";
     var url = btn.getAttribute("data-url"), card = btn.getAttribute("data-card"), title = btn.getAttribute("data-title"), file = null;
     btn.insertAdjacentHTML("afterbegin", icon("share"));
@@ -190,7 +193,7 @@
     function load() {
       if (file || loading || !window.fetch || typeof File === "undefined") return loading;
       loading = fetch(card).then(function (r) { return r.blob(); }).then(function (b) {
-        file = new File([b], card.split("/").pop(), { type: "image/jpeg" });
+        file = new File([b], card.split("/").pop().split("?")[0], { type: "image/jpeg" });
         if (dlg && dlg.open) paint();   // the dialog was opened before the image arrived
       }).catch(function () { loading = null; });
       return loading;

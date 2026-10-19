@@ -9,5 +9,7 @@ sed -i.bak -E "s#var BUILD = \"[^\"]*\";#var BUILD = \"$V\";#" assets/app.js && 
 # The public event site (every page)
 for f in $(find event -name index.html); do
   sed -i.bak -E "s#((assets/styles\.css)|site\.css|site\.js|event\.css|event\.js|config\.js|rsvp\.js|campus-map\.js)(\?v=[0-9A-Za-z]+)?#\1?v=$V#g" "$f" && rm -f "$f.bak"
+  # Share cards too, so a phone that saved an old card picks up the new one
+  sed -i.bak -E "s#(img/share/[a-z-]+\.jpg)(\?v=[0-9A-Za-z]+)?#\1?v=$V#g" "$f" && rm -f "$f.bak"
 done
 echo "Stamped version $V"

@@ -16,21 +16,21 @@ const cards = {
 const html = c => `<!doctype html><html lang="${c.lang}"><head><meta charset="utf-8"><style>
 @font-face { font-family: A; src: url(${B}fonts/AtkinsonHyperlegibleNext-Regular.woff2); }
 @font-face { font-family: A; font-weight: 700; src: url(${B}fonts/AtkinsonHyperlegibleNext-Bold.woff2); }
-* { box-sizing: border-box; margin: 0; } body { width: 1080px; height: 1920px; background: #f4f0e8; color: #1b1a17; font-family: A, sans-serif; position: relative; overflow: hidden; }
-.band { background: #1b1a17; color: #fff; padding: 92px 90px 70px; position: relative; }
+* { box-sizing: border-box; margin: 0; } body { width: 1080px; height: 1920px; background: #f4f0e8; color: #1b1a17; font-family: A, sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+.band { background: #1b1a17; color: #fff; padding: 92px 90px 70px; position: relative; flex: none; }
 .band h1 { font-size: 50px; letter-spacing: 0.02em; text-transform: uppercase; display: flex; align-items: center; gap: 22px; }
 .band p { font-size: 32px; color: #ddd; margin-top: 16px; }
 .flag { position: absolute; left: 0; right: 0; bottom: -14px; height: 14px; background: linear-gradient(#385F96 50%, #A3242A 50%); }
-.pic { margin: 80px auto 0; width: 900px; height: 500px; border: 6px solid #1b1a17; box-shadow: 20px 20px 0 #1b1a17; background: url(${B}${c.img}) center / cover; }
-.k { margin: 64px 90px 0; font-size: 32px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #4d4a43; }
-.t { margin: 16px 90px 0; font-size: 92px; font-weight: 700; line-height: 1.05; }
+.pic { margin: 64px auto 0; flex: none; width: 900px; height: 440px; border: 6px solid #1b1a17; box-shadow: 20px 20px 0 #1b1a17; background: url(${B}${c.img}) center / cover; }
+.k { margin: 56px 90px 0; font-size: 32px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #4d4a43; }
+.t { margin: 16px 90px 0; font-size: 84px; font-weight: 700; line-height: 1.05; }
 .b { margin: 30px 90px 0; font-size: 38px; line-height: 1.38; color: #36332d; }
-.u { position: absolute; left: 90px; right: 90px; bottom: 150px; border: 6px solid #1b1a17; box-shadow: 14px 14px 0 #1b1a17; background: #fcfaf5; padding: 30px 34px; display: flex; justify-content: space-between; align-items: center; }
-.co { margin: 40px 90px 0; display: flex; align-items: center; gap: 22px; font-size: 32px; font-weight: 700; color: #4d4a43; }
+.u { flex: none; margin: auto 90px 0; border: 6px solid #1b1a17; box-shadow: 14px 14px 0 #1b1a17; background: #fcfaf5; padding: 30px 34px; display: flex; justify-content: space-between; align-items: center; }
+.co { flex: none; margin: 40px 90px 0; display: flex; align-items: center; gap: 22px; font-size: 32px; font-weight: 700; color: #4d4a43; }
 .co img { height: 80px; background: #fff; border: 4px solid #1b1a17; padding: 6px 14px; }
 .co { flex-wrap: wrap; gap: 16px 18px; }
 .u .qr { width: 132px; height: 132px; display: block; margin-right: 30px; flex: none; } .u .l { display: flex; align-items: center; flex: 1; }
-.lg { position: absolute; left: 90px; right: 90px; bottom: 44px; height: 70px; background: #fff; border: 2px solid #cfc8b8; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 18px; }
+.lg { margin: 36px 90px 44px; flex: none; height: 70px; background: #fff; border: 2px solid #cfc8b8; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 18px; }
 .lg img { height: 30px; display: block; min-width: 0; } .lg .sep { width: 2px; height: 36px; background: #cfc8b8; flex: none; }
 .u b { font-size: 40px; } .u span { font-size: 27px; color: #4d4a43; display: block; margin-top: 6px; } .u i { font-style: normal; font-size: 52px; font-weight: 700; }
 </style></head><body>
