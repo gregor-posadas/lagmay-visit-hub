@@ -20,8 +20,9 @@ NAV = {
     # Oct 14: "Support us" and "Accessibility" are off the menu (the pages still exist and are linked where relevant).
     # Later Oct 14: the FAQs moved into About, and Connect ended; their old addresses forward.
     # Oct 28: Connect is back (people were using it). Its Filipino page still forwards to the English one.
-    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("ask", "ask/", "Ask the speakers"), ("story", "story/", "Share your story"), ("connect", "connect/", "Connect"), ("donate", "donate/", "Donate"), ("directions", "directions/", "Directions"), ("about", "about/", "About"), ("contact", "contact/", "Contact us")],
-    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("ask", "fil/ask/", "Magtanong"), ("story", "fil/story/", "Ibahagi ang kuwento"), ("connect", "connect/", "Kumonekta"), ("donate", "donate/", "Mag-donate"), ("directions", "fil/directions/", "Direksyon"), ("about", "fil/about/", "Tungkol"), ("contact", "fil/contact/", "Makipag-ugnayan")],
+    # Oct 28: "Table with us" for orgs that want a table at the reception (English only).
+    "en": [("event", "", "Event"), ("rsvp", "rsvp/", "RSVP"), ("ask", "ask/", "Ask the speakers"), ("story", "story/", "Share your story"), ("connect", "connect/", "Connect"), ("table", "table/", "Table with us"), ("donate", "donate/", "Donate"), ("directions", "directions/", "Directions"), ("about", "about/", "About"), ("contact", "contact/", "Contact us")],
+    "fil": [("event", "fil/", "Pagtitipon"), ("rsvp", "fil/rsvp/", "Mag-RSVP"), ("ask", "fil/ask/", "Magtanong"), ("story", "fil/story/", "Ibahagi ang kuwento"), ("connect", "connect/", "Kumonekta"), ("table", "table/", "Mag-table"), ("donate", "donate/", "Mag-donate"), ("directions", "fil/directions/", "Direksyon"), ("about", "fil/about/", "Tungkol"), ("contact", "fil/contact/", "Makipag-ugnayan")],
 }
 # The language link goes to the same page in the other language where there is one, else to the other language's event page.
 OTHER = {"": "fil/", "about/": "fil/about/", "directions/": "fil/directions/", "rsvp/": "fil/rsvp/", "connect/": "fil/connect/", "ask/": "fil/ask/", "story/": "fil/story/", "contact/": "fil/contact/",
