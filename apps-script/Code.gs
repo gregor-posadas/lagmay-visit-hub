@@ -1148,7 +1148,8 @@ function rsvpThanks() {
   var map = mapFormUrl();
   return "Thank you, you're on the list. A confirmation email is on its way.\n\n" +
     (map ? 'Want to show where you are joining from? Put yourself on the map (under a minute, no name needed): ' + map + '\n\n' : '') +
-    'Have a question for the speakers? Send it here: ' + ASK_URL;
+    'Have a question for the speakers? Send it here: ' + ASK_URL + '\n\n' +
+    'Working on something in or for the Philippines? Add a card so others at the event can find you: ' + EVENT_URL_BASE() + 'connect/';
 }
 
 /**
@@ -1189,6 +1190,27 @@ function closeConnectForm() {
   try { form.setCustomClosedFormMessage('Connect has ended. Thank you to everyone who added a card.'); }
   catch (e) { Logger.log('Closed, but the closing note could not be set: ' + e.message); }
   Logger.log('Connect form closed: ' + !form.isAcceptingResponses());
+}
+
+/**
+ * Run once (Oct 28): Connect is back. Reopens the Connect card form, puts the Connect question back at the end of the
+ * RSVP form (if it isn't there already) and refreshes the RSVP thank-you screen. Emails no one; answers already given stay.
+ */
+function reopenConnect() {
+  var props = PropertiesService.getScriptProperties(), done = [];
+  var cid = props.getProperty('CONNECT_FORM_ID');
+  if (cid) { FormApp.openById(cid).setAcceptingResponses(true); done.push('Connect form open'); }
+  else done.push('no Connect form found (run createConnectForm)');
+  var rid = props.getProperty('RSVP_FORM_ID');
+  if (rid) {
+    var form = FormApp.openById(rid);
+    var has = form.getItems().some(function (it) { return it.getTitle() === Q.connect; });
+    if (!has) { addConnectQuestion(form); done.push('Connect question added to the end of the RSVP form'); }
+    else done.push('the RSVP form already has the Connect question');
+    form.setConfirmationMessage(rsvpThanks());
+    done.push('thank-you screen updated');
+  } else done.push('no RSVP form found');
+  Logger.log(done.join('; ') + '.');
 }
 
 /**
@@ -1861,7 +1883,9 @@ function rsvpConfirmation(r, plan) {
       }).join('; ') + '.</p>';
   }
   var body = '<p>Thank you for your RSVP to <b>When the Waters Rise</b>, a free public conversation on flooding in the Philippines with Dr. Mahar Lagmay, Dr. Lisandro Claudio and Dr. Diana Martinez, co-hosted with PhilDev.</p>' +
-    l.body + cal + extrasLine() +   // Connect ended Oct 14, so the email no longer points to it
+    l.body + cal + extrasLine() +   // Oct 28: Connect is back, so the email points to it again
+    (/^Yes/.test(r.connect || '') ? '<p><b>You said you would like to connect with others.</b> If you haven\'t added your card yet, you can do it any time from the <a href="' + EVENT_URL + 'connect/">Connect page</a>.</p>'
+      : '<p>Working on something in or for the Philippines? Add a card on the <a href="' + EVENT_URL + 'connect/">Connect page</a> so others at the event can find you.</p>') +
     '<p>Details, directions and the live map of who is coming: <a href="' + EVENT_URL + '">' + EVENT_URL.replace(/^https:\/\//, '') + '</a></p>';
   return { kind: kind, subject: l.subject, event: evs[0] || null, events: evs,
     html: emailShell('Hi ' + first + ',', body, 'Questions, or need to change your RSVP? Just reply to this email. Gregor, Noam and Veronica, UC Berkeley') };

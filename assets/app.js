@@ -1113,7 +1113,7 @@
       '<a class="btn btn--quiet" href="' + esc(eventUrl("?sample&present")) + '" target="_blank" rel="noopener">Rehearse with sample people<span class="sr"> (opens in a new tab)</span></a></div>' +
       (form ? "" : '<p class="next-step"><b>The form isn\'t made yet.</b> In Apps Script, run <code>createRsvpForm</code> once. It logs the link to share.</p>') + "</div>" +
       '<div class="stats stats--5"><div class="stat"><b>' + list.length + '</b><span>RSVPs</span></div><div class="stat"><b>' + inPerson + '</b><span>In person</span></div><div class="stat"><b>' + shownStories + " of " + stories.length + '</b><span>Stories ticked to show</span></div><div class="stat"><b>' + picked + " of " + questions.length + '</b><span>Questions picked</span></div><div class="stat"><b>' + needs.length + "</b><span>Access requests</span></div></div>" +
-      // Connect ended Oct 14; its cards stay in the Sheet (connectSection is kept in case it comes back).
+      connectSection() +   // Connect is back as of Oct 28
       '<section class="section" aria-labelledby="st-h"><h2 id="st-h">Flood stories</h2><p class="section__note">Read each one before ticking it. Tick only stories that are safe to read aloud to a full room.</p>' + (storyRows ? '<ul class="rsvp-list">' + storyRows + "</ul>" : '<p class="empty">No stories yet.</p>') + "</section>" +
       '<section class="section" aria-labelledby="q-h"><h2 id="q-h">Questions for the speakers</h2><p class="section__note">Tick the ones the moderator should have. They are never shown publicly.</p>' + (questionRows ? '<ul class="rsvp-list">' + questionRows + "</ul>" : '<p class="empty">No questions yet.</p>') + "</section>" +
       '<section class="section" aria-labelledby="ac-h"><h2 id="ac-h">Access requests</h2><p class="section__note">Only the four of us see these. Captions need booking with CITRIS ahead of time.</p>' +
@@ -1709,7 +1709,7 @@
   /* ---------- stay on the newest version ----------
      GitHub Pages lets browsers cache files for up to 10 minutes. version.json is always fetched fresh; if it names
      a newer build than this one, the hub refreshes the cached files and reloads (on first load), or offers a Reload button. */
-  var BUILD = "20261019160040";
+  var BUILD = "20261028191606";
   var lastVersionCheck = 0;
   function checkVersion(onLoad) {
     if (BUILD.indexOf("__") === 0) return;            // local copy without a stamp
