@@ -1193,23 +1193,16 @@ function closeConnectForm() {
 }
 
 /**
- * Run once (Oct 28): Connect is back. Reopens the Connect card form, puts the Connect question back at the end of the
- * RSVP form (if it isn't there already) and refreshes the RSVP thank-you screen. Emails no one; answers already given stay.
+ * Run once (Oct 28): Connect is back, on its own form. Reopens the Connect card form and refreshes the RSVP thank-you
+ * screen so it links to the Connect page. The RSVP form's questions are not touched. Emails no one.
  */
 function reopenConnect() {
   var props = PropertiesService.getScriptProperties(), done = [];
   var cid = props.getProperty('CONNECT_FORM_ID');
-  if (cid) { FormApp.openById(cid).setAcceptingResponses(true); done.push('Connect form open'); }
+  if (cid) { var cf = FormApp.openById(cid); cf.setAcceptingResponses(true); done.push('Connect form open: ' + cf.isAcceptingResponses()); }
   else done.push('no Connect form found (run createConnectForm)');
   var rid = props.getProperty('RSVP_FORM_ID');
-  if (rid) {
-    var form = FormApp.openById(rid);
-    var has = form.getItems().some(function (it) { return it.getTitle() === Q.connect; });
-    if (!has) { addConnectQuestion(form); done.push('Connect question added to the end of the RSVP form'); }
-    else done.push('the RSVP form already has the Connect question');
-    form.setConfirmationMessage(rsvpThanks());
-    done.push('thank-you screen updated');
-  } else done.push('no RSVP form found');
+  if (rid) { FormApp.openById(rid).setConfirmationMessage(rsvpThanks()); done.push('RSVP thank-you screen links to Connect'); }
   Logger.log(done.join('; ') + '.');
 }
 
