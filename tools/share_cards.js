@@ -2,8 +2,8 @@
 //   node tools/share_cards.js      (with `python3 -m http.server 8765` running in the repo root)
 const { chromium } = require('playwright');
 const B = 'http://localhost:8765/';
-const LOGOS = ['up', 'upri.jpg', 'noah', '|', 'blum', 'deveng', 'townsend', 'goldman-block', 'bcp', 'stanford-sea']
-  .map(n => n === '|' ? '<span class="sep"></span>' : `<img src="${B}event/img/logos/logo-${n.includes('.') ? n : n + '.png'}" alt="">`).join('');
+const { logoRow, FIT } = require('./logos');
+const LOGOS = logoRow(B);
 const CO = { en: 'Co-hosted with', fil: 'Katuwang na host' };
 const cards = {
   'event-en': { lang: 'en', kicker: 'Free public talk · Mon, Nov 9', title: 'When the Waters Rise', sub: 'Flooding in the Philippines, a public conversation',
@@ -31,7 +31,7 @@ const html = c => `<!doctype html><html lang="${c.lang}"><head><meta charset="ut
 .co { flex-wrap: wrap; gap: 16px 18px; }
 .u .qr { width: 132px; height: 132px; display: block; margin-right: 30px; flex: none; } .u .l { display: flex; align-items: center; flex: 1; }
 .lg { margin: 36px 90px 44px; flex: none; height: 70px; background: #fff; border: 2px solid #cfc8b8; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 18px; }
-.lg img { height: 30px; display: block; min-width: 0; } .lg .sep { width: 2px; height: 36px; background: #cfc8b8; flex: none; }
+.lg img { height: 30px; display: block; flex: none; } .lg .sep { width: 2px; height: 36px; background: #cfc8b8; flex: none; }
 .u b { font-size: 40px; } .u span { font-size: 27px; color: #4d4a43; display: block; margin-top: 6px; } .u i { font-style: normal; font-size: 52px; font-weight: 700; }
 </style></head><body>
 <div class="band"><h1><svg width="56" height="56" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#385F96"/><path d="M6 19c3-3 5 3 10 0s7 3 10 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>When the Waters Rise</h1><p>${c.sub}</p><div class="flag"></div></div>
@@ -46,7 +46,7 @@ const html = c => `<!doctype html><html lang="${c.lang}"><head><meta charset="ut
   const p = await (await b.newContext({ viewport: { width: 1080, height: 1920 } })).newPage();
   await p.goto(B + 'version.json');   // same origin as the fonts, so they load
   for (const [name, c] of Object.entries(cards)) {
-    await p.setContent(html(c), { waitUntil: 'networkidle' }); await p.evaluate(() => document.fonts.ready);
+    await p.setContent(html(c), { waitUntil: 'networkidle' }); await p.evaluate(() => document.fonts.ready); await p.evaluate(`(${FIT})('.lg', 30)`);
     await p.screenshot({ path: `event/img/share/${name}.jpg`, type: 'jpeg', quality: 86 });
     console.log('wrote', name);
   }
