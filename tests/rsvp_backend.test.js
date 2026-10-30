@@ -107,8 +107,14 @@ assert.deepStrictEqual(m.lectureSeats, { capacity: 1, taken: 1, left: 0 });
 const l3 = JSON.parse(JSON.stringify(vm.runInContext('rsvpList()', ctx)));
 assert.deepStrictEqual(l3.filter(r => r.lectureSeat).map(r => r.name + ':' + r.lectureSeat + (r.lectureWaitPlace ? '#' + r.lectureWaitPlace : '') + ':' + r.seat),
   ['Fe:seat:', 'Hal:waitlist#1:', 'Ivy:waitlist#2:'], 'lecture spots never touch the panel seats');
+// Oct 30: the lecture waitlist is closed, so a full lecture drops off the form.
+said = vm.runInContext('updateSeatChoices()', ctx);
+assert.ok(!choices.some(c => /DevEng 203/.test(c)) && /waitlist closed/.test(said) && /lecture is full/.test(help), said);
+// With the waitlist reopened, a full lecture offers its waitlist again.
+vm.runInContext('LECTURE_WAITLIST_OPEN = true', ctx);
 said = vm.runInContext('updateSeatChoices()', ctx);
 assert.ok(/^\[Blum Hall B100\] Waitlist: DevEng 203/.test(choices[0]) && jset(choices[0]).lecture === 'wait' && /Lecture full/.test(said) && /guest spots for the lecture are taken/.test(help), said);
+vm.runInContext('LECTURE_WAITLIST_OPEN = false', ctx);
 const plan3 = vm.runInContext('seatPlan(readRsvps())', ctx);
 assert.ok(!Object.keys(plan3.status).some(id => plan3.lecture.status[id]), 'the panel check-in list never includes lecture RSVPs');
 vm.runInContext('LECTURE_SEATS = 20', ctx);
@@ -124,7 +130,7 @@ vm.runInContext('LECTURE_SEATS = 2', ctx);
 const plan5 = vm.runInContext('seatPlan(readRsvps())', ctx);
 assert.strictEqual(plan5.status[jo], 'seat'); assert.strictEqual(plan5.lecture.status[jo], 'waitlist', 'lecture full: Both keeps the panel seat and waits for the lecture');
 said = vm.runInContext('updateSeatChoices()', ctx);
-assert.ok(/^\[Blum Hall B100\] Waitlist: DevEng 203/.test(choices[0]) && choices.length === 4, choices[0]);
+assert.ok(choices.length === 3 && !choices.some(c => /DevEng 203/.test(c)), 'lecture full, waitlist closed: three boxes left');
 vm.runInContext('LECTURE_SEATS = 20', ctx);
 said = vm.runInContext('updateSeatChoices()', ctx);
 assert.strictEqual(choices[2], vm.runInContext('JOIN_ONLINE', ctx)); assert.strictEqual(choices[0], vm.runInContext('JOIN_LECTURE', ctx));

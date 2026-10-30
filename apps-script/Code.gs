@@ -942,7 +942,13 @@ var JOIN_ONLINE = '[Online] Discussion Panel, 4PM to 5PM';
 var JOIN_RECEPTION = '[Blum Hall B100] Reception and Networking, 5PM onwards';
 var JOIN_LECTURE_WAIT = '[Blum Hall B100] Waitlist: DevEng 203 Guest Lecture, 11AM to 12PM (full; we will email you if a spot opens)';
 var JOIN_PANEL_WAIT = '[Banatao Auditorium] Waitlist: Discussion Panel, 4PM to 5PM (full; we will email you if a seat opens)';
-function joinChoices(full, lectureFull) { return [lectureFull ? JOIN_LECTURE_WAIT : JOIN_LECTURE, full ? JOIN_PANEL_WAIT : JOIN_PANEL, JOIN_ONLINE, JOIN_RECEPTION]; }
+/* Oct 30: the morning lecture is full and its waitlist is closed, so once it fills the form drops the lecture box
+   instead of offering a waitlist. Set to true to offer the lecture waitlist again. */
+var LECTURE_WAITLIST_OPEN = false;
+function joinChoices(full, lectureFull) {
+  var lec = !lectureFull ? [JOIN_LECTURE] : LECTURE_WAITLIST_OPEN ? [JOIN_LECTURE_WAIT] : [];
+  return lec.concat([full ? JOIN_PANEL_WAIT : JOIN_PANEL, JOIN_ONLINE, JOIN_RECEPTION]);
+}
 /* What one RSVP signed up for: lecture and panel are 'want' (take a spot if one is left, in RSVP order) or 'wait' (they
    picked the waitlist because it was full); stanford, online and reception are true or false. Reads the checkboxes, or
    else the old single answer. Checkbox answers arrive comma-joined, so each choice is found by words only its own label
@@ -1118,14 +1124,14 @@ function updateSeatChoices() {
   if (!item) return 'Could not find the "' + Q.join + '" question; run switchJoinToCheckboxes().';
   item.asCheckboxItem().setChoiceValues(joinChoices(full, lecFull)).setHelpText(joinHelp(plan));
   return (full ? 'Panel full: the form now offers its waitlist (' + plan.waitlist + ' waiting).' : plan.left + ' of ' + SEATS + ' panel seats left.') + ' ' +
-    (lecFull ? 'Lecture full: the form now offers its waitlist (' + plan.lecture.waitlist + ' waiting).' : plan.lecture.left + ' of ' + LECTURE_SEATS + ' lecture guest spots left.');
+    (lecFull ? (LECTURE_WAITLIST_OPEN ? 'Lecture full: the form now offers its waitlist (' + plan.lecture.waitlist + ' waiting).' : 'Lecture full: its box is off the form (waitlist closed, ' + plan.lecture.waitlist + ' already waiting).') : plan.lecture.left + ' of ' + LECTURE_SEATS + ' lecture guest spots left.');
 }
 
 /* The help text under "How will you join us?": the room for each session and how much is left, refreshed on every RSVP. */
 function joinHelp(plan) {
   // Just "Select all that apply." (Gregor's wording), plus a line when a session is full and its box turns into a waitlist.
   var lecFull = plan && plan.lecture.left === 0, full = plan && plan.left === 0;
-  return 'Select all that apply.' + (lecFull ? ' All ' + LECTURE_SEATS + ' guest spots for the lecture are taken, so its box adds you to the waitlist.' : '') +
+  return 'Select all that apply.' + (lecFull ? (LECTURE_WAITLIST_OPEN ? ' All ' + LECTURE_SEATS + ' guest spots for the lecture are taken, so its box adds you to the waitlist.' : ' The 11 AM guest lecture is full.') : '') +
     (full ? ' All ' + SEATS + ' seats in Banatao Auditorium are taken, so its box adds you to the waitlist. You can still watch online.' : '');
 }
 

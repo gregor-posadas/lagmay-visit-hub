@@ -347,12 +347,12 @@
       aria: function (t, cap, left, w) { return t + " of " + cap + " panel seats taken; " + left + " still open" + (w ? "; " + w + " on the waitlist" : "") + "."; }
     });
     if (lecture && d.lectureSeats) gauge(lecture, d.lectureSeats, a.lectureWaitlist || 0, 5, fil ? {
-      full: function (cap) { return "<b>Puno na ang lecture sa umaga.</b> Kinuha na ang lahat ng " + cap + " na puwesto para sa bisita. Mag-RSVP pa rin para sa waitlist nito."; },
+      full: function (cap) { return "<b>Puno na ang lecture sa umaga.</b> Kinuha na ang lahat ng " + cap + " na puwesto para sa bisita. Sarado na rin ang waitlist nito."; },
       few: function (left, cap) { return "<b>" + left + " na puwesto na lang</b> ang natitira sa " + cap + " para sa lecture sa umaga."; },
       left: function () { return "puwestong bakante"; }, taken: "nakuha na", of: function (cap) { return "sa " + cap + " na puwesto"; }, wait: "sa waitlist", kTaken: "Nakuha na", kOpen: "Bakante pa",
       aria: function (t, cap, left, w) { return t + " sa " + cap + " na puwesto sa lecture ang nakuha na; " + left + " pa ang bakante" + (w ? "; " + w + " sa waitlist" : "") + "."; }
     } : {
-      full: function (cap) { return "<b>The morning lecture is full.</b> All " + cap + " guest spots are taken. RSVP anyway to join its waitlist."; },
+      full: function (cap) { return "<b>The morning lecture is full.</b> All " + cap + " guest spots are taken. Its waitlist is closed too."; },
       few: function (left, cap) { return "<b>Only " + left + " of " + cap + " guest spots left</b> for the morning lecture. Spots go in the order people RSVP."; },
       left: function (n) { return n === 1 ? "spot left" : "spots left"; }, taken: "taken", of: function (cap) { return "of " + cap + " guest spots"; }, wait: "on the waitlist", kTaken: "Taken", kOpen: "Still open",
       aria: function (t, cap, left, w) { return t + " of " + cap + " lecture guest spots taken; " + left + " still open" + (w ? "; " + w + " on the waitlist" : "") + "."; }
